@@ -146,14 +146,31 @@ namespace apex_tensor{
                     op;                                                 \
             }                                                           \
 		}                                                               \
+
+
+#define APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM(func_name,param1,param2,op) \
+        inline void func_name( T &dst, const T &srca, const T &srcb, param1,param2 ){ \
+            for( size_t i = 0 ; i < num_line( dst ) ; i ++ ){           \
+                TENSOR_FLOAT *d = get_line( dst ,i );                   \
+                const TENSOR_FLOAT *a = get_line_const( srca, i );      \
+                const TENSOR_FLOAT *b = get_line_const( srcb, i );      \
+                for( int j = 0 ; j < dst.x_max ; j ++ )                 \
+                    op;                                                 \
+            }                                                           \
+		}                                                               \
+
         
 
         template<typename T>
         APEX_ELEMENTWISE_ASSIGN_OP ( fill_template, TENSOR_FLOAT val ,d[j] = val  );
         template<typename T>
+        APEX_ELEMENTWISE_ASSIGN_OP ( sample_gaussian_template, TENSOR_FLOAT sd ,d[j] = (TENSOR_FLOAT)apex_random::sample_normal()*sd  );
+        template<typename T>
         APEX_ELEMENTWISE_UNARY_OP ( add_template  , TENSOR_FLOAT val ,d[j] = a[j] + val  );
         template<typename T>
         APEX_ELEMENTWISE_UNARY_OP ( mul_template  , TENSOR_FLOAT val ,d[j] = a[j] * val  );
+        template<typename T>
+        APEX_ELEMENTWISE_UNARY_OP ( sample_gaussian_template , TENSOR_FLOAT sd ,d[j] = (TENSOR_FLOAT)apex_random::sample_normal( a[j], sd ));
         template<typename T>
         APEX_ELEMENTWISE_MAP_OP   ( sigmoid_template      , d[j] = (TENSOR_FLOAT)(1.0/(1+exp(-a[j]))) );
         template<typename T>
@@ -162,6 +179,8 @@ namespace apex_tensor{
         APEX_ELEMENTWISE_BINARY_OP( add_template, d[j] = a[j]+b[j]);
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP( sub_template, d[j] = a[j]-b[j]);
+        template<typename T>
+        APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j]);
         
     };
 
@@ -240,6 +259,21 @@ namespace apex_tensor{
             func_name##_template( dst, a );                             \
         }                                                               \
 
+#define APEX_USE_TEMPLATE_F(func_name)                                  \
+        void func_name( Tensor1D &dst , const Tensor1D &a, const Tensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb ){ \
+            func_name##_template( dst, a, b, sa, sb );                  \
+        }                                                               \
+        void func_name( Tensor2D &dst , const Tensor2D &a, const Tensor2D &b ,TENSOR_FLOAT sa, TENSOR_FLOAT sb ){ \
+            func_name##_template( dst, a, b, sa, sb );                  \
+        }                                                               \
+        void func_name( Tensor3D &dst , const Tensor3D &a, const Tensor3D &b ,TENSOR_FLOAT sa, TENSOR_FLOAT sb ){ \
+            func_name##_template( dst, a, b, sa, sb );                  \
+        }                                                               \
+        void func_name( Tensor4D &dst , const Tensor4D &a, const Tensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb ){ \
+            func_name##_template( dst, a, b, sa, sb );                  \
+        }                                                               \
+
+
     };
     // interface funtions 
     namespace tensor{
@@ -247,15 +281,17 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_A( alloc_space )
         APEX_USE_TEMPLATE_A( free_space  )
         APEX_USE_TEMPLATE_B( fill, TENSOR_FLOAT val, val,  )
-        APEX_USE_TEMPLATE_B( save_to_file, FILE *dst_file  , dst_file, const )
-		APEX_USE_TEMPLATE_B( load_from_file, FILE *dst_file, dst_file, )
+        APEX_USE_TEMPLATE_B( sample_gaussian, TENSOR_FLOAT sd , sd,  )
+        APEX_USE_TEMPLATE_B( save_to_file   , FILE *dst_file, dst_file, const )
+		APEX_USE_TEMPLATE_B( load_from_file , FILE *src_file, src_file, )
         APEX_USE_TEMPLATE_C( add )
         APEX_USE_TEMPLATE_C( sub )
         APEX_USE_TEMPLATE_D( add, TENSOR_FLOAT val, val )
         APEX_USE_TEMPLATE_D( mul, TENSOR_FLOAT val, val )
+        APEX_USE_TEMPLATE_D( sample_gaussian, TENSOR_FLOAT sd, sd )
         APEX_USE_TEMPLATE_E( sigmoid )
         APEX_USE_TEMPLATE_E( sample_binary )
-        
+        APEX_USE_TEMPLATE_F( scale_add )
     };
 };
 #endif
