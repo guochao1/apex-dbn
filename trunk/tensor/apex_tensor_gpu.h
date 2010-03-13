@@ -4,6 +4,8 @@
 
 // data structure for tensor
 namespace apex_tensor{
+    struct GTensor2D;
+
     struct GTensor1D{
         size_t        x_max;        
         size_t        pitch;
@@ -25,6 +27,7 @@ namespace apex_tensor{
         inline GTensor1D& operator -= ( const GTensor1D &b );        
 
         inline GTensor1D& operator =  ( const apex_op_plan::AddPlan<GTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::DotPlan<GTensor2D,GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
     };
@@ -53,6 +56,7 @@ namespace apex_tensor{
         inline GTensor2D& operator -= ( const GTensor2D &b );        
 
         inline GTensor2D& operator =  ( const apex_op_plan::AddPlan<GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::DotPlan<GTensor2D,GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
     };
