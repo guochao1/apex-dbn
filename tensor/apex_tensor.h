@@ -1,6 +1,7 @@
 #ifndef _APEX_TENSOR_H_
 #define _APEX_TENSOR_H_
 
+#include <cstdio>
 // data structure for tensor
 namespace apex_tensor{
     // defines the type of elements in tensor
@@ -60,6 +61,41 @@ namespace apex_tensor{
         inline void operator = ( TENSOR_FLOAT val );
         inline void operator +=( const Tensor4D &b );        
     };
+    
+    // inline functions for tensor
+    
+    // functions defined for tensor
+    namespace tensor{
+        // allocate space for given tensor
+        void alloc_space( Tensor1D &ts );
+        void alloc_space( Tensor2D &ts );
+        void alloc_space( Tensor3D &ts );
+        void alloc_space( Tensor4D &ts );
+        
+        // free space for given tensor
+        void free_space( Tensor1D &ts );
+        void free_space( Tensor2D &ts );
+        void free_space( Tensor3D &ts );
+        void free_space( Tensor4D &ts );
+        
+        // fill the tensor with real value
+        void fill( Tensor1D &ts, TENSOR_FLOAT val );
+        void fill( Tensor2D &ts, TENSOR_FLOAT val );
+        void fill( Tensor3D &ts, TENSOR_FLOAT val );
+        void fill( Tensor4D &ts, TENSOR_FLOAT val );
+        
+        // save tensor to file
+        void save_to_file( const Tensor1D &ts, FILE *dst );
+        void save_to_file( const Tensor2D &ts, FILE *dst );
+        void save_to_file( const Tensor3D &ts, FILE *dst );
+        void save_to_file( const Tensor4D &ts, FILE *dst );      
+        
+        // load tensor from file 
+        void load_from_file( Tensor1D &ts, FILE *src );
+        void load_from_file( Tensor2D &ts, FILE *src );
+        void load_from_file( Tensor3D &ts, FILE *src );
+        void load_from_file( Tensor4D &ts, FILE *src );      
+    };    
 };
 
 // definitions for inline functions 

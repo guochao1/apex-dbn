@@ -1,7 +1,7 @@
 #ifndef _APEX_TENSOR_INLINE_CPP_
 #define _APEX_TENSOR_INLINE_CPP_
 
-#include "apex_tensor_init.h"
+#include "apex_tensor.h"
 #include "apex_tensor_op.h"
 /* inline functions for tensor */
 namespace apex_tensor{
@@ -79,16 +79,16 @@ namespace apex_tensor{
 
 
     inline void Tensor1D::operator = ( TENSOR_FLOAT val ){
-        tensor_fill( *this, val );
+		tensor::fill( *this, val );
     }
     inline void Tensor2D::operator = ( TENSOR_FLOAT val ){
-        tensor_fill( *this, val );
+		tensor::fill( *this, val );
     }
     inline void Tensor3D::operator = ( TENSOR_FLOAT val ){
-        tensor_fill( *this, val );
+		tensor::fill( *this, val );
     }
     inline void Tensor4D::operator = ( TENSOR_FLOAT val ){
-        tensor_fill( *this, val );
+		tensor::fill( *this, val );
     }
 
     inline void Tensor1D::operator += ( const Tensor1D &b ){
