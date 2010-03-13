@@ -2,7 +2,6 @@
 #define _APEX_TENSOR_INLINE_CPP_
 
 #include "apex_tensor.h"
-#include "apex_tensor_op.h"
 /* inline functions for tensor */
 namespace apex_tensor{
 
