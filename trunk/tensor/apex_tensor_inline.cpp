@@ -120,35 +120,62 @@ namespace apex_tensor{
     APEX_ASSIGN_FUNC_TO_OP_C( operator+= , tensor::add );  
     APEX_ASSIGN_FUNC_TO_OP_C( operator-= , tensor::sub );  
 
-    // more operator support
+#undef APEX_ASSIGN_FUNC_TO_OP_A
+#undef APEX_ASSIGN_FUNC_TO_OP_B
+#undef APEX_ASSIGN_FUNC_TO_OP_C
+
+    // more operator support    
     // scale add
+    // expand the macro to all types
 #define APEX_EXPAND(mac)                                                \
     mac(TT1D)                                                           \
     mac(TT2D)                                                           \
     mac(TT3D)                                                           \
     mac(TT4D)                                                           \
 
-#define APEX_SCALE_ADD_OP(T)                                            \
+#define APEX_EXPAND2(mac2)                                              \
+    mac2(TT1D,TENSOR_FLOAT)                                             \
+    mac2(TT2D,TENSOR_FLOAT)                                             \
+    mac2(TT3D,TENSOR_FLOAT)                                             \
+    mac2(TT4D,TENSOR_FLOAT)                                             \
+
+
+#define APEX_EVAL_SCALE_ADD_PLAN(T)                                     \
     inline T& T::operator= ( const apex_op_plan::ScaleAddPlan<T,TENSOR_FLOAT> &val ){ \
         tensor::scale_add( *this, *(val.a),*(val.b), val.sa,val.sb);    \
         return *this;                                                   \
     }                                                                   \
 
-#define APEX_SCALE_OP(T)                                                \
-    inline apex_op_plan::ScalePlan<T,TENSOR_FLOAT> operator*( const T &a, TENSOR_FLOAT val ){ \
-        return apex_op_plan::ScalePlan<T,TENSOR_FLOAT>( &a, val );      \
+
+#define APEX_EVAL_SCALE_PLAN(T)                                         \
+    inline T& T::operator= ( const apex_op_plan::ScalePlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::mul( *this, *(val.a), val.scale );                      \
+        return *this;                                                   \
     }                                                                   \
 
-    APEX_EXPAND( APEX_SCALE_ADD_OP )
-    APEX_EXPAND( APEX_SCALE_OP )
+#define APEX_EVAL_ADD_PLAN(T)                                           \
+    inline T& T::operator= ( const apex_op_plan::AddPlan<T> &val ){     \
+        tensor::add( *this, *(val.a), *(val.b) );                       \
+        return *this;                                                   \
+    }                                                                   \
+
+    APEX_EXPAND(  APEX_EVAL_ADD_PLAN )
+    APEX_EXPAND ( APEX_EVAL_SCALE_PLAN )
+    APEX_EXPAND ( APEX_EVAL_SCALE_ADD_PLAN )
+
+#undef APEX_EVAL_SCALE_ADD_PLAN
+#undef APEX_EVAL_SCALE_PLAN
+#undef APEX_EVAL_ADD_PLAN
+       
+    APEX_EXPAND ( APEX_ADD_SUPPORT_ADD_OP )           
+    APEX_EXPAND2( APEX_ADD_SUPPORT_SCALE_OP )           
+    // support for dot and dot.T
+    APEX_ADD_SUPPORT_DOT_OP( TT2D, TT1D )
+    APEX_ADD_SUPPORT_DOT_OP( TT2D, TT2D )
     
-
-
+    
 #undef APEX_EXPAND
-#undef APEX_SCALE_ADD_OP
-#undef APEX_ASSIGN_FUNC_TO_OP_A
-#undef APEX_ASSIGN_FUNC_TO_OP_B
-#undef APEX_ASSIGN_FUNC_TO_OP_C
- 
+#undef APEX_EXPAND2
+        
 };
 

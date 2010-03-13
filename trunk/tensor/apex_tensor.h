@@ -37,7 +37,9 @@ namespace apex_tensor{
         inline Tensor1D& operator *= ( TENSOR_FLOAT val );        
         inline Tensor1D& operator += ( const Tensor1D &b );        
         inline Tensor1D& operator -= ( const Tensor1D &b );        
-
+        
+        inline Tensor1D& operator =  ( const apex_op_plan::AddPlan<Tensor1D> &val );        
+        inline Tensor1D& operator =  ( const apex_op_plan::ScalePlan<Tensor1D,TENSOR_FLOAT> &val );        
         inline Tensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<Tensor1D,TENSOR_FLOAT> &val );        
     };
 
@@ -64,6 +66,8 @@ namespace apex_tensor{
         inline Tensor2D& operator += ( const Tensor2D &b );        
         inline Tensor2D& operator -= ( const Tensor2D &b );        
 
+        inline Tensor2D& operator =  ( const apex_op_plan::AddPlan<Tensor2D> &val );        
+        inline Tensor2D& operator =  ( const apex_op_plan::ScalePlan<Tensor2D,TENSOR_FLOAT> &val );        
         inline Tensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<Tensor2D,TENSOR_FLOAT> &val );        
     };
 
@@ -90,6 +94,8 @@ namespace apex_tensor{
         inline Tensor3D& operator += ( const Tensor3D &b );        
         inline Tensor3D& operator -= ( const Tensor3D &b );        
         
+        inline Tensor3D& operator =  ( const apex_op_plan::AddPlan<Tensor3D> &val );        
+        inline Tensor3D& operator =  ( const apex_op_plan::ScalePlan<Tensor3D,TENSOR_FLOAT> &val );        
         inline Tensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<Tensor3D,TENSOR_FLOAT> &val );        
     };
     
@@ -118,6 +124,8 @@ namespace apex_tensor{
         inline Tensor4D& operator += ( const Tensor4D &b );        
         inline Tensor4D& operator -= ( const Tensor4D &b );        
 
+        inline Tensor4D& operator =  ( const apex_op_plan::AddPlan<Tensor4D> &val );        
+        inline Tensor4D& operator =  ( const apex_op_plan::ScalePlan<Tensor4D,TENSOR_FLOAT> &val );        
         inline Tensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<Tensor4D,TENSOR_FLOAT> &val );        
     };
     
