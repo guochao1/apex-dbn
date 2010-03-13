@@ -24,6 +24,8 @@ namespace apex_tensor{
         inline GTensor1D& operator += ( const GTensor1D &b );        
         inline GTensor1D& operator -= ( const GTensor1D &b );        
 
+        inline GTensor1D& operator =  ( const apex_op_plan::AddPlan<GTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
     };
 
@@ -50,6 +52,8 @@ namespace apex_tensor{
         inline GTensor2D& operator += ( const GTensor2D &b );        
         inline GTensor2D& operator -= ( const GTensor2D &b );        
 
+        inline GTensor2D& operator =  ( const apex_op_plan::AddPlan<GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
     };
 
@@ -76,6 +80,8 @@ namespace apex_tensor{
         inline GTensor3D& operator += ( const GTensor3D &b );        
         inline GTensor3D& operator -= ( const GTensor3D &b );        
 
+        inline GTensor3D& operator =  ( const apex_op_plan::AddPlan<GTensor3D> &val );        
+        inline GTensor3D& operator =  ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
     };
     
@@ -104,6 +110,8 @@ namespace apex_tensor{
         inline GTensor4D& operator += ( const GTensor4D &b );        
         inline GTensor4D& operator -= ( const GTensor4D &b );        
 
+        inline GTensor4D& operator =  ( const apex_op_plan::AddPlan<GTensor4D> &val );        
+        inline GTensor4D& operator =  ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
         inline GTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
     };
     
