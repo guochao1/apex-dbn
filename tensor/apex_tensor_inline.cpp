@@ -76,23 +76,67 @@ namespace apex_tensor{
         return ts;
     }    
 
+#define APEX_ASSIGN_FUNC_TO_OP_A( opname, func_name, param, arg )       \
+    inline Tensor1D& Tensor1D::opname ( param ){                        \
+        func_name( *this,arg );                                         \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor2D& Tensor2D::opname ( param ){                        \
+        func_name( *this,arg );                                         \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor3D& Tensor3D::opname ( param ){                        \
+        func_name( *this,arg );                                         \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor4D& Tensor4D::opname ( param ){                        \
+        func_name( *this,arg );                                         \
+        return *this;                                                   \
+    }                                                                   \
 
-    inline void Tensor1D::operator = ( TENSOR_FLOAT val ){
-		tensor::fill( *this, val );
-    }
-    inline void Tensor2D::operator = ( TENSOR_FLOAT val ){
-		tensor::fill( *this, val );
-    }
-    inline void Tensor3D::operator = ( TENSOR_FLOAT val ){
-		tensor::fill( *this, val );
-    }
-    inline void Tensor4D::operator = ( TENSOR_FLOAT val ){
-		tensor::fill( *this, val );
-    }
+#define APEX_ASSIGN_FUNC_TO_OP_B( opname, func_name, param, arg )       \
+    inline Tensor1D& Tensor1D::opname ( param ){                        \
+        func_name( *this,*this,arg );                                   \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor2D& Tensor2D::opname ( param ){                        \
+        func_name( *this,*this,arg );                                   \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor3D& Tensor3D::opname ( param ){                        \
+        func_name( *this,*this,arg );                                   \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor4D& Tensor4D::opname ( param ){                        \
+        func_name( *this,*this,arg );                                   \
+        return *this;                                                   \
+    }                                                                   \
 
-    inline void Tensor1D::operator += ( const Tensor1D &b ){
-        add( *this, *this, b );
-    }
+#define APEX_ASSIGN_FUNC_TO_OP_C( opname, func_name )                   \
+    inline Tensor1D& Tensor1D::opname ( const Tensor1D &b ){            \
+        func_name( *this,*this,b );                                     \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor2D& Tensor2D::opname ( const Tensor2D &b ){            \
+        func_name( *this,*this,b );                                     \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor3D& Tensor3D::opname ( const Tensor3D &b ){            \
+        func_name( *this,*this,b );                                     \
+        return *this;                                                   \
+    }                                                                   \
+    inline Tensor4D& Tensor4D::opname ( const Tensor4D &b ){            \
+        func_name( *this,*this,b );                                     \
+        return *this;                                                   \
+    }                                                                   \
+
+    APEX_ASSIGN_FUNC_TO_OP_A( operator=  , tensor::fill, TENSOR_FLOAT val, val );  
+    APEX_ASSIGN_FUNC_TO_OP_B( operator+= , tensor::add , TENSOR_FLOAT val, val );  
+    APEX_ASSIGN_FUNC_TO_OP_B( operator*= , tensor::mul , TENSOR_FLOAT val, val );  
+    APEX_ASSIGN_FUNC_TO_OP_C( operator+= , tensor::add );  
+    APEX_ASSIGN_FUNC_TO_OP_C( operator-= , tensor::sub );  
+
+
 };
 #endif
 
