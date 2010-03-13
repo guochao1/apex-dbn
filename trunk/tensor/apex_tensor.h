@@ -96,6 +96,42 @@ namespace apex_tensor{
         void load_from_file( Tensor3D &ts, FILE *src );
         void load_from_file( Tensor4D &ts, FILE *src );      
     };    
+    
+    //mapping functions 
+    namespace apex_tensor{
+        void sigmoid( Tensor1D &mean, const Tensor &energy );
+    };
+
+    // sampling functions 
+    namespace apex_tensor{
+        // sample binary distribution
+        void sample_binary  ( Tensor1D &state, const Tensor1D &prob );
+        
+        // sample gaussian distribution with certain sd
+        void sample_gaussian( Tensor1D &state, const Tensor1D &mean, float sd );
+        
+        // sample gaussian distribution with certain mean sd
+        void sample_gaussian( Tensor1D &state, float mean, float sd );        
+    };
+    // arithmetic operations
+    namespace apex_tensor{
+        // dst = a + b
+        void add      ( Tensor1D &dst, const Tensor1D &a, const Tensor1D &b );
+        // dst = a - b
+        void sub      ( Tensor1D &dst, const Tensor1D &a, const Tensor1D &b );
+        // dst  = dot( mat, src  ) 
+        void dot      ( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );    
+        // dst  = dot( mat.T, src)
+        void dot_t    ( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );    
+        // dst += dot( mat, src  ) 
+        void add_dot  ( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );    
+        // dst += dot( mat.T, src)
+        void add_dot_t( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );    
+        // dst -= dot( mat, src  ) 
+        void sub_dot  ( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );    
+        // dst -= dot( mat.T, src)
+        void sub_dot_t( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );            
+    };
 };
 
 // definitions for inline functions 
