@@ -1,24 +1,8 @@
-#ifndef _APEX_TENSOR_INLINE_CPP_
-#define _APEX_TENSOR_INLINE_CPP_
-
-#include "apex_tensor.h"
 /* inline functions for tensor */
-namespace apex_tensor{
-
+namespace apex_tensor{    
     // author: tqchen
-    inline TENSOR_FLOAT& Tensor1D::operator[]( int idx ){
-        return elem[idx];
-    }
-    
-    // author: tqchen
-    inline const TENSOR_FLOAT& Tensor1D::operator[]( int idx )const{
-        return elem[idx];
-    }    
-
-    
-    // author: tqchen
-    inline Tensor1D Tensor2D::operator[]( int idx ){
-        Tensor1D ts;
+    inline TT1D TT2D::operator[]( int idx ){
+        TT1D ts;
 		ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*pitch);
         ts.pitch = pitch;
         ts.x_max = x_max;
@@ -26,8 +10,8 @@ namespace apex_tensor{
 	}
     
     // author: tqchen
-    inline const Tensor1D Tensor2D::operator[]( int idx )const{
-		Tensor1D ts;
+    inline const TT1D TT2D::operator[]( int idx )const{
+		TT1D ts;
 		ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*pitch);
         ts.pitch = pitch;
         ts.x_max = x_max;
@@ -35,8 +19,8 @@ namespace apex_tensor{
 	}
     
     // author: tqchen
-    inline Tensor2D Tensor3D::operator[]( int idx ){
-        Tensor2D ts;
+    inline TT2D TT3D::operator[]( int idx ){
+        TT2D ts;
         ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*y_max*pitch);
 		ts.pitch = pitch;
 		ts.x_max = x_max;
@@ -45,8 +29,8 @@ namespace apex_tensor{
     }
     
     // author: tqchen
-    inline const Tensor2D Tensor3D::operator[]( int idx )const{
-        Tensor2D ts;
+    inline const TT2D TT3D::operator[]( int idx )const{
+        TT2D ts;
         ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*y_max*pitch);
 		ts.pitch = pitch;
 		ts.x_max = x_max;
@@ -55,8 +39,8 @@ namespace apex_tensor{
     }    
     
     // author: tqchen
-    inline Tensor3D Tensor4D::operator[]( int idx ){
-        Tensor3D ts;
+    inline TT3D TT4D::operator[]( int idx ){
+        TT3D ts;
         ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*z_max*y_max*pitch);
 		ts.pitch = pitch;
 		ts.x_max = x_max;
@@ -66,8 +50,8 @@ namespace apex_tensor{
     }
 
     // author: tqchen
-    inline const Tensor3D Tensor4D::operator[]( int idx )const{
-        Tensor3D ts;
+    inline const TT3D TT4D::operator[]( int idx )const{
+        TT3D ts;
         ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*z_max*y_max*pitch);
 		ts.pitch = pitch;
 		ts.x_max = x_max;
@@ -77,55 +61,55 @@ namespace apex_tensor{
     }    
 
 #define APEX_ASSIGN_FUNC_TO_OP_A( opname, func_name, param, arg )       \
-    inline Tensor1D& Tensor1D::opname ( param ){                        \
+    inline TT1D& TT1D::opname ( param ){                                \
         func_name( *this,arg );                                         \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor2D& Tensor2D::opname ( param ){                        \
+    inline TT2D& TT2D::opname ( param ){                                \
         func_name( *this,arg );                                         \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor3D& Tensor3D::opname ( param ){                        \
+    inline TT3D& TT3D::opname ( param ){                                \
         func_name( *this,arg );                                         \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor4D& Tensor4D::opname ( param ){                        \
+    inline TT4D& TT4D::opname ( param ){                                \
         func_name( *this,arg );                                         \
         return *this;                                                   \
     }                                                                   \
 
 #define APEX_ASSIGN_FUNC_TO_OP_B( opname, func_name, param, arg )       \
-    inline Tensor1D& Tensor1D::opname ( param ){                        \
+    inline TT1D& TT1D::opname ( param ){                                \
         func_name( *this,*this,arg );                                   \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor2D& Tensor2D::opname ( param ){                        \
+    inline TT2D& TT2D::opname ( param ){                                \
         func_name( *this,*this,arg );                                   \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor3D& Tensor3D::opname ( param ){                        \
+    inline TT3D& TT3D::opname ( param ){                                \
         func_name( *this,*this,arg );                                   \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor4D& Tensor4D::opname ( param ){                        \
+    inline TT4D& TT4D::opname ( param ){                                \
         func_name( *this,*this,arg );                                   \
         return *this;                                                   \
     }                                                                   \
-
+    
 #define APEX_ASSIGN_FUNC_TO_OP_C( opname, func_name )                   \
-    inline Tensor1D& Tensor1D::opname ( const Tensor1D &b ){            \
+    inline TT1D& TT1D::opname ( const TT1D &b ){                        \
         func_name( *this,*this,b );                                     \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor2D& Tensor2D::opname ( const Tensor2D &b ){            \
+    inline TT2D& TT2D::opname ( const TT2D &b ){                        \
         func_name( *this,*this,b );                                     \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor3D& Tensor3D::opname ( const Tensor3D &b ){            \
+    inline TT3D& TT3D::opname ( const TT3D &b ){                        \
         func_name( *this,*this,b );                                     \
         return *this;                                                   \
     }                                                                   \
-    inline Tensor4D& Tensor4D::opname ( const Tensor4D &b ){            \
+    inline TT4D& TT4D::opname ( const TT4D &b ){                        \
         func_name( *this,*this,b );                                     \
         return *this;                                                   \
     }                                                                   \
@@ -136,7 +120,35 @@ namespace apex_tensor{
     APEX_ASSIGN_FUNC_TO_OP_C( operator+= , tensor::add );  
     APEX_ASSIGN_FUNC_TO_OP_C( operator-= , tensor::sub );  
 
+    // more operator support
+    // scale add
+#define APEX_EXPAND(mac)                                                \
+    mac(TT1D)                                                           \
+    mac(TT2D)                                                           \
+    mac(TT3D)                                                           \
+    mac(TT4D)                                                           \
 
+#define APEX_SCALE_ADD_OP(T)                                            \
+    inline T& T::operator= ( const apex_op_plan::ScaleAddPlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::scale_add( *this, *(val.a),*(val.b), val.sa,val.sb);    \
+        return *this;                                                   \
+    }                                                                   \
+
+#define APEX_SCALE_OP(T)                                                \
+    inline apex_op_plan::ScalePlan<T,TENSOR_FLOAT> operator*( const T &a, TENSOR_FLOAT val ){ \
+        return apex_op_plan::ScalePlan<T,TENSOR_FLOAT>( &a, val );      \
+    }                                                                   \
+
+    APEX_EXPAND( APEX_SCALE_ADD_OP )
+    APEX_EXPAND( APEX_SCALE_OP )
+    
+
+
+#undef APEX_EXPAND
+#undef APEX_SCALE_ADD_OP
+#undef APEX_ASSIGN_FUNC_TO_OP_A
+#undef APEX_ASSIGN_FUNC_TO_OP_B
+#undef APEX_ASSIGN_FUNC_TO_OP_C
+ 
 };
-#endif
 

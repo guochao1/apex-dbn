@@ -1,0 +1,228 @@
+#ifndef _APEX_TENSOR_GPU_H_
+#define _APEX_TENSOR_GPU_H_
+#include "apex_tensor.h"
+
+// data structure for tensor
+namespace apex_tensor{
+
+    struct GTensor1D{
+        size_t        x_max;        
+        size_t        pitch;
+        TENSOR_FLOAT *elem;
+        
+        GTensor1D(){}
+        GTensor1D( size_t x_max ){
+            set_param( x_max ); 
+        }        
+        // set the parameter of current data
+        inline void set_param( size_t x_max ){
+            this->x_max = x_max;
+        }        
+
+        inline GTensor1D& operator =  ( TENSOR_FLOAT val );        
+        inline GTensor1D& operator += ( TENSOR_FLOAT val );        
+        inline GTensor1D& operator *= ( TENSOR_FLOAT val );        
+        inline GTensor1D& operator += ( const GTensor1D &b );        
+        inline GTensor1D& operator -= ( const GTensor1D &b );        
+
+        inline GTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
+    };
+
+    struct GTensor2D{
+        size_t        x_max, y_max;        
+        size_t        pitch;
+        TENSOR_FLOAT *elem;
+
+        GTensor2D(){}       
+        GTensor2D( size_t x_max, size_t y_max ){
+            set_param( x_max, y_max ); 
+        }        
+        // set the parameter of current data
+        inline void set_param( size_t x_max, size_t y_max ){
+            this->x_max = x_max;
+            this->y_max = y_max;
+        }        
+        // operators
+        inline       GTensor1D operator[]( int idx );
+        inline const GTensor1D operator[]( int idx )const;
+        inline GTensor2D& operator =  ( TENSOR_FLOAT val );
+        inline GTensor2D& operator += ( TENSOR_FLOAT val );
+        inline GTensor2D& operator *= ( TENSOR_FLOAT val );
+        inline GTensor2D& operator += ( const GTensor2D &b );        
+        inline GTensor2D& operator -= ( const GTensor2D &b );        
+
+        inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
+    };
+
+    struct GTensor3D{
+        size_t        x_max, y_max, z_max;                
+        size_t        pitch;
+        TENSOR_FLOAT *elem;
+        GTensor3D(){}
+        GTensor3D( size_t x_max, size_t y_max, size_t z_max ){
+            set_param( x_max, y_max, z_max ); 
+        }        
+        // set the parameter of current data
+        inline void set_param( size_t x_max, size_t y_max, size_t z_max ){
+            this->x_max = x_max;
+            this->y_max = y_max;
+            this->z_max = z_max;
+        }        
+        // operators
+        inline       GTensor2D operator[]( int idx );
+        inline const GTensor2D operator[]( int idx )const;
+        inline GTensor3D& operator =  ( TENSOR_FLOAT val );
+        inline GTensor3D& operator += ( TENSOR_FLOAT val );
+        inline GTensor3D& operator *= ( TENSOR_FLOAT val );
+        inline GTensor3D& operator += ( const GTensor3D &b );        
+        inline GTensor3D& operator -= ( const GTensor3D &b );        
+
+        inline GTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
+    };
+    
+    struct GTensor4D{
+        size_t        x_max, y_max, z_max, h_max;        
+        size_t        pitch;
+
+        TENSOR_FLOAT *elem;
+        GTensor4D(){}
+        GTensor4D( size_t x_max, size_t y_max, size_t z_max, size_t h_max ){
+            set_param( x_max, y_max, z_max, h_max ); 
+        }        
+        // set the parameter of current data
+        inline void set_param( size_t x_max, size_t y_max, size_t z_max, size_t h_max ){
+            this->x_max = x_max;
+            this->y_max = y_max;
+            this->z_max = z_max;
+            this->h_max = h_max;
+        }        
+        // operators
+        inline       GTensor3D operator[]( int idx );
+        inline const GTensor3D operator[]( int idx )const;
+        inline GTensor4D& operator =  ( TENSOR_FLOAT val );
+        inline GTensor4D& operator += ( TENSOR_FLOAT val );
+        inline GTensor4D& operator *= ( TENSOR_FLOAT val );
+        inline GTensor4D& operator += ( const GTensor4D &b );        
+        inline GTensor4D& operator -= ( const GTensor4D &b );        
+
+        inline GTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
+    };
+    
+    // inline functions for tensor
+    
+    // functions defined for tensor
+    namespace tensor{
+        // allocate space for given tensor
+        void alloc_space( GTensor1D &ts );
+        void alloc_space( GTensor2D &ts );
+        void alloc_space( GTensor3D &ts );
+        void alloc_space( GTensor4D &ts );
+        
+        // free space for given tensor
+        void free_space( GTensor1D &ts );
+        void free_space( GTensor2D &ts );
+        void free_space( GTensor3D &ts );
+        void free_space( GTensor4D &ts );
+        
+        // fill the tensor with real value
+        void fill( GTensor1D &ts, TENSOR_FLOAT val );
+        void fill( GTensor2D &ts, TENSOR_FLOAT val );
+        void fill( GTensor3D &ts, TENSOR_FLOAT val );
+        void fill( GTensor4D &ts, TENSOR_FLOAT val );
+        
+        // copy data from another tensor
+        void copy( GTensor1D &dst, const Tensor1D &src );
+        void copy( GTensor2D &dst, const Tensor2D &src );
+        void copy( GTensor3D &dst, const Tensor3D &src );
+        void copy( GTensor4D &dst, const Tensor4D &src );
+
+        // copy data from another tensor
+        void copy( GTensor1D &dst, const GTensor1D &src );
+        void copy( GTensor2D &dst, const GTensor2D &src );
+        void copy( GTensor3D &dst, const GTensor3D &src );
+        void copy( GTensor4D &dst, const GTensor4D &src );
+    };    
+    
+    //mapping functions 
+    namespace tensor{
+        void sigmoid( GTensor1D &mean, const GTensor1D &energy );
+        void sigmoid( GTensor2D &mean, const GTensor2D &energy );
+        void sigmoid( GTensor3D &mean, const GTensor3D &energy );
+        void sigmoid( GTensor4D &mean, const GTensor4D &energy );
+    };
+
+    // sampling functions 
+    namespace tensor{
+        // sample binary distribution
+        void sample_binary  ( GTensor1D &state, const GTensor1D &prob );
+        void sample_binary  ( GTensor2D &state, const GTensor2D &prob );
+        void sample_binary  ( GTensor3D &state, const GTensor3D &prob );
+        void sample_binary  ( GTensor4D &state, const GTensor4D &prob );
+        
+        // sample gaussian distribution with certain sd
+        void sample_gaussian( GTensor1D &state, const GTensor1D &mean, float sd );
+        void sample_gaussian( GTensor2D &state, const GTensor2D &mean, float sd );
+        void sample_gaussian( GTensor3D &state, const GTensor3D &mean, float sd );
+        void sample_gaussian( GTensor4D &state, const GTensor4D &mean, float sd );
+        
+        // sample gaussian distribution with certain mean sd
+        void sample_gaussian( GTensor1D &state, float sd );        
+        void sample_gaussian( GTensor2D &state, float sd ); 
+        void sample_gaussian( GTensor3D &state, float sd );        
+        void sample_gaussian( GTensor4D &state, float sd );        
+    };
+
+    // arithmetic operations
+    namespace tensor{
+        // dst = a + b
+        void add      ( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b );
+        void add      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );
+        void add      ( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b );
+        void add      ( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b );                
+        // dst = a*sa + b*sb
+        void scale_add( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void scale_add( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void scale_add( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void scale_add( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+        // dst = a - b
+        void sub      ( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b );
+        void sub      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );
+        void sub      ( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b );
+        void sub      ( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b );
+        // dst = a + val
+        void add      ( GTensor1D &dst, const GTensor1D &a, TENSOR_FLOAT val );
+        void add      ( GTensor2D &dst, const GTensor2D &a, TENSOR_FLOAT val );
+        void add      ( GTensor3D &dst, const GTensor3D &a, TENSOR_FLOAT val );
+        void add      ( GTensor4D &dst, const GTensor4D &a, TENSOR_FLOAT val );
+        // dst = a * val
+        void mul      ( GTensor1D &dst, const GTensor1D &a, TENSOR_FLOAT val );
+        void mul      ( GTensor2D &dst, const GTensor2D &a, TENSOR_FLOAT val );
+        void mul      ( GTensor3D &dst, const GTensor3D &a, TENSOR_FLOAT val );
+        void mul      ( GTensor4D &dst, const GTensor4D &a, TENSOR_FLOAT val );
+
+        // matrix multiplication
+        // dst  = dot( a, b  ) 
+        void dot      ( GTensor1D &dst, const GTensor2D a, const GTensor1D &b );    
+        void dot      ( GTensor2D &dst, const GTensor2D a, const GTensor2D &b );            
+        // dst  = dot( a.T, b)
+        void dot_t    ( GTensor1D &dst, const GTensor2D a, const GTensor1D &b );    
+        void dot_t    ( GTensor2D &dst, const GTensor2D a, const GTensor2D &b );    
+        void dot_t    ( GTensor2D &dst, const GTensor1D a, const GTensor1D &b );    
+
+    };
+};
+
+// definitions for inline functions 
+#define TT1D GTensor1D
+#define TT2D GTensor2D
+#define TT3D GTensor3D
+#define TT4D GTensor4D
+#include "apex_tensor_inline.cpp"
+#undef TT1D 
+#undef TT2D 
+#undef TT3D 
+#undef TT4D 
+
+#endif
+
+
