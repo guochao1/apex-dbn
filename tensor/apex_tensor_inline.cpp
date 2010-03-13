@@ -159,10 +159,19 @@ namespace apex_tensor{
         return *this;                                                   \
     }                                                                   \
 
+#define APEX_EVAL_DOT_PLAN(T,TA,TB)                                     \
+    inline T& T::operator= ( const apex_op_plan::DotPlan<TA,TB> &val ){ \
+        tensor::dot( *this, *(val.a), *(val.b) );                       \
+        return *this;                                                   \
+    }                                                                   \
+    
+    
     APEX_EXPAND(  APEX_EVAL_ADD_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_ADD_PLAN )
-
+    APEX_EVAL_DOT_PLAN( TT1D, TT2D, TT1D )
+    APEX_EVAL_DOT_PLAN( TT2D, TT2D, TT2D )
+    
 #undef APEX_EVAL_SCALE_ADD_PLAN
 #undef APEX_EVAL_SCALE_PLAN
 #undef APEX_EVAL_ADD_PLAN

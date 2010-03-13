@@ -11,6 +11,8 @@ namespace apex_tensor{
     // defines the type of elements in tensor
     typedef float TENSOR_FLOAT;
 
+    struct Tensor2D;
+
     struct Tensor1D{
         size_t        x_max;        
         size_t        pitch;
@@ -39,6 +41,7 @@ namespace apex_tensor{
         inline Tensor1D& operator -= ( const Tensor1D &b );        
         
         inline Tensor1D& operator =  ( const apex_op_plan::AddPlan<Tensor1D> &val );        
+        inline Tensor1D& operator =  ( const apex_op_plan::DotPlan<Tensor2D,Tensor1D> &val );        
         inline Tensor1D& operator =  ( const apex_op_plan::ScalePlan<Tensor1D,TENSOR_FLOAT> &val );        
         inline Tensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<Tensor1D,TENSOR_FLOAT> &val );        
     };
@@ -67,6 +70,7 @@ namespace apex_tensor{
         inline Tensor2D& operator -= ( const Tensor2D &b );        
 
         inline Tensor2D& operator =  ( const apex_op_plan::AddPlan<Tensor2D> &val );        
+        inline Tensor2D& operator =  ( const apex_op_plan::DotPlan<Tensor2D,Tensor2D> &val );        
         inline Tensor2D& operator =  ( const apex_op_plan::ScalePlan<Tensor2D,TENSOR_FLOAT> &val );        
         inline Tensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<Tensor2D,TENSOR_FLOAT> &val );        
     };
