@@ -2,6 +2,8 @@
 #define _APEX_TENSOR_H_
 
 #include <cstdio>
+#include <cmath>
+
 // data structure for tensor
 namespace apex_tensor{
     // defines the type of elements in tensor
@@ -17,8 +19,11 @@ namespace apex_tensor{
         // operators
         inline       TENSOR_FLOAT& operator[]( int idx );
         inline const TENSOR_FLOAT& operator[]( int idx )const;
-        inline void operator =  ( TENSOR_FLOAT val );        
-        inline void operator += ( const Tensor1D &b );        
+        inline Tensor1D& operator =  ( TENSOR_FLOAT val );        
+        inline Tensor1D& operator += ( TENSOR_FLOAT val );        
+        inline Tensor1D& operator *= ( TENSOR_FLOAT val );        
+        inline Tensor1D& operator += ( const Tensor1D &b );        
+        inline Tensor1D& operator -= ( const Tensor1D &b );        
     };
 
     struct Tensor2D{
@@ -31,8 +36,11 @@ namespace apex_tensor{
         // operators
         inline       Tensor1D operator[]( int idx );
         inline const Tensor1D operator[]( int idx )const;
-        inline void operator = ( TENSOR_FLOAT val );
-        inline void operator +=( const Tensor2D &b );        
+        inline Tensor2D& operator =  ( TENSOR_FLOAT val );
+        inline Tensor2D& operator += ( TENSOR_FLOAT val );
+        inline Tensor2D& operator *= ( TENSOR_FLOAT val );
+        inline Tensor2D& operator += ( const Tensor2D &b );        
+        inline Tensor2D& operator -= ( const Tensor2D &b );        
     };
 
     struct Tensor3D{
@@ -44,8 +52,11 @@ namespace apex_tensor{
         // operators
         inline       Tensor2D operator[]( int idx );
         inline const Tensor2D operator[]( int idx )const;
-        inline void operator = ( TENSOR_FLOAT val );
-        inline void operator +=( const Tensor3D &b );        
+        inline Tensor3D& operator =  ( TENSOR_FLOAT val );
+        inline Tensor3D& operator += ( TENSOR_FLOAT val );
+        inline Tensor3D& operator *= ( TENSOR_FLOAT val );
+        inline Tensor3D& operator += ( const Tensor3D &b );        
+        inline Tensor3D& operator -= ( const Tensor3D &b );        
     };
     
     struct Tensor4D{
@@ -58,8 +69,11 @@ namespace apex_tensor{
         // operators
         inline       Tensor3D operator[]( int idx );
         inline const Tensor3D operator[]( int idx )const;
-        inline void operator = ( TENSOR_FLOAT val );
-        inline void operator +=( const Tensor4D &b );        
+        inline Tensor4D& operator =  ( TENSOR_FLOAT val );
+        inline Tensor4D& operator += ( TENSOR_FLOAT val );
+        inline Tensor4D& operator *= ( TENSOR_FLOAT val );
+        inline Tensor4D& operator += ( const Tensor4D &b );        
+        inline Tensor4D& operator -= ( const Tensor4D &b );        
     };
     
     // inline functions for tensor
@@ -98,14 +112,20 @@ namespace apex_tensor{
     };    
     
     //mapping functions 
-    namespace apex_tensor{
-        void sigmoid( Tensor1D &mean, const Tensor &energy );
+    namespace tensor{
+        void sigmoid( Tensor1D &mean, const Tensor1D &energy );
+        void sigmoid( Tensor2D &mean, const Tensor2D &energy );
+        void sigmoid( Tensor3D &mean, const Tensor3D &energy );
+        void sigmoid( Tensor4D &mean, const Tensor4D &energy );
     };
 
     // sampling functions 
-    namespace apex_tensor{
+    namespace tensor{
         // sample binary distribution
         void sample_binary  ( Tensor1D &state, const Tensor1D &prob );
+        void sample_binary  ( Tensor2D &state, const Tensor2D &prob );
+        void sample_binary  ( Tensor3D &state, const Tensor3D &prob );
+        void sample_binary  ( Tensor4D &state, const Tensor4D &prob );
         
         // sample gaussian distribution with certain sd
         void sample_gaussian( Tensor1D &state, const Tensor1D &mean, float sd );
@@ -114,11 +134,28 @@ namespace apex_tensor{
         void sample_gaussian( Tensor1D &state, float mean, float sd );        
     };
     // arithmetic operations
-    namespace apex_tensor{
+    namespace tensor{
         // dst = a + b
         void add      ( Tensor1D &dst, const Tensor1D &a, const Tensor1D &b );
+        void add      ( Tensor2D &dst, const Tensor2D &a, const Tensor2D &b );
+        void add      ( Tensor3D &dst, const Tensor3D &a, const Tensor3D &b );
+        void add      ( Tensor4D &dst, const Tensor4D &a, const Tensor4D &b );                
         // dst = a - b
         void sub      ( Tensor1D &dst, const Tensor1D &a, const Tensor1D &b );
+        void sub      ( Tensor2D &dst, const Tensor2D &a, const Tensor2D &b );
+        void sub      ( Tensor3D &dst, const Tensor3D &a, const Tensor3D &b );
+        void sub      ( Tensor4D &dst, const Tensor4D &a, const Tensor4D &b );
+        // dst = a + val
+        void add      ( Tensor1D &dst, const Tensor1D &a, TENSOR_FLOAT val );
+        void add      ( Tensor2D &dst, const Tensor2D &a, TENSOR_FLOAT val );
+        void add      ( Tensor3D &dst, const Tensor3D &a, TENSOR_FLOAT val );
+        void add      ( Tensor4D &dst, const Tensor4D &a, TENSOR_FLOAT val );
+        // dst = a * val
+        void mul      ( Tensor1D &dst, const Tensor1D &a, TENSOR_FLOAT val );
+        void mul      ( Tensor2D &dst, const Tensor2D &a, TENSOR_FLOAT val );
+        void mul      ( Tensor3D &dst, const Tensor3D &a, TENSOR_FLOAT val );
+        void mul      ( Tensor4D &dst, const Tensor4D &a, TENSOR_FLOAT val );
+        
         // dst  = dot( mat, src  ) 
         void dot      ( Tensor1D &dst, const Tensor2D mat, const Tensor1D &src );    
         // dst  = dot( mat.T, src)
