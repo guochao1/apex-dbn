@@ -106,14 +106,14 @@ namespace apex_tensor{
             }
         }
         
-#define APEX_ELEMENTWISE_ASSIGN_OP(func_name,param,op)            \
-        inline void func_name( T &ts, param ){                    \
-            for( size_t i = 0 ; i < num_line( ts ) ; i ++ ){      \
-                TENSOR_FLOAT *d = get_line( ts, i );              \
-                for( int j = 0 ; j < ts.x_max ; j ++ )            \
-                    op;                                           \
-            }                                                     \
-        }                                                         \
+#define APEX_ELEMENTWISE_ASSIGN_OP(func_name,param,op)             \
+        inline void func_name( T &dst, param ){                    \
+            for( size_t i = 0 ; i < num_line( dst ) ; i ++ ){      \
+                TENSOR_FLOAT *d = get_line( dst, i );              \
+                for( int j = 0 ; j < dst.x_max ; j ++ )            \
+                    op;                                            \
+            }                                                      \
+        }                                                          \
         
 #define APEX_ELEMENTWISE_UNARY_OP(func_name,param,op)               \
         inline void func_name( T &dst, const T&src, param ){        \
@@ -158,7 +158,6 @@ namespace apex_tensor{
                     op;                                                 \
             }                                                           \
 		}                                                               \
-
         
 
         template<typename T>

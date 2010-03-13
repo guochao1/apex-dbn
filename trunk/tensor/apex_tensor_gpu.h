@@ -4,7 +4,6 @@
 
 // data structure for tensor
 namespace apex_tensor{
-
     struct GTensor1D{
         size_t        x_max;        
         size_t        pitch;

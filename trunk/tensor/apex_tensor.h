@@ -223,6 +223,7 @@ namespace apex_tensor{
         // dst  = dot( a, b  ) 
         void dot      ( Tensor1D &dst, const Tensor2D a, const Tensor1D &b );    
         void dot      ( Tensor2D &dst, const Tensor2D a, const Tensor2D &b );            
+               
         // dst  = dot( a.T, b)
         void dot_t    ( Tensor1D &dst, const Tensor2D a, const Tensor1D &b );    
         void dot_t    ( Tensor2D &dst, const Tensor2D a, const Tensor2D &b );    
