@@ -37,6 +37,7 @@ namespace apex_tensor{
     }
     
 #else
+
     typedef CTensor1D TTensor1D;
     typedef CTensor2D TTensor2D;
     typedef CTensor3D TTensor3D;
@@ -52,6 +53,6 @@ namespace apex_tensor{
 };
 
 #include "apex_tensor_cpu.h"
-#include "apex_tensor_gpu.h"
+//#include "apex_tensor_gpu.h"
 #endif
 

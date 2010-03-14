@@ -3,7 +3,6 @@
 
 #include "apex_op_plan.h"
 #include "apex_tensor.h"
-
 // data structure for tensor
 namespace apex_tensor{
     struct CTensor1D{
@@ -34,6 +33,8 @@ namespace apex_tensor{
         inline CTensor1D& operator -= ( const CTensor1D &b );        
         
         inline apex_op_plan::TransposePlan<CTensor1D> T() const;
+        inline CTensor1D& operator =  ( const apex_op_plan::ClonePlan         <CTensor1D> &val );        
+        inline CTensor1D& operator =  ( const apex_op_plan::AllocLikePlan     <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::SigmoidPlan       <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::AddPlan  <CTensor1D> &val );        
@@ -69,6 +70,8 @@ namespace apex_tensor{
         inline CTensor2D& operator -= ( const CTensor2D &b );        
 
         inline apex_op_plan::TransposePlan<CTensor2D> T() const;
+        inline CTensor2D& operator =  ( const apex_op_plan::ClonePlan         <CTensor2D> &val );        
+        inline CTensor2D& operator =  ( const apex_op_plan::AllocLikePlan     <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::SigmoidPlan       <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::AddPlan  <CTensor2D> &val );        

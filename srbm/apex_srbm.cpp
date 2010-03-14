@@ -1,0 +1,227 @@
+#ifndef _APEX_SRBM_CPP_
+#define _APEX_SRBM_CPP_
+
+#include "apex_srbm.h"
+#include "apex_srbm_model.h"
+#include "../tensor/apex_tensor.h"
+#include <vector>
+
+namespace apex_rbm{
+    using namespace std;
+    using namespace apex_tensor;
+
+    class ISRBMNode{
+    public:
+        virtual void sample  ( TTensor1D &state, const TTensor1D &mean ) = 0;
+        virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy) = 0;
+    };
+    
+    // one layer of SRBM
+    struct SRBMLayer{
+        TTensor1D h_bias  , v_bias;
+        TTensor2D W;
+        ISRBMNode *v_node, *h_node;        
+        TTensor1D v_state;
+        SRBMLayer(){}
+        SRBMLayer( const SRBMModel &model ){
+            W      = clone( model.Wvh );
+            h_bias = clone( model.h_bias );
+            v_bias = clone( model.v_bias );
+            v_state.set_param( model.param.v_max );
+            tensor::alloc_space( v_state );
+        }
+
+        inline void free_space(){
+            tensor::free_space( h_bias );
+            tensor::free_space( v_bias );
+            tensor::free_space( W );
+            tensor::free_space( v_state );
+            delete v_node; delete h_node;
+        }
+        
+        // feed forward from v to h 
+        inline void feed_forward( TTensor1D &h_state ){
+            h_state = dot( v_state , W );
+            h_state+= h_bias;
+            h_node->cal_mean( h_state, h_state );
+        }        
+    };    
+
+    // simple implementation of srbm
+    class SRBMSimple:public ISRBM{
+    private:
+        int  cd_step, sample_counter;
+        SRBMTrainParam param;
+        bool persistent_ok;
+    private:
+        TTensor1D d_h_bias, d_v_bias;
+        TTensor2D d_W;
+    private:
+        // nodes of each layer
+        vector<SRBMLayer> layers;
+        TTensor1D v_neg,  h_neg, h_pos;
+    private:
+        inline void init( const SDBNModel &model ){
+            init_tensor_engine( 0 );
+            for( size_t i = 0 ; i < model.layers.size() ; i ++ )
+                layers.push_back( SRBMLayer(model.layers[i]) );
+
+            d_h_bias = clone( model.layers.back().d_h_bias );
+            d_v_bias = clone( model.layers.back().d_v_bias );
+            d_W      = clone( model.layers.back().d_Wvh );
+            v_neg    = alloc_like( model.layers.back().d_v_bias );
+            h_neg    = alloc_like( model.layers.back().d_h_bias );
+            h_pos    = alloc_like( model.layers.back().d_h_bias );
+            
+            sample_counter = 0; persistent_ok = false;            
+        }
+    public:
+        SRBMSimple( const SDBNModel &model, const SRBMTrainParam &param ){
+            init( model );
+            this->param = param;
+        }
+
+        virtual ~SRBMSimple(){
+            destroy_tensor_engine();
+            for( size_t i = 0 ; i < layers.size() ; i ++ )
+                layers[i].free_space();
+            layers.clear();
+            tensor::free_space( d_h_bias );
+            tensor::free_space( d_v_bias );
+            tensor::free_space( d_W );
+            tensor::free_space( v_neg );
+            tensor::free_space( h_pos );
+            tensor::free_space( h_neg );
+        }              
+    private:
+        // calculate the datas in cd steps
+        inline void cal_cd_steps( TTensor1D &v_pos, TTensor1D &v_neg, 
+                                  TTensor1D &h_pos, TTensor1D &h_neg,
+                                  TTensor1D &h_persistent ){
+            TTensor1D & h_bias = layers.back().h_bias;
+            TTensor1D & v_bias = layers.back().v_bias;
+            TTensor2D & W      = layers.back().W;
+            ISRBMNode *h_node  = layers.back().h_node;
+            ISRBMNode *v_node  = layers.back().v_node;
+
+            // go up
+            h_pos   = dot( v_pos, W );
+            h_pos  += h_bias;
+
+            h_node->cal_mean( h_pos, h_pos );
+            // negative steps
+            for( int i = 0 ; i < cd_step ; i ++ ){
+                TTensor1D &hh = ( i == 0 ? h_persistent : h_neg );
+                // sample h
+                h_node->sample( h_neg, hh );
+
+                // go down
+                v_neg = dot( h_neg , W.T() );
+                v_neg+= v_bias;
+                v_node->cal_mean( v_neg, v_neg );
+                v_node->sample  ( v_neg, v_neg );
+
+                // go up
+                h_neg = dot( v_neg,  W );
+                h_neg+= h_bias;
+                h_node->cal_mean( h_neg, h_neg );
+            }                                    
+        }
+
+        // update the weight of the last layer
+        inline void update_weight(){
+            TTensor1D & h_bias = layers.back().h_bias;
+            TTensor1D & v_bias = layers.back().v_bias;
+            TTensor2D & W      = layers.back().W;
+
+            const float eta = param.learning_rate/param.batch_size;
+            
+            if( param.chg_hidden_bias ){
+                h_bias = h_bias*(1-eta*param.wd_h) + d_h_bias * eta;
+                h_bias*= param.momentum;
+            }
+            if( param.chg_visible_bias ){
+                v_bias = v_bias*(1-eta*param.wd_v) + d_v_bias * eta;
+                v_bias*= param.momentum;
+            }
+            W   = W * (1-eta*param.wd_W) + d_W * eta;            
+            d_W *= param.momentum;
+        }
+
+        // update in training
+        inline void train_update(){
+            TTensor1D &v_pos = layers.back().v_state;
+
+            // whether can be use peristent chain
+            TTensor1D &hp = persistent_ok ? h_neg : h_pos;
+            cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
+            persistent_ok = ( param.persistent_cd !=0 );
+
+            // calculate the gradient
+            d_W += dot( v_pos.T() , h_pos );
+            d_W -= dot( v_neg.T() , h_neg );
+            if( param.chg_hidden_bias ){
+                d_h_bias += h_pos;
+                d_h_bias -= h_neg; 
+            }
+            if( param.chg_visible_bias ){
+                d_v_bias += v_pos;
+                d_v_bias -= v_neg;
+            }
+            
+            if( ++sample_counter == param.batch_size ){
+                update_weight();
+                sample_counter = 0;
+            }
+        }
+        
+        inline void setup_input( const apex_tensor::CTensor1D &data ){
+            tensor::copy( layers[0].v_state , data );
+            for( size_t i = 1 ; i < layers.size() ; i ++ ){
+                layers[i-1].feed_forward( layers[i].v_state );
+            }  
+        }
+    public:
+        virtual void train_update( const apex_tensor::CTensor1D &data ){
+            setup_input( data );
+            train_update();
+        }
+        virtual void train_update_trunk( const apex_tensor::CTensor2D &data ){
+            for( size_t i = 0 ; i < data.y_max ; i ++ )
+                train_update( data[i] );
+        }
+        
+        /* clone model trainied to model */
+        virtual void clone_model( SDBNModel &model )const{
+            if( model.layers.size() != layers.size() ){
+                printf("error model size\n"); exit( -1 );
+            } 
+
+            SRBMModel &md = model.layers.back();
+            const SRBMLayer &mm = layers.back();
+            
+            tensor::copy( md.Wvh , mm.W );
+            tensor::copy( md.h_bias , mm.h_bias );
+            tensor::copy( md.v_bias , mm.v_bias );
+            tensor::copy( md.d_Wvh , d_W );
+            tensor::copy( md.d_h_bias , d_h_bias );
+            tensor::copy( md.d_v_bias , d_v_bias );            
+        }       
+
+        /* set steps of CD */
+        virtual void set_cd_step( int cd_step ){
+            this->cd_step = cd_step;
+        }                
+    };
+    
+
+    namespace factory{
+        // create a stacked rbm
+        ISRBM *create_srbm( const SDBNModel &model, const SRBMTrainParam &param ){
+            return new SRBMSimple( model, param );
+        }
+    };
+};
+
+#endif
+
