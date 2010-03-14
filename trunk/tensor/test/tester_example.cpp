@@ -6,7 +6,7 @@
 using namespace apex_tensor;
 
 inline void test(){
-    // define a ts[5][4];
+    // define a ts[4][5];
     TTensor2D ts(4,5);
     // allocate space
     tensor::alloc_space( ts );
@@ -16,7 +16,7 @@ inline void test(){
     ts = ts*2.0f + ts*3.0f;
 
     //should be 5
-    printf("%f\n", ts[0][0]);
+    printf("%f\n", ts[3][4]);
     
     tensor::free_space( ts );    
 }
