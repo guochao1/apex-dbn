@@ -27,9 +27,13 @@ namespace apex_tensor{
         inline GTensor1D& operator -= ( const GTensor1D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor1D> T() const;
+        inline GTensor1D& operator =  ( const apex_op_plan::SigmoidPlan      <GTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AddPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
+        inline GTensor1D& operator += ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::DotRTPlan<GTensor1D,GTensor2D> &val );        
+        inline GTensor1D& operator += ( const apex_op_plan::DotRTPlan<GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
     };
@@ -58,10 +62,16 @@ namespace apex_tensor{
         inline GTensor2D& operator -= ( const GTensor2D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor2D> T() const;
+        inline GTensor2D& operator =  ( const apex_op_plan::SigmoidPlan      <GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::AddPlan <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::DotPlan  <GTensor2D,GTensor2D> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::DotPlan  <GTensor2D,GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::DotRTPlan<GTensor2D,GTensor2D> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::DotRTPlan<GTensor2D,GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
+        inline GTensor2D& operator -= ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
     };
@@ -90,6 +100,8 @@ namespace apex_tensor{
         inline GTensor3D& operator -= ( const GTensor3D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor3D> T() const;
+        inline GTensor3D& operator =  ( const apex_op_plan::SigmoidPlan     <GTensor3D> &val );        
+        inline GTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::AddPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
@@ -121,6 +133,8 @@ namespace apex_tensor{
         inline GTensor4D& operator -= ( const GTensor4D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor4D> T() const;
+        inline GTensor4D& operator =  ( const apex_op_plan::SigmoidPlan<GTensor4D> &val );        
+        inline GTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::AddPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
         inline GTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
@@ -184,16 +198,16 @@ namespace apex_tensor{
         void sample_binary  ( GTensor4D &state, const GTensor4D &prob );
         
         // sample gaussian distribution with certain sd
-        void sample_gaussian( GTensor1D &state, const GTensor1D &mean, float sd );
-        void sample_gaussian( GTensor2D &state, const GTensor2D &mean, float sd );
-        void sample_gaussian( GTensor3D &state, const GTensor3D &mean, float sd );
-        void sample_gaussian( GTensor4D &state, const GTensor4D &mean, float sd );
+        void sample_gaussian( GTensor1D &state, const GTensor1D &mean, TENSOR_FLOAT sd );
+        void sample_gaussian( GTensor2D &state, const GTensor2D &mean, TENSOR_FLOAT sd );
+        void sample_gaussian( GTensor3D &state, const GTensor3D &mean, TENSOR_FLOAT sd );
+        void sample_gaussian( GTensor4D &state, const GTensor4D &mean, TENSOR_FLOAT sd );
         
         // sample gaussian distribution with certain mean sd
-        void sample_gaussian( GTensor1D &state, float sd );        
-        void sample_gaussian( GTensor2D &state, float sd ); 
-        void sample_gaussian( GTensor3D &state, float sd );        
-        void sample_gaussian( GTensor4D &state, float sd );        
+        void sample_gaussian( GTensor1D &state, TENSOR_FLOAT sd );        
+        void sample_gaussian( GTensor2D &state, TENSOR_FLOAT sd ); 
+        void sample_gaussian( GTensor3D &state, TENSOR_FLOAT sd );        
+        void sample_gaussian( GTensor4D &state, TENSOR_FLOAT sd );        
     };
 
     // arithmetic operations
@@ -231,8 +245,7 @@ namespace apex_tensor{
         void dot      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );            
         // dst  += dot( a, b  ) 
         void add_dot  ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
-        void add_dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );            
-        
+        void add_dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );                    
         // dst  = dot( a   ,  b.T )
         void dot_rt    ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
         void dot_rt    ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    

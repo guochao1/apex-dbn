@@ -139,6 +139,14 @@ namespace apex_tensor{
     mac2(TT3D,TENSOR_FLOAT)                                             \
     mac2(TT4D,TENSOR_FLOAT)                                             \
 
+#define APEX_TEMPLATE_EVAL_MAP_PLAN(T,plan_name,func_name)              \
+    inline T& T::operator= ( const apex_op_plan::plan_name<T> &val ){   \
+        tensor::func_name( *this, *(val.a));                            \
+        return *this;                                                   \
+    }                                                                   \
+    
+#define APEX_EVAL_SIGMOID_PLAN(T) APEX_TEMPLATE_EVAL_MAP_PLAN(T,SigmoidPlan,sigmoid) 
+#define APEX_EVAL_SAMPLE_BINARY_PLAN(T) APEX_TEMPLATE_EVAL_MAP_PLAN(T,SampleBinaryPlan,sample_binary) 
 
 #define APEX_EVAL_SCALE_ADD_PLAN(T)                                     \
     inline T& T::operator= ( const apex_op_plan::ScaleAddPlan<T,TENSOR_FLOAT> &val ){ \
@@ -164,19 +172,37 @@ namespace apex_tensor{
         tensor::dot( *this, *(val.a), *(val.b) );                       \
         return *this;                                                   \
     }                                                                   \
+    inline T& T::operator+= ( const apex_op_plan::DotPlan<TA,TB> &val ){ \
+        tensor::add_dot( *this, *(val.a), *(val.b) );                   \
+        return *this;                                                   \
+    }                                                                   \
 
 #define APEX_EVAL_DOT_LT_PLAN(T,TA,TB)                                   \
     inline T& T::operator= ( const apex_op_plan::DotLTPlan<TA,TB> &val ){ \
         tensor::dot_lt( *this, *(val.a), *(val.b) );                    \
         return *this;                                                   \
     }                                                                   \
+    inline T& T::operator+= ( const apex_op_plan::DotLTPlan<TA,TB> &val ){ \
+        tensor::add_dot_lt( *this, *(val.a), *(val.b) );                \
+        return *this;                                                   \
+    }                                                                   \
+    inline T& T::operator-= ( const apex_op_plan::DotLTPlan<TA,TB> &val ){ \
+        tensor::sub_dot_lt( *this, *(val.a), *(val.b) );                \
+        return *this;                                                   \
+    }                                                                   \
 
 #define APEX_EVAL_DOT_RT_PLAN(T,TA,TB)                                   \
- inline T& T::operator= ( const apex_op_plan::DotRTPlan<TA,TB> &val ){  \
+    inline T& T::operator= ( const apex_op_plan::DotRTPlan<TA,TB> &val ){ \
         tensor::dot_rt( *this, *(val.a), *(val.b) );                    \
         return *this;                                                   \
     }                                                                   \
+    inline T& T::operator+= ( const apex_op_plan::DotRTPlan<TA,TB> &val ){ \
+        tensor::add_dot_rt( *this, *(val.a), *(val.b) );                \
+        return *this;                                                   \
+    }                                                                   \
     
+    APEX_EXPAND(  APEX_EVAL_SIGMOID_PLAN )
+    APEX_EXPAND(  APEX_EVAL_SAMPLE_BINARY_PLAN )
     APEX_EXPAND(  APEX_EVAL_ADD_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_ADD_PLAN )
@@ -190,7 +216,9 @@ namespace apex_tensor{
 #undef APEX_EVAL_SCALE_PLAN
 #undef APEX_EVAL_ADD_PLAN
        
-    APEX_EXPAND ( APEX_ADD_SUPPORT_ADD_OP )           
+    APEX_EXPAND ( APEX_ADD_SUPPORT_SIGMOID_OP )           
+    APEX_EXPAND ( APEX_ADD_SUPPORT_SAMPLE_BINARY_OP )           
+    APEX_EXPAND ( APEX_ADD_SUPPORT_ADD_OP )              
     APEX_EXPAND ( APEX_ADD_SUPPORT_TRANSPOSE_OP )
     APEX_EXPAND2( APEX_ADD_SUPPORT_SCALE_OP )           
     // support for dot and dot.T
