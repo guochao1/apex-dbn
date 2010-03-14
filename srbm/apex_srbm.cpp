@@ -10,11 +10,35 @@ namespace apex_rbm{
     using namespace std;
     using namespace apex_tensor;
 
+    //node of SRBM
     class ISRBMNode{
     public:
         virtual void sample  ( TTensor1D &state, const TTensor1D &mean ) = 0;
         virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy) = 0;
     };
+    // bianry node
+    class SRBMBinaryNode : public ISRBMNode{
+    public:
+        virtual void sample  ( TTensor1D &state, const TTensor1D &mean ){
+            state = sample_binary( mean );
+        }
+        virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy){
+            mean = sigmoid( energy );
+        }        
+    };
+    inline ISRBMNode *create_visible_node( const SRBMModelParam &param ){
+        switch( param.model_type ){
+        case 0: return new SRBMBinaryNode();
+        default: return NULL;
+        }
+    }
+    inline ISRBMNode *create_hidden_node( const SRBMModelParam &param ){
+        switch( param.model_type ){
+        case 0: return new SRBMBinaryNode();
+        default: return NULL;
+        }
+    }
+    
     
     // one layer of SRBM
     struct SRBMLayer{
@@ -29,6 +53,9 @@ namespace apex_rbm{
             v_bias = clone( model.v_bias );
             v_state.set_param( model.param.v_max );
             tensor::alloc_space( v_state );
+
+            v_node = create_visible_node( model.param );
+            h_node = create_hidden_node( model.param );
         }
 
         inline void free_space(){
@@ -61,8 +88,8 @@ namespace apex_rbm{
         vector<SRBMLayer> layers;
         TTensor1D v_neg,  h_neg, h_pos;
     private:
+        // initalize the space
         inline void init( const SDBNModel &model ){
-            init_tensor_engine( 0 );
             for( size_t i = 0 ; i < model.layers.size() ; i ++ )
                 layers.push_back( SRBMLayer(model.layers[i]) );
 
@@ -79,8 +106,11 @@ namespace apex_rbm{
         SRBMSimple( const SDBNModel &model, const SRBMTrainParam &param ){
             init( model );
             this->param = param;
+            // intialize the tensor engine
+            init_tensor_engine( 0 );
         }
-
+        
+        // deallocate the space
         virtual ~SRBMSimple(){
             destroy_tensor_engine();
             for( size_t i = 0 ; i < layers.size() ; i ++ )
@@ -92,6 +122,8 @@ namespace apex_rbm{
             tensor::free_space( v_neg );
             tensor::free_space( h_pos );
             tensor::free_space( h_neg );
+            // destroy the tensor engine
+            destroy_tensor_engine();
         }              
     private:
         // calculate the datas in cd steps
@@ -214,7 +246,6 @@ namespace apex_rbm{
         }                
     };
     
-
     namespace factory{
         // create a stacked rbm
         ISRBM *create_srbm( const SDBNModel &model, const SRBMTrainParam &param ){
