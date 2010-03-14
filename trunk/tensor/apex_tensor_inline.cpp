@@ -212,17 +212,41 @@ namespace apex_tensor{
     APEX_EVAL_DOT_RT_PLAN( TT1D, TT1D, TT2D )
     APEX_EVAL_DOT_RT_PLAN( TT2D, TT2D, TT2D )
     
+#define APEX_EVAL_CLONE_PLAN_1D(T,plan,op)                              \
+    inline TT1D& TT1D::operator= ( const apex_op_plan::plan<T> &val ){  \
+        this->set_param( val.a->x_max );                                \
+        tensor::alloc_space( *this );                                   \
+        op;                                                             \
+        return *this;                                                   \
+    }                                                                   \
+
+#define APEX_EVAL_CLONE_PLAN_2D(T,plan,op)                              \
+    inline TT2D& TT2D::operator= ( const apex_op_plan::plan<T> &val ){  \
+        this->set_param( val.a->y_max,val.a->x_max );                   \
+        tensor::alloc_space( *this );                                   \
+        op;                                                             \
+        return *this;                                                   \
+    }                                                                   \
+    
+    APEX_EVAL_CLONE_PLAN_1D(CTensor1D,ClonePlan,tensor::copy(*this,*(val.a)));
+    APEX_EVAL_CLONE_PLAN_1D(CTensor1D,AllocLikePlan, );
+    APEX_EVAL_CLONE_PLAN_2D(CTensor2D,ClonePlan,tensor::copy(*this,*(val.a)));
+    APEX_EVAL_CLONE_PLAN_2D(CTensor2D,AllocLikePlan,);
+    
+
 #undef APEX_EVAL_SCALE_ADD_PLAN
 #undef APEX_EVAL_SCALE_PLAN
 #undef APEX_EVAL_ADD_PLAN
        
     APEX_EXPAND ( APEX_ADD_SUPPORT_SIGMOID_OP )           
+    APEX_EXPAND ( APEX_ADD_SUPPORT_CLONE_OP )           
+    APEX_EXPAND ( APEX_ADD_SUPPORT_ALLOC_LIKE_OP )           
     APEX_EXPAND ( APEX_ADD_SUPPORT_SAMPLE_BINARY_OP )           
     APEX_EXPAND ( APEX_ADD_SUPPORT_ADD_OP )              
     APEX_EXPAND ( APEX_ADD_SUPPORT_TRANSPOSE_OP )
     APEX_EXPAND2( APEX_ADD_SUPPORT_SCALE_OP )           
     // support for dot and dot.T
-    APEX_ADD_SUPPORT_DOT_OP   ( TT2D, TT1D )
+    APEX_ADD_SUPPORT_DOT_OP   ( TT1D, TT2D )
     APEX_ADD_SUPPORT_DOT_OP   ( TT2D, TT2D )
     APEX_ADD_SUPPORT_DOT_LT_OP( TT1D, TT1D ) 
     APEX_ADD_SUPPORT_DOT_RT_OP( TT1D, TT2D ) 

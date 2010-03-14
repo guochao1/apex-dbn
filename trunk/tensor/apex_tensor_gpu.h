@@ -2,7 +2,9 @@
 #define _APEX_TENSOR_GPU_H_
 
 #include "apex_op_plan.h"
+#include "apex_tensor_cpu.h"
 #include "apex_tensor.h"
+
 
 // data structure for tensor
 namespace apex_tensor{
@@ -27,6 +29,8 @@ namespace apex_tensor{
         inline GTensor1D& operator -= ( const GTensor1D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor1D> T() const;
+        inline GTensor1D& operator =  ( const apex_op_plan::ClonePlan      <CTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::SigmoidPlan      <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AddPlan <GTensor1D> &val );        
@@ -62,6 +66,8 @@ namespace apex_tensor{
         inline GTensor2D& operator -= ( const GTensor2D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor2D> T() const;
+        inline GTensor2D& operator =  ( const apex_op_plan::ClonePlan      <CTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::SigmoidPlan      <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::AddPlan <GTensor2D> &val );        

@@ -23,7 +23,12 @@ namespace apex_op_plan{
     template<typename T>
     APEX_TEMPLATE_MAP_PLAN( SampleBinaryPlan )
 #define APEX_ADD_SUPPORT_SAMPLE_BINARY_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,SampleBinaryPlan,sample_binary)  
-
+    template<typename T>
+    APEX_TEMPLATE_MAP_PLAN( ClonePlan )
+#define APEX_ADD_SUPPORT_CLONE_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,ClonePlan,clone)  
+    template<typename T>
+    APEX_TEMPLATE_MAP_PLAN( AllocLikePlan )
+#define APEX_ADD_SUPPORT_ALLOC_LIKE_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,AllocLikePlan,alloc_like)  
 
     template<typename T>
     struct AddPlan{
