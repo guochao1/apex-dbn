@@ -182,7 +182,7 @@ namespace apex_tensor{
 		const TENSOR_FLOAT *a = get_line_const( srca, i );		\
 		for( size_t j = 0; j < dst.max; j ++){				\
 		    for (sizt_t k = 0; k < srca.max; k ++){			\
-			const TENSOR_FLOAT *b = get_line_const( srcb, k )	\
+			const TENSOR_FLOAT *b = get_line_const( srcb, k );	\
 			d[ j ] op= a[ k ] * b[ j ]; 				\
 		    }								\
 		}								\
@@ -223,11 +223,11 @@ namespace apex_tensor{
         APEX_ELEMENTWISE_BINARY_OP( add_template, d[j] = a[j]+b[j]);
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP( sub_template, d[j] = a[j]-b[j]);
-        template<typename T, typname TB>
+        template<typename T, typename TB>
         APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( dot_template, memset(tmp, 0, dst_size), + );
-        template<typename T, typname TB>
+        template<typename T, typename TB>
         APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( add_dot_template, , + );
-        template<typename T, typname TB>
+        template<typename T, typename TB>
         APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( sub_dot_template, , -);
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j]);
