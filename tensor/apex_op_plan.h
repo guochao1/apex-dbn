@@ -3,6 +3,28 @@
 
 // plans to extend more operators
 namespace apex_op_plan{
+
+#define APEX_TEMPLATE_MAP_PLAN(plan_name)       \
+    struct plan_name{                           \
+        const T *a;                             \
+        plan_name( const T *a ){                \
+            this->a = a;                        \
+        }                                       \
+    };                                          \
+
+#define APEX_TEMPLATE_ADD_SUPPORT_OP(T,plan_name,map_name)      \
+    inline apex_op_plan::plan_name<T> map_name( const T & a ){  \
+        return apex_op_plan::plan_name<T>( &a );                \
+    }                                                           \
+
+    template<typename T>
+    APEX_TEMPLATE_MAP_PLAN( SigmoidPlan )
+#define APEX_ADD_SUPPORT_SIGMOID_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,SigmoidPlan,sigmoid)  
+    template<typename T>
+    APEX_TEMPLATE_MAP_PLAN( SampleBinaryPlan )
+#define APEX_ADD_SUPPORT_SAMPLE_BINARY_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,SampleBinaryPlan,sample_binary)  
+
+
     template<typename T>
     struct AddPlan{
         const T *a, *b;

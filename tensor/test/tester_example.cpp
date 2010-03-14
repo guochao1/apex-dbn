@@ -16,7 +16,7 @@ inline void test(){
     ts = 1.0f;
     ts = ts*2.0f + ts*3.0f;
 
-
+    ts = sample_binary( ts);
     //should be 5
     printf("%f\n", ts[3][4]);
     
