@@ -1,11 +1,11 @@
 #ifndef _APEX_TENSOR_GPU_H_
 #define _APEX_TENSOR_GPU_H_
+
+#include "apex_op_plan.h"
 #include "apex_tensor.h"
 
 // data structure for tensor
 namespace apex_tensor{
-    struct GTensor2D;
-
     struct GTensor1D{
         size_t        x_max;        
         size_t        pitch;
@@ -26,8 +26,10 @@ namespace apex_tensor{
         inline GTensor1D& operator += ( const GTensor1D &b );        
         inline GTensor1D& operator -= ( const GTensor1D &b );        
 
-        inline GTensor1D& operator =  ( const apex_op_plan::AddPlan<GTensor1D> &val );        
-        inline GTensor1D& operator =  ( const apex_op_plan::DotPlan<GTensor2D,GTensor1D> &val );        
+        inline apex_op_plan::TransposePlan<GTensor1D> T() const;
+        inline GTensor1D& operator =  ( const apex_op_plan::AddPlan <GTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::DotRTPlan<GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
     };
@@ -55,8 +57,11 @@ namespace apex_tensor{
         inline GTensor2D& operator += ( const GTensor2D &b );        
         inline GTensor2D& operator -= ( const GTensor2D &b );        
 
-        inline GTensor2D& operator =  ( const apex_op_plan::AddPlan<GTensor2D> &val );        
-        inline GTensor2D& operator =  ( const apex_op_plan::DotPlan<GTensor2D,GTensor2D> &val );        
+        inline apex_op_plan::TransposePlan<GTensor2D> T() const;
+        inline GTensor2D& operator =  ( const apex_op_plan::AddPlan <GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::DotPlan  <GTensor2D,GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::DotRTPlan<GTensor2D,GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
     };
@@ -84,6 +89,7 @@ namespace apex_tensor{
         inline GTensor3D& operator += ( const GTensor3D &b );        
         inline GTensor3D& operator -= ( const GTensor3D &b );        
 
+        inline apex_op_plan::TransposePlan<GTensor3D> T() const;
         inline GTensor3D& operator =  ( const apex_op_plan::AddPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
@@ -114,6 +120,7 @@ namespace apex_tensor{
         inline GTensor4D& operator += ( const GTensor4D &b );        
         inline GTensor4D& operator -= ( const GTensor4D &b );        
 
+        inline apex_op_plan::TransposePlan<GTensor4D> T() const;
         inline GTensor4D& operator =  ( const apex_op_plan::AddPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
         inline GTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
@@ -218,14 +225,24 @@ namespace apex_tensor{
         void mul      ( GTensor4D &dst, const GTensor4D &a, TENSOR_FLOAT val );
 
         // matrix multiplication
-        // dst  = dot( a, b  ) 
-        void dot      ( GTensor1D &dst, const GTensor2D a, const GTensor1D &b );    
-        void dot      ( GTensor2D &dst, const GTensor2D a, const GTensor2D &b );            
-        // dst  = dot( a.T, b)
-        void dot_t    ( GTensor1D &dst, const GTensor2D a, const GTensor1D &b );    
-        void dot_t    ( GTensor2D &dst, const GTensor2D a, const GTensor2D &b );    
-        void dot_t    ( GTensor2D &dst, const GTensor1D a, const GTensor1D &b );    
-
+        // dst   = dot( a, b  ) 
+        // note: the 1D tensor is treated as 1 * n matrix 
+        void dot      ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void dot      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );            
+        // dst  += dot( a, b  ) 
+        void add_dot  ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void add_dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );            
+        
+        // dst  = dot( a   ,  b.T )
+        void dot_rt    ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void dot_rt    ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
+        // dst += dot( a, b.T )
+        void add_dot_rt    ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void add_dot_rt    ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
+        // dst  = dot( a.T , b )
+        void dot_lt    ( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+        void add_dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+        void sub_dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
     };
 };
 
