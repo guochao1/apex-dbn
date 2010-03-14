@@ -38,11 +38,11 @@ namespace apex_tensor{
         TENSOR_FLOAT *elem;
 
         GTensor2D(){}       
-        GTensor2D( size_t x_max, size_t y_max ){
-            set_param( x_max, y_max ); 
+        GTensor2D( size_t y_max, size_t x_max ){
+            set_param( y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t x_max, size_t y_max ){
+        inline void set_param( size_t y_max, size_t x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
         }        
@@ -66,11 +66,11 @@ namespace apex_tensor{
         size_t        pitch;
         TENSOR_FLOAT *elem;
         GTensor3D(){}
-        GTensor3D( size_t x_max, size_t y_max, size_t z_max ){
-            set_param( x_max, y_max, z_max ); 
+        GTensor3D( size_t z_max, size_t y_max, size_t x_max ){
+            set_param( z_max, y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t x_max, size_t y_max, size_t z_max ){
+        inline void set_param( size_t z_max, size_t y_max, size_t x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
             this->z_max = z_max;
@@ -95,11 +95,11 @@ namespace apex_tensor{
 
         TENSOR_FLOAT *elem;
         GTensor4D(){}
-        GTensor4D( size_t x_max, size_t y_max, size_t z_max, size_t h_max ){
-            set_param( x_max, y_max, z_max, h_max ); 
+        GTensor4D( size_t h_max, size_t z_max, size_t y_max, size_t x_max ){
+            set_param( h_max, z_max, y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t x_max, size_t y_max, size_t z_max, size_t h_max ){
+        inline void set_param( size_t h_max, size_t z_max, size_t y_max, size_t x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
             this->z_max = z_max;
@@ -122,6 +122,12 @@ namespace apex_tensor{
     // inline functions for tensor
     
     // functions defined for tensor
+    // intialize the tensor engine for use, seed is 
+    // the seed for random number generator
+    void init_tensor_engine_gpu( int seed );
+    // this function is called when the program exits
+    void destroy_tensor_engine_gpu();
+ 
     namespace tensor{
         // allocate space for given tensor
         void alloc_space( GTensor1D &ts );
@@ -142,10 +148,10 @@ namespace apex_tensor{
         void fill( GTensor4D &ts, TENSOR_FLOAT val );
         
         // copy data from another tensor
-        void copy( GTensor1D &dst, const Tensor1D &src );
-        void copy( GTensor2D &dst, const Tensor2D &src );
-        void copy( GTensor3D &dst, const Tensor3D &src );
-        void copy( GTensor4D &dst, const Tensor4D &src );
+        void copy( GTensor1D &dst, const CTensor1D &src );
+        void copy( GTensor2D &dst, const CTensor2D &src );
+        void copy( GTensor3D &dst, const CTensor3D &src );
+        void copy( GTensor4D &dst, const CTensor4D &src );
 
         // copy data from another tensor
         void copy( GTensor1D &dst, const GTensor1D &src );
