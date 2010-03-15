@@ -10,11 +10,13 @@
 namespace apex_tensor{
 
     // initialize function and deconstructor
-   
+    static int init_counter = 0;
     // intialize the tensor engine for use, seed is 
-    // the seed for random number generator
+    // the seed for random number generator    
     void init_tensor_engine_cpu( int seed ){
-        apex_random::seed( seed );
+        if( init_counter ++ == 0 ){
+            apex_random::seed( seed );
+        }
     }
     // this function is called when the program exits
     void destroy_tensor_engine_cpu(){
