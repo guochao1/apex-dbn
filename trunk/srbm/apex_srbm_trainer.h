@@ -7,6 +7,7 @@
 
 #include "apex_srbm.h"
 #include "apex_srbm_model.h"
+#include "../utils/apex_config.h"
 #include "../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
