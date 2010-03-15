@@ -2,6 +2,7 @@
 #define _APEX_SRBM_H_
 
 #include "apex_srbm_model.h"
+#include "apex_srbm_model_stats.h"
 #include "../tensor/apex_tensor.h"
 
 namespace apex_rbm{
@@ -19,7 +20,10 @@ namespace apex_rbm{
 
         /* set steps of CD */
         virtual void set_cd_step( int cd_step ) = 0;
-                
+
+        // validate the model by statistics
+        virtual void validate_stats( SRBMModelStats &stats, const apex_tensor::CTensor2D &data ) = 0;
+
         virtual ~ISRBM(){}              
     };
     
