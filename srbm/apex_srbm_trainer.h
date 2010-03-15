@@ -126,8 +126,12 @@ namespace apex_rbm{
             srbm->train_update_trunk( data );
         }
 
-        virtual void validate_trunk    ( const apex_tensor::CTensor2D data ){
-            // TODO
+        virtual void validate_stats    ( const apex_tensor::CTensor2D data ){
+            SRBMModelParam &param = model.layers.back().param;            
+            SRBMModelStats stats( param.v_max, param.h_max );
+            srbm->train_validate_stats( stats, data );
+            stats.save_summary( fo_summary_log );
+            stats.save_detail ( fo_detail_log  );
         }
 
         /* we end a round of training */

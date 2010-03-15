@@ -255,7 +255,8 @@ namespace apex_rbm{
                 v_neg      -= v_pos;
                 v_neg       = v_neg * v_neg;
                 loss       += v_neg;
-            }                        
+            }                       
+            stats.sample_counter += data.y_max;
             apex_tensor::tensor::copy( stats.grad_W, grad_W );
             apex_tensor::tensor::copy( stats.pos_grad_h, pos_grad_h );
             apex_tensor::tensor::copy( stats.neg_grad_h, neg_grad_h );
