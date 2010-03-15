@@ -38,6 +38,7 @@ namespace apex_tensor{
         inline CTensor1D& operator =  ( const apex_op_plan::SigmoidPlan       <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::AddPlan  <CTensor1D> &val );        
+        inline CTensor1D& operator =  ( const apex_op_plan::MulPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator += ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::DotRTPlan<CTensor1D,CTensor2D> &val );        
@@ -75,6 +76,7 @@ namespace apex_tensor{
         inline CTensor2D& operator =  ( const apex_op_plan::SigmoidPlan       <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::AddPlan  <CTensor2D> &val );        
+        inline CTensor2D& operator =  ( const apex_op_plan::MulPlan  <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::DotPlan  <CTensor2D,CTensor2D> &val );        
         inline CTensor2D& operator += ( const apex_op_plan::DotPlan  <CTensor2D,CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::DotRTPlan<CTensor2D,CTensor2D> &val );        
@@ -113,6 +115,7 @@ namespace apex_tensor{
         inline CTensor3D& operator =  ( const apex_op_plan::SigmoidPlan       <CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::AddPlan<CTensor3D> &val );        
+        inline CTensor3D& operator =  ( const apex_op_plan::MulPlan<CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::ScalePlan<CTensor3D,TENSOR_FLOAT> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<CTensor3D,TENSOR_FLOAT> &val );        
     };
@@ -146,6 +149,7 @@ namespace apex_tensor{
         inline CTensor4D& operator =  ( const apex_op_plan::SigmoidPlan     <CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan<CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::AddPlan<CTensor4D> &val );        
+        inline CTensor4D& operator =  ( const apex_op_plan::MulPlan<CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::ScalePlan<CTensor4D,TENSOR_FLOAT> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<CTensor4D,TENSOR_FLOAT> &val );        
     };
@@ -234,6 +238,11 @@ namespace apex_tensor{
         void add      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
         void add      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
         void add      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );                
+        // dst = a * b, elementwise
+        void mul      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        void mul      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        void mul      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        void mul      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );                
         // dst = a*sa + b*sb
         void scale_add( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
         void scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
@@ -273,6 +282,15 @@ namespace apex_tensor{
         void dot_lt    ( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         void add_dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         void sub_dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
+    };
+    
+    // host only code
+    namespace cpu_only{
+        // average value
+        TENSOR_FLOAT avg( const CTensor1D &a );
+        TENSOR_FLOAT avg( const CTensor2D &a );
+        TENSOR_FLOAT avg( const CTensor3D &a );
+        TENSOR_FLOAT avg( const CTensor4D &a );
     };
 };
 

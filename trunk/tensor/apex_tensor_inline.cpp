@@ -167,6 +167,12 @@ namespace apex_tensor{
         return *this;                                                   \
     }                                                                   \
 
+#define APEX_EVAL_MUL_PLAN(T)                                           \
+    inline T& T::operator= ( const apex_op_plan::MulPlan<T> &val ){     \
+        tensor::mul( *this, *(val.a), *(val.b) );                       \
+        return *this;                                                   \
+    }                                                                   \
+
 #define APEX_EVAL_DOT_PLAN(T,TA,TB)                                     \
     inline T& T::operator= ( const apex_op_plan::DotPlan<TA,TB> &val ){ \
         tensor::dot( *this, *(val.a), *(val.b) );                       \
@@ -204,6 +210,7 @@ namespace apex_tensor{
     APEX_EXPAND(  APEX_EVAL_SIGMOID_PLAN )
     APEX_EXPAND(  APEX_EVAL_SAMPLE_BINARY_PLAN )
     APEX_EXPAND(  APEX_EVAL_ADD_PLAN )
+    APEX_EXPAND(  APEX_EVAL_MUL_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_ADD_PLAN )
     APEX_EVAL_DOT_PLAN( TT1D, TT1D, TT2D )
@@ -243,6 +250,7 @@ namespace apex_tensor{
     APEX_EXPAND ( APEX_ADD_SUPPORT_ALLOC_LIKE_OP )           
     APEX_EXPAND ( APEX_ADD_SUPPORT_SAMPLE_BINARY_OP )           
     APEX_EXPAND ( APEX_ADD_SUPPORT_ADD_OP )              
+    APEX_EXPAND ( APEX_ADD_SUPPORT_MUL_OP )              
     APEX_EXPAND ( APEX_ADD_SUPPORT_TRANSPOSE_OP )
     APEX_EXPAND2( APEX_ADD_SUPPORT_SCALE_OP )           
     // support for dot and dot.T

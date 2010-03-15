@@ -226,7 +226,7 @@ namespace apex_rbm{
             layers.back().param = p;
             layers.back().alloc_space();
             layers.back().rand_init();
-        }                        
+        }         
     };    
 };
 #endif

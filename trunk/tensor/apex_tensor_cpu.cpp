@@ -4,6 +4,7 @@
 #include "apex_tensor.h"
 #include "../external/apex_random.h"
 #include <cmath>
+#include <cstring>
 // defintiions for tensor functions 
 // tqchen
 
@@ -42,6 +43,10 @@ namespace apex_tensor{
         inline size_t num_header_bytes( CTensor1D ts ){
             return sizeof(size_t)*1;
         }
+       
+        inline size_t num_elem( CTensor1D ts ){
+            return ts.x_max;
+        }
         
         inline size_t num_bytes( CTensor2D ts ){
             return ts.pitch*ts.y_max;
@@ -53,6 +58,10 @@ namespace apex_tensor{
         
         inline size_t num_header_bytes( CTensor2D ts ){
             return sizeof(size_t)*2;
+        }
+        
+        inline size_t num_elem( CTensor2D ts ){
+            return ts.x_max * ts.y_max;
         }
         
         inline size_t num_bytes( CTensor3D ts ){
@@ -67,6 +76,10 @@ namespace apex_tensor{
             return sizeof(size_t)*3;
         }
         
+        inline size_t num_elem( CTensor3D ts ){
+            return ts.x_max * ts.y_max * ts.z_max;
+        }
+
         inline size_t num_bytes( CTensor4D ts ){
             return ts.pitch*ts.y_max*ts.z_max*ts.h_max;
         }
@@ -77,6 +90,10 @@ namespace apex_tensor{
         
         inline size_t num_header_bytes( CTensor4D ts ){
             return sizeof(size_t)*4;
+        }
+        
+        inline size_t num_elem( CTensor4D ts ){
+            return ts.x_max * ts.y_max *ts.z_max * ts.h_max;
         }
 
         inline TENSOR_FLOAT *get_line( TENSOR_FLOAT *elem, size_t pitch, size_t idx ){
@@ -92,7 +109,40 @@ namespace apex_tensor{
         inline const TENSOR_FLOAT *get_line_const( const T &ts, size_t idx ){
             return (const TENSOR_FLOAT*)((const char*)ts.elem + idx*ts.pitch);
         }
+    };
+    
+    namespace cpu_only{
+        template<typename T>
+        TENSOR_FLOAT sum_template( const T & ts ){
+            TENSOR_FLOAT ans = 0.0f;
+            for( size_t i = 0 ; i < tensor::num_line( ts ) ; i ++ ){
+                const TENSOR_FLOAT *a = tensor::get_line_const( ts, i );
+                for( size_t j = 0 ; j < ts.x_max ; j ++ )
+                    ans += a[j];
+            }
+            return ans;
+        }
+        template<typename T>
+        TENSOR_FLOAT avg_template( const T & ts ){
+            return sum_template( ts ) / tensor::num_elem( ts );
+        }
 
+#define APEX_USE_TEMPLATE_A_CPU_ONLY(func_name)                         \
+        TENSOR_FLOAT func_name( const CTensor1D &dst ){                 \
+            return func_name##_template( dst );                         \
+        }                                                               \
+        TENSOR_FLOAT func_name( const CTensor2D &dst ){                 \
+            return func_name##_template( dst );                         \
+        }                                                               \
+        TENSOR_FLOAT func_name( const CTensor3D &dst ){                 \
+            return func_name##_template( dst );                         \
+        }                                                               \
+        TENSOR_FLOAT func_name( const CTensor4D &dst  ){                \
+            return func_name##_template( dst );                         \
+        }                                                               \
+        
+        APEX_USE_TEMPLATE_A_CPU_ONLY( avg )
+        
     };
     
     // template functions
@@ -128,6 +178,15 @@ namespace apex_tensor{
                 check_true( fread( a, sizeof( TENSOR_FLOAT ) , ts.x_max , src ) > 0, "load tensor from file" );
             }
         }
+
+        template<typename T>
+        inline void copy_template( T &dst, const T &src ){            
+            for( size_t i = 0 ; i < num_line( src ) ; i ++ ){
+                TENSOR_FLOAT *d = get_line( dst, i );
+                const TENSOR_FLOAT *s = get_line_const( src, i );
+                memcpy( d, s, sizeof( TENSOR_FLOAT ) * src.x_max );
+            }
+        }
         
 #define APEX_ELEMENTWISE_ASSIGN_OP(func_name,param,op)             \
         inline void func_name( T &dst, param ){                    \
@@ -158,7 +217,6 @@ namespace apex_tensor{
             }                                                       \
         }                                                           \
 
-
 #define APEX_ELEMENTWISE_BINARY_OP(func_name,op)                        \
         inline void func_name( T &dst, const T &srca, const T &srcb ){  \
             for( size_t i = 0 ; i < num_line( dst ) ; i ++ ){           \
@@ -169,7 +227,6 @@ namespace apex_tensor{
                     op;                                                 \
             }                                                           \
 		}                                                               \
-
 
 #define APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM(func_name,param1,param2,op ) \
         inline void func_name( T &dst, const T &srca, const T &srcb, param1,param2 ){ \
@@ -198,6 +255,8 @@ namespace apex_tensor{
         APEX_ELEMENTWISE_MAP_OP   ( sample_binary_template, d[j] = (TENSOR_FLOAT)apex_random::sample_binary( a[j] ) );
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP( add_template, d[j] = a[j]+b[j]);
+        template<typename T>
+        APEX_ELEMENTWISE_BINARY_OP( mul_template, d[j] = a[j]*b[j]);
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP( sub_template, d[j] = a[j]-b[j]);
         template<typename T>
@@ -306,64 +365,65 @@ namespace apex_tensor{
 		APEX_USE_TEMPLATE_B( load_from_file , FILE *src_file, src_file, )
         APEX_USE_TEMPLATE_C( add )
         APEX_USE_TEMPLATE_C( sub )
+        APEX_USE_TEMPLATE_C( mul )
         APEX_USE_TEMPLATE_D( add, TENSOR_FLOAT val, val )
         APEX_USE_TEMPLATE_D( mul, TENSOR_FLOAT val, val )
         APEX_USE_TEMPLATE_D( sample_gaussian, TENSOR_FLOAT sd, sd )
         APEX_USE_TEMPLATE_E( sigmoid )
         APEX_USE_TEMPLATE_E( sample_binary )
+        APEX_USE_TEMPLATE_E( copy )
         APEX_USE_TEMPLATE_F( scale_add )        
     };
 
 	namespace tensor{
     // definition of macros
-#define APEX_SUPPORT_DOT_1D(func_name,op1,op2)                               \
-        inline void func_name( CTensor1D &dst, const CTensor1D &srca, const CTensor2D &srcb ){ \
+#define APEX_SUPPORT_DOT_1D(func_name,op1,op2)                          \
+        void func_name( CTensor1D &dst, const CTensor1D &srca, const CTensor2D &srcb ){ \
             for( size_t i = 0; i < dst.x_max; i ++){                    \
 	    		TENSOR_FLOAT tmp = 0;                                   \
 				for( size_t j = 0; j < srca.x_max; j ++)                \
-					op1;                          \
-				dst[i] op2 tmp;                                          \
+					op1;                                                \
+				dst[i] op2 tmp;                                         \
 	    	}                                                           \
 		}                                                               \
 	
+#define APEX_SUPPORT_DOT_2D(func_name)                                  \
+        void func_name( CTensor2D &dst , const CTensor2D &srca, const CTensor2D &srcb ){ \
+            for( size_t i = 0; i < num_line( dst ); i ++ ){             \
+                CTensor1D dd = dst[i];                                  \
+                func_name( dd, srca[i], srcb );                         \
+            }                                                           \
+        }                                                               \
 
-#define APEX_SUPPORT_DOT_2D(func_name)                                  						\
-        inline void func_name( CTensor2D &dst , const CTensor2D &srca, const CTensor2D &srcb ){ \
-            for( size_t i = 0; i < num_line( dst ); i ++ ){            							\
-                CTensor1D dd = dst[i];                                  						\
-                func_name( dd, srca[i], srcb );                        							\
-            }                                                           						\
-        }                                                               						\
-
-
-#define APEX_SUPPORT_DOT_LT_1D(func_name,op)                               						\
-        inline void func_name( CTensor2D &dst, const CTensor1D &srca, const CTensor1D &srcb ){ 	\
-            for( size_t i = 0; i < num_line( dst ); i ++){                    					\
-				for( size_t j = 0; j < dst.x_max; j ++) 						               	\
-					dst[i][j] op srca[i] * srcb[j]; 											\
-		}                                                               						\
+#define APEX_SUPPORT_DOT_LT_1D(func_name,op)                            \
+        void func_name( CTensor2D &dst, const CTensor1D &srca, const CTensor1D &srcb ){ \
+            for( size_t i = 0; i < num_line( dst ); i ++ ){             \
+				for( size_t j = 0; j < dst.x_max; j ++ )                \
+					dst[i][j] op srca[i] * srcb[j];                     \
+            }                                                           \
+		}                                                               \
 
     };
 
 	namespace tensor{
         //support dot operation
-		APEX_SUPPORT_DOT_1D( dot, tmp += srca[j]*srcb[j][i], = )
-		APEX_SUPPORT_DOT_1D( add_dot, tmp += srca[j]*srcb[j][i];, += )
-		APEX_SUPPORT_DOT_1D( sub_dot, tmp += srca[j]*srcb[j][i];, -= )
-
+		APEX_SUPPORT_DOT_1D( dot    , tmp += srca[j]*srcb[j][i] , = )
+		APEX_SUPPORT_DOT_1D( add_dot, tmp += srca[j]*srcb[j][i] , += )
+		APEX_SUPPORT_DOT_1D( sub_dot, tmp += srca[j]*srcb[j][i] , -= )
+        
         APEX_SUPPORT_DOT_2D( dot )                          
         APEX_SUPPORT_DOT_2D( add_dot )
 		APEX_SUPPORT_DOT_2D( sub_dot )
 
-   		APEX_SUPPORT_DOT_1D( dot_rt, tmp += srca[j]*srcb[i][j], = )
-		APEX_SUPPORT_DOT_1D( add_dot_rt, tmp += srca[j]*srcb[i][j];, += )
-		APEX_SUPPORT_DOT_1D( sub_dot_rt, tmp += srca[j]*srcb[i][j];, -= )
+   		APEX_SUPPORT_DOT_1D( dot_rt    , tmp += srca[j]*srcb[i][j] , =  )
+		APEX_SUPPORT_DOT_1D( add_dot_rt, tmp += srca[j]*srcb[i][j] , += )
+		APEX_SUPPORT_DOT_1D( sub_dot_rt, tmp += srca[j]*srcb[i][j] , -= )
 
         APEX_SUPPORT_DOT_2D( dot_rt )                          
         APEX_SUPPORT_DOT_2D( add_dot_rt )
 		APEX_SUPPORT_DOT_2D( sub_dot_rt )
 
-		APEX_SUPPORT_DOT_LT_1D( dot_lt, = )
+		APEX_SUPPORT_DOT_LT_1D( dot_lt    , =  )
 		APEX_SUPPORT_DOT_LT_1D( add_dot_lt, += )
 		APEX_SUPPORT_DOT_LT_1D( sub_dot_lt, -= )
     };
