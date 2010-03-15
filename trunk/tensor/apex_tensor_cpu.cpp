@@ -176,19 +176,19 @@ namespace apex_tensor{
 	   	tmp = new TENSOR_FLOAT[ dst_size ];			\
 	    	memcpy(tmp, dst.elem, dst_size);					\
 	    }									\
-	    memop;\
+	    memop;								\
 	    for( size_t i = 0; i < num_line( dst ); i ++){			\
 		TENSOR_FLOAT *d = get_line( tmp, i );				\
 		const TENSOR_FLOAT *a = get_line_const( srca, i );		\
-		for( size_t j = 0; j < dst.max; j ++){				\
-		    for (sizt_t k = 0; k < srca.max; k ++){			\
+		for( size_t j = 0; j < dst.x_max; j ++){				\
+		    for (size_t k = 0; k < srca.x_max; k ++){			\
 			const TENSOR_FLOAT *b = get_line_const( srcb, k );	\
-			d[ j ] op= a[ k ] * b[ j ]; 				\
+			op; 							\
 		    }								\
 		}								\
 	    }									\
 	    if( flag  ){							\
-	    	[]delete dst.elem;						\
+	    	delete[] dst.elem;						\
 	    	dst.elem = tmp;							\
 	    }									\
 	}									\
@@ -224,11 +224,11 @@ namespace apex_tensor{
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP( sub_template, d[j] = a[j]-b[j]);
         template<typename T, typename TB>
-        APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( dot_template, memset(tmp, 0, dst_size), + );
+        APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( dot_template, memset(tmp, 0, dst_size), d[j]+=a[k]*b[j] );
         template<typename T, typename TB>
-        APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( add_dot_template, , + );
+        APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( add_dot_template, , d[j]+=a[k]*b[j] );
         template<typename T, typename TB>
-        APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( sub_dot_template, , -);
+        APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( sub_dot_template, , d[j]-=a[k]*b[j] );
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j]);
         
