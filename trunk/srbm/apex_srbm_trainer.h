@@ -112,7 +112,7 @@ namespace apex_rbm{
                 model.add_layer( param_new_layer );
             }
             srbm = factory::create_srbm( model, param_train );
-            
+            srbm->set_cd_step( cd_step );
             // saved for further usage
             fo_summary_log = apex_utils::fopen_check( name_summary_log , "w" );
             fo_detail_log  = apex_utils::fopen_check( name_detail_log  , "w" );
