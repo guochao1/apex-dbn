@@ -169,14 +169,14 @@ namespace apex_rbm{
             const float eta = param.learning_rate/param.batch_size;
             
             if( param.chg_hidden_bias ){
-                h_bias = h_bias*(1-eta*param.wd_h) + d_h_bias * eta;
+                h_bias = h_bias * ( 1-eta*param.wd_h ) + d_h_bias * eta;
                 h_bias*= param.momentum;
             }
             if( param.chg_visible_bias ){
-                v_bias = v_bias*(1-eta*param.wd_v) + d_v_bias * eta;
+                v_bias = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
                 v_bias*= param.momentum;
             }
-            W   = W * (1-eta*param.wd_W) + d_W * eta;            
+            W   = W * ( 1-eta*param.wd_W ) + d_W * eta;            
             d_W *= param.momentum;
         }
 
@@ -220,7 +220,7 @@ namespace apex_rbm{
         }
         virtual void train_update_trunk( const apex_tensor::CTensor2D &data ){
             for( size_t i = 0 ; i < data.y_max ; i ++ )
-                train_update( data[i] );
+                train_update( data[(int)i] );
         }
         
         /* clone model trainied to model */

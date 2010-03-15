@@ -224,7 +224,8 @@ namespace apex_rbm{
         inline void add_layer( const SRBMModelParam  &p ){
             layers.resize( layers.size() + 1 );
             layers.back().param = p;
-            layers.back().alloc_space();            
+            layers.back().alloc_space();
+            layers.back().rand_init();
         }                        
     };    
 };
