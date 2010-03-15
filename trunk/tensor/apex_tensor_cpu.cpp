@@ -316,31 +316,36 @@ namespace apex_tensor{
 
 	namespace tensor{
     // definition of macros
-#define APEX_SUPPORT_DOT_1D(func_name,op)       													\
-        inline void func_name( CTensor1D &dst, const CTensor1D &srca, const CTensor2D &srcb ){ 		\
-            for( size_t i = 0; i < dst.x_max; i ++){     				        					\
-	    		TENSOR_FLOAT tmp = 0;																\
-				for( size_t j = 0; j < srca.x_max; j ++)											\
-					tmp += srca[j]*srcb[j][i];														\
-				dst[i] op tmp;																		\
-	    	}																						\
-		}																							\
+#define APEX_SUPPORT_DOT_1D(func_name,op)                               \
+        inline void func_name( CTensor1D &dst, const CTensor1D &srca, const CTensor2D &srcb ){ \
+            for( size_t i = 0; i < dst.x_max; i ++){                    \
+	    		TENSOR_FLOAT tmp = 0;                                   \
+				for( size_t j = 0; j < srca.x_max; j ++)                \
+					tmp += srca[j]*srcb[j][i];                          \
+				dst[i] op tmp;                                          \
+	    	}                                                           \
+		}                                                               \
 	
-#define APEX_SUPPROT_DOT_2D(func_name) 							      								\
-        inline void func_name( CTensor2D &dst , const CTensor2D &srca, const CTensor2D &srcb ){	 	\
-            for( size_t i = 0; i < num_line( dst ); i ++)     				        				\
-				func_name(dst[i], srca[i], srcb);													\
-		}                                                              								\	
 
-};
+#define APEX_SUPPORT_DOT_2D(func_name)                                  \
+        inline void func_name( CTensor2D &dst , const CTensor2D &srca, const CTensor2D &srcb ){ \
+            for( size_t i = 0; i < num_line( dst ); i ++ ){             \
+                CTensor1D dd = dst[i];                                  \
+                func_name( dd, srca[i], srcb );                         \
+            }                                                           \
+        }                                                               \
+	
+    };
 
 	namespace tensor{
-	//support dot operation
+        //support dot operation
 		APEX_SUPPORT_DOT_1D( dot, = )
 		APEX_SUPPORT_DOT_1D( add_dot, += )
 		APEX_SUPPORT_DOT_1D( sub_dot, -= )
-		APEX_SUPPORT_DOT_2D( dot )
-		APEX_SUPPORT_DOT_2D( add_dot )
+
+        APEX_SUPPORT_DOT_2D( dot )                          
+        APEX_SUPPORT_DOT_2D( add_dot )
 		APEX_SUPPORT_DOT_2D( sub_dot )
+    };
 };
 #endif
