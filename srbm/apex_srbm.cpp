@@ -3,7 +3,9 @@
 
 #include "apex_srbm.h"
 #include "apex_srbm_model.h"
+#include "apex_srbm_model_stats.h"
 #include "../tensor/apex_tensor.h"
+
 #include <vector>
 
 namespace apex_rbm{
@@ -222,7 +224,53 @@ namespace apex_rbm{
             for( size_t i = 0 ; i < data.y_max ; i ++ )
                 train_update( data[(int)i] );
         }
-        
+
+        // do validation, return the statistics
+        virtual void validate_stats( SRBMModelStats &stats, const apex_tensor::CTensor2D &data ){
+            TTensor2D grad_W;
+            TTensor1D pos_grad_h, neg_grad_h, pos_grad_v, neg_grad_v, loss;
+            grad_W = clone( stats.grad_W );
+            pos_grad_h = clone( stats.pos_grad_h );
+            neg_grad_h = clone( stats.neg_grad_h );
+            pos_grad_v = clone( stats.pos_grad_v );
+            neg_grad_v = clone( stats.neg_grad_v );
+            loss       = clone( stats.loss );
+
+            for( size_t i = 0 ; i < data.y_max ; i ++ ){
+                setup_input( data[(int)i] );
+
+                TTensor1D &v_pos = layers.back().v_state;                
+                // whether can be use peristent chain
+                TTensor1D &hp = persistent_ok ? h_neg : h_pos;
+                cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
+                persistent_ok = ( param.persistent_cd !=0 );
+                
+                grad_W += dot( v_pos.T() , h_pos );
+                grad_W -= dot( v_neg.T() , h_neg );
+                
+                pos_grad_h += h_pos;
+                neg_grad_h -= h_neg;                                 
+                pos_grad_v += v_pos;
+                neg_grad_v -= v_neg;
+                v_neg      -= v_pos;
+                v_neg       = v_neg * v_neg;
+                loss       += v_neg;
+            }                        
+            apex_tensor::tensor::copy( stats.grad_W, grad_W );
+            apex_tensor::tensor::copy( stats.pos_grad_h, pos_grad_h );
+            apex_tensor::tensor::copy( stats.neg_grad_h, neg_grad_h );
+            apex_tensor::tensor::copy( stats.pos_grad_v, pos_grad_v );
+            apex_tensor::tensor::copy( stats.neg_grad_v, neg_grad_v );
+            apex_tensor::tensor::copy( stats.loss, loss );
+            
+            apex_tensor::tensor::free_space( grad_W );
+            apex_tensor::tensor::free_space( pos_grad_h );
+            apex_tensor::tensor::free_space( neg_grad_h );
+            apex_tensor::tensor::free_space( pos_grad_v );
+            apex_tensor::tensor::free_space( neg_grad_v );
+            apex_tensor::tensor::free_space( loss );
+        }
+       
         /* clone model trainied to model */
         virtual void clone_model( SDBNModel &model )const{
             if( model.layers.size() != layers.size() ){
@@ -232,18 +280,19 @@ namespace apex_rbm{
             SRBMModel &md = model.layers.back();
             const SRBMLayer &mm = layers.back();
             
-            tensor::copy( md.Wvh , mm.W );
-            tensor::copy( md.h_bias , mm.h_bias );
-            tensor::copy( md.v_bias , mm.v_bias );
-            tensor::copy( md.d_Wvh , d_W );
-            tensor::copy( md.d_h_bias , d_h_bias );
-            tensor::copy( md.d_v_bias , d_v_bias );            
+            apex_tensor::tensor::copy( md.Wvh , mm.W );
+            apex_tensor::tensor::copy( md.h_bias , mm.h_bias );
+            apex_tensor::tensor::copy( md.v_bias , mm.v_bias );
+            apex_tensor::tensor::copy( md.d_Wvh , d_W );
+            apex_tensor::tensor::copy( md.d_h_bias , d_h_bias );
+            apex_tensor::tensor::copy( md.d_v_bias , d_v_bias );            
         }       
 
         /* set steps of CD */
         virtual void set_cd_step( int cd_step ){
             this->cd_step = cd_step;
         }                
+
     };
     
     namespace factory{

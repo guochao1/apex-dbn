@@ -40,8 +40,22 @@ namespace apex_op_plan{
     };
     
 #define APEX_ADD_SUPPORT_ADD_OP(T)                                      \
-    inline apex_op_plan::AddPlan<T> operator*( const T &a, const T &b ){ \
+    inline apex_op_plan::AddPlan<T> operator+( const T &a, const T &b ){ \
         return apex_op_plan::AddPlan<T>( &a, &b );                      \
+    }                                                                   \
+
+    template<typename T>
+    struct MulPlan{
+        const T *a, *b;
+        MulPlan( const T *a, const T *b ) {
+            this->a = a;
+            this->b = b;
+        } 
+    };
+    
+#define APEX_ADD_SUPPORT_MUL_OP(T)                                      \
+    inline apex_op_plan::MulPlan<T> operator*( const T &a, const T &b ){ \
+        return apex_op_plan::MulPlan<T>( &a, &b );                      \
     }                                                                   \
 
     template<typename T,typename TV>

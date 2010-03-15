@@ -23,7 +23,7 @@ namespace apex_utils{
         
         const apex_tensor::CTensor2D get_trunk( int start_idx, int max_idx ) const{
             size_t y_max = max_idx - start_idx;
-            if( y_max > trunk_size ) y_max = trunk_size;
+            if( y_max > (size_t)trunk_size ) y_max = trunk_size;
             
             apex_tensor::CTensor2D m( y_max, data.y_max*data.x_max );
             m.elem  = data[ (int)start_idx ].elem;
@@ -51,22 +51,31 @@ namespace apex_utils{
             unsigned char zz[4];
             unsigned char *t_data;
             
-            fread(zz, 4 , 1, fi );
-            fread(zz, 4 , 1, fi );
+            if( fread(zz, 4 , 1, fi ) == 0 ){
+                apex_utils::error("load minist");
+            }
+            
+            if( fread(zz, 4 , 1, fi ) == 0 ){
+                apex_utils::error("load minist");
+            }
             
             num_image = (int)(zz[3]) 
                 | (((int)(zz[2])) << 8)
                 | (((int)(zz[1])) << 16)
                 | (((int)(zz[0])) << 24);
             
-            fread(zz, 4 , 1, fi );
-            
+            if( fread(zz, 4 , 1, fi ) == 0 ){
+                apex_utils::error("load minist");
+            }
+             
             width = (int)(zz[3]) 
                 | (((int)(zz[2])) << 8)
                 | (((int)(zz[1])) << 16)
                 | (((int)(zz[0])) << 24);
             
-            fread(zz, 4 , 1, fi );
+            if( fread(zz, 4 , 1, fi ) == 0 ){
+                apex_utils::error("load minist"); 
+            }
 
             height = (int)(zz[3]) 
                 | (((int)(zz[2])) << 8)
@@ -75,7 +84,11 @@ namespace apex_utils{
             
             pitch = width * height;
             t_data = new unsigned char[ num_image * pitch ];
-            fread( t_data, pitch*num_image , 1 , fi);        
+            
+            if( fread( t_data, pitch*num_image , 1 , fi) == 0 ){
+                apex_utils::error("load minist");
+            }        
+            
             fclose( fi );
             
             data.set_param( num_image, width , height );
