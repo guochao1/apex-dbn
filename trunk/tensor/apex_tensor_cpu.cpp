@@ -1,9 +1,9 @@
 #ifndef _APEX_TENSOR_CPU_CPP_
 #define _APEX_TENSOR_CPU_CPP_
 
-#include "apex_tensor_cpu.h"
+#include "apex_tensor.h"
 #include "../external/apex_random.h"
-
+#include <cmath>
 // defintiions for tensor functions 
 // tqchen
 
@@ -76,13 +76,16 @@ namespace apex_tensor{
         inline size_t num_header_bytes( CTensor4D ts ){
             return sizeof(size_t)*4;
         }
-        
+
+        inline TENSOR_FLOAT *get_line( TENSOR_FLOAT *elem, size_t pitch, size_t idx ){
+            return (TENSOR_FLOAT*)((char*)elem + idx*pitch);
+        }
         
         template<typename T> 
         inline TENSOR_FLOAT *get_line( T &ts, size_t idx ){
-            return (TENSOR_FLOAT*)((char*)ts.elem + idx*ts.pitch);
-    }
-        
+            return get_line( ts.elem, ts.pitch, idx );
+        }
+                        
         template<typename T> 
         inline const TENSOR_FLOAT *get_line_const( const T &ts, size_t idx ){
             return (const TENSOR_FLOAT*)((const char*)ts.elem + idx*ts.pitch);
@@ -144,7 +147,7 @@ namespace apex_tensor{
         }                                                           \
 
 #define APEX_ELEMENTWISE_MAP_OP(func_name,op)                       \
-        inline void func_name( T &dst, const T&src ){               \
+        inline void func_name( T &dst, const T &src ){              \
             for( size_t i = 0 ; i < num_line( dst ) ; i ++ ){       \
                 TENSOR_FLOAT *d = get_line( dst, i );               \
                 const TENSOR_FLOAT *a = get_line_const( src, i );   \
@@ -166,35 +169,35 @@ namespace apex_tensor{
 		}                                                               \
 
 
-#define APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT(func_name, memop, op)                        \
-	inline void func_name(T &dst, const T &srca, const TB &srcb){		\
-	    size_t dst_size = num_bytes( dst );					\
-	    TENSOR_FLOAT *tmp = dst.elem;					\
-	    bool flag = false;							\
-	    if( dst.elem == srca.elem || dst.elem == srcb.elem ){			\
-		flag = true;							\
-	   	tmp = new TENSOR_FLOAT[ dst_size ];			\
-	    	memcpy(tmp, dst.elem, dst_size);					\
-	    }									\
-	    memop;								\
-	    for( size_t i = 0; i < num_line( dst ); i ++){			\
-		TENSOR_FLOAT *d = get_line( tmp, i );				\
-		const TENSOR_FLOAT *a = get_line_const( srca, i );		\
-		for( size_t j = 0; j < dst.x_max; j ++){				\
-		    for (size_t k = 0; k < srca.x_max; k ++){			\
-			const TENSOR_FLOAT *b = get_line_const( srcb, k );	\
-			op; 							\
-		    }								\
-		}								\
-	    }									\
-	    if( flag  ){							\
-	    	delete[] dst.elem;						\
-	    	dst.elem = tmp;							\
-	    }									\
-	}									\
+#define APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT(func_name,memop,op)       \
+        inline void func_name( T &dst, const T &srca, const TB &srcb ){ \
+            size_t dst_size = num_bytes( dst );                         \
+            TENSOR_FLOAT *tmp = dst.elem;                               \
+            bool flag = false;                                          \
+            if( dst.elem == srca.elem || dst.elem == srcb.elem ){       \
+                flag = true;                                            \
+                tmp = new TENSOR_FLOAT[ dst_size ];                     \
+                memcpy(tmp, dst.elem, dst_size);                        \
+            }                                                           \
+            memop;                                                      \
+            for( size_t i = 0; i < num_line( dst ); i ++){              \
+                TENSOR_FLOAT *d = get_line( tmp, dst.pitch, i );        \
+                const TENSOR_FLOAT *a = get_line_const( srca, i );      \
+                for( size_t j = 0; j < dst.x_max; j ++ ){               \
+                    for ( size_t k = 0; k < srca.x_max ; k ++ ){        \
+                        const TENSOR_FLOAT *b = get_line_const( srcb, k ); \
+                        op;                                             \
+                    }                                                   \
+                }                                                       \
+            }                                                           \
+            if( flag ){                                                 \
+                delete[] dst.elem;                                      \
+                dst.elem = tmp;                                         \
+            }                                                           \
+        }                                                               \
+        
 
-
-#define APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM(func_name,param1,param2,op) \
+#define APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM(func_name,param1,param2,op ) \
         inline void func_name( T &dst, const T &srca, const T &srcb, param1,param2 ){ \
             for( size_t i = 0 ; i < num_line( dst ) ; i ++ ){           \
                 TENSOR_FLOAT *d = get_line( dst ,i );                   \
@@ -230,7 +233,7 @@ namespace apex_tensor{
         template<typename T, typename TB>
         APEX_ELEMENTTWISE_BINARY_OP_SUPPOTDOT( sub_dot_template, , d[j]-=a[k]*b[j] );
         template<typename T>
-        APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j]);
+        APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j] );
         
     };
 
@@ -239,16 +242,16 @@ namespace apex_tensor{
     namespace tensor{
 
 #define APEX_USE_TEMPLATE_A(func_name)                                  \
-        void func_name( CTensor1D &dst ){                                \
+        void func_name( CTensor1D &dst ){                               \
             func_name##_template( dst );                                \
         }                                                               \
-        void func_name( CTensor2D &dst ){                                \
+        void func_name( CTensor2D &dst ){                               \
             func_name##_template( dst );                                \
         }                                                               \
-        void func_name( CTensor3D &dst ){                                \
+        void func_name( CTensor3D &dst ){                               \
             func_name##_template( dst );                                \
         }                                                               \
-        void func_name( CTensor4D &dst  ){                               \
+        void func_name( CTensor4D &dst  ){                              \
             func_name##_template( dst );                                \
         }                                                               \
 
@@ -282,38 +285,32 @@ namespace apex_tensor{
         }                                                               \
 
 #define APEX_USE_TEMPLATE_D(func_name,param,arg)                        \
-        void func_name( CTensor1D &dst , const CTensor1D &a, param ){     \
+        void func_name( CTensor1D &dst , const CTensor1D &a, param ){   \
             func_name##_template( dst, a, arg );                        \
         }                                                               \
-        void func_name( CTensor2D &dst , const CTensor2D &a, param ){     \
+        void func_name( CTensor2D &dst , const CTensor2D &a, param ){   \
             func_name##_template( dst, a, arg );                        \
         }                                                               \
-        void func_name( CTensor3D &dst , const CTensor3D &a, param ){     \
+        void func_name( CTensor3D &dst , const CTensor3D &a, param ){   \
             func_name##_template( dst, a, arg );                        \
         }                                                               \
-        void func_name( CTensor4D &dst , const CTensor4D &a, param ){     \
+        void func_name( CTensor4D &dst , const CTensor4D &a, param ){   \
             func_name##_template( dst, a, arg );                        \
         }                                                               \
 
 #define APEX_USE_TEMPLATE_E(func_name)                                  \
-        void func_name( CTensor1D &dst , const CTensor1D &a){             \
+        void func_name( CTensor1D &dst , const CTensor1D &a){           \
             func_name##_template( dst, a );                             \
         }                                                               \
-        void func_name( CTensor2D &dst , const CTensor2D &a ){            \
+        void func_name( CTensor2D &dst , const CTensor2D &a ){          \
             func_name##_template( dst, a );                             \
         }                                                               \
-        void func_name( CTensor3D &dst , const CTensor3D &a ){            \
+        void func_name( CTensor3D &dst , const CTensor3D &a ){          \
             func_name##_template( dst, a );                             \
         }                                                               \
-        void func_name( CTensor4D &dst , const CTensor4D &a ){            \
+        void func_name( CTensor4D &dst , const CTensor4D &a ){          \
             func_name##_template( dst, a );                             \
         }                                                               \
-       void func_name( CTensor1D &dst , const CTensor2D &a ){            \
-            func_name##_template( dst, a );                             \
-        }                                                               \
-       void func_name( CTensor2D &dst , const CTensor1D &a ){            \
-            func_name##_template( dst, a );                             \
-	}								\
 
 #define APEX_USE_TEMPLATE_F(func_name)                                  \
         void func_name( CTensor1D &dst , const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb ){ \
@@ -330,18 +327,18 @@ namespace apex_tensor{
         }                                                               \
 
 #define APEX_USE_TEMPLATE_G(func_name)                                  \
-        void func_name( CTensor1D &dst , const CTensor1D &a, const CTenser1D &b ){             \
-            func_name##_template( dst, a, b );                             \
+        void func_name( CTensor1D &dst , const CTensor1D &a, const CTensor1D &b ){ \
+            func_name##_template( dst, a, b );                          \
         }                                                               \
-        void func_name( CTensor2D &dst , const CTensor2D &a, const CTenser2D &b ){            \
-            func_name##_template( dst, a, b );                             \
+        void func_name( CTensor2D &dst , const CTensor2D &a, const CTensor2D &b ){ \
+            func_name##_template( dst, a, b );                          \
         }                                                               \
-        void func_name( CTensor1D &dst , const CTensor1D &a, const CTenser2D &b ){            \
-            func_name##_template( dst, a, b );                             \
+        void func_name( CTensor1D &dst , const CTensor1D &a, const CTensor2D &b ){ \
+            func_name##_template( dst, a, b );                          \
         }                                                               \
-        void func_name( CTensor2D &dst , const CTensor2D &a, const CTensor1D &b ){            \
-            func_name##_template( dst, a, b );                             \
-	}								\
+        void func_name( CTensor2D &dst , const CTensor2D &a, const CTensor1D &b ){ \
+            func_name##_template( dst, a, b );                          \
+        }                                                               \
 
     };
     // interface funtions 
@@ -360,10 +357,10 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_D( sample_gaussian, TENSOR_FLOAT sd, sd )
         APEX_USE_TEMPLATE_E( sigmoid )
         APEX_USE_TEMPLATE_E( sample_binary )
-        APEX_USE_TEMPLATE_F( scale_add )
-	APEX_USE_TEMPLATE_G( dot )
-	APEX_USE_TEMPLATE_G( add_dot )
-	APEX_USE_TEMPLATE_G( sub_dot )
+        APEX_USE_TEMPLATE_F( scale_add )        
+        APEX_USE_TEMPLATE_G( dot )
+        APEX_USE_TEMPLATE_G( add_dot )
+        APEX_USE_TEMPLATE_G( sub_dot )
     };
 };
 #endif

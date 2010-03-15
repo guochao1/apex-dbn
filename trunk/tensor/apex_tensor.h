@@ -53,6 +53,6 @@ namespace apex_tensor{
 };
 
 #include "apex_tensor_cpu.h"
-//#include "apex_tensor_gpu.h"
+#include "apex_tensor_gpu.h"
 #endif
 
