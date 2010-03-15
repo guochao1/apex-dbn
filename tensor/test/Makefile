@@ -5,7 +5,7 @@ OPT= -msse2 -O3 -fno-strict-aliasing -Wall
 all: $(BIN)
 
 clean:
-	rm -f $(BIN) *.o *~
+	rm -f $(BIN) *.o *~ *.exe
 
 apex_tensor_cpu.o: ../apex_tensor.h ../apex_tensor_cpu.h ../apex_tensor_cpu.cpp ../apex_tensor_inline.cpp
 	g++ $(OPT) -c -o apex_tensor_cpu.o  ../apex_tensor_cpu.cpp
