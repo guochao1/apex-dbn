@@ -1,25 +1,25 @@
-#ifndef _APEX_SRBM_TRAINER_H_
-#define _APEX_SRBM_TRAINER_H_
+#ifndef _APEX_CRBM_TRAINER_H_
+#define _APEX_CRBM_TRAINER_H_
 
 #include <vector>
 #include <cstdlib>
 #include <cstring>
 
-#include "apex_srbm.h"
-#include "apex_srbm_model.h"
+#include "apex_crbm.h"
+#include "apex_crbm_model.h"
 #include "../utils/apex_config.h"
 #include "../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
-	class SRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor2D> {
+	class CRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor3D> {
     private:
         // model parameter
         /* parameter for new layer */
-        SRBMModelParam param_new_layer;
-        SRBMTrainParam param_train;
+        CRBMModelParam param_new_layer;
+        CRBMTrainParam param_train;
         /* model of SDBN */
-		SDBNModel  model;
-        ISRBM     *srbm;        
+		CDBNModel  model;
+        ICRBM     *crbm;        
     private:
         // name of config file 
         char name_config[ 256 ];
@@ -46,7 +46,7 @@ namespace apex_rbm{
 
     private:
         inline void reset_default(){
-            strcpy( name_config, "srbm.conf" );
+            strcpy( name_config, "crbm.conf" );
             strcpy( name_model_in, "NULL" );
             strcpy( name_model_out_folder, "models" );            
             strcpy( name_summary_log, "summary.log.txt" );           
@@ -55,12 +55,12 @@ namespace apex_rbm{
             cd_step = 1; trunk_size = 1;
         }
     public:
-        SRBMTrainer(){
-            srbm = NULL;
+        CRBMTrainer(){
+            crbm = NULL;
             reset_default();
         }
-        virtual ~SRBMTrainer(){
-            if( srbm != NULL ) delete srbm;            
+        virtual ~CRBMTrainer(){
+            if( crbm != NULL ) delete crbm;            
         }
 
     private:
@@ -112,32 +112,32 @@ namespace apex_rbm{
             if( task == 0 ){
                 model.add_layer( param_new_layer );
             }
-            srbm = factory::create_srbm( model, param_train );
-            srbm->set_cd_step( cd_step );
+            crbm = factory::create_crbm( model, param_train );
+            crbm->set_cd_step( cd_step );
             // saved for further usage
             fo_summary_log = apex_utils::fopen_check( name_summary_log , "w" );
             fo_detail_log  = apex_utils::fopen_check( name_detail_log  , "w" );
         }      
         
-        virtual void train_update( const apex_tensor::CTensor1D &data ){
-            srbm->train_update( data );
+        virtual void train_update( const apex_tensor::CTensor2D &data ){
+            crbm->train_update( data );
         }
 
-        virtual void train_update_trunk( const apex_tensor::CTensor2D &data ){
-            srbm->train_update_trunk( data );
+        virtual void train_update_trunk( const apex_tensor::CTensor3D &data ){
+            crbm->train_update_trunk( data );
         }
 
-        virtual void validate_trunk    ( const apex_tensor::CTensor2D &data ){
-            SRBMModelParam &param = model.layers.back().param;            
-            SRBMModelStats stats( param.v_max, param.h_max );
-            srbm->validate_stats( stats, data );
+        virtual void validate_trunk    ( const apex_tensor::CTensor3D &data ){
+            CRBMModelParam &param = model.layers.back().param;            
+			CRBMModelStats stats( param.v_max, param.h_max, param.y_max, param.x_max );
+            crbm->validate_stats( stats, data );
             stats.save_summary( fo_summary_log );
             stats.save_detail ( fo_detail_log  );
         }
 
         /* we end a round of training */
         virtual void round_end(){
-            srbm->clone_model( model );
+            crbm->clone_model( model );
             this->save_model();
         }
 

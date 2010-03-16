@@ -11,26 +11,28 @@
 
 namespace apex_utils{
     // model updater that updates the model 
-    class ITensor1DUpdater{
+    template<typename T>
+    class ITensorUpdater{
     public:
         // set parameter necessary
         virtual void set_param( const char *name, const char *val )=0;
         // initalize the updater 
         virtual void init( void ) = 0;
         // update the model using a trunk of tensor 
-        virtual void train_update_trunk( const apex_tensor::CTensor2D data )=0;
+        virtual void train_update_trunk( const T &data )=0;
         // validate the model using a trunk of tensor 
-        virtual void validate_trunk    ( const apex_tensor::CTensor2D data )=0;
+        virtual void validate_trunk    ( const T &data )=0;
         // end of a round
         virtual void round_end() = 0;
         // end of all training rounds
         virtual void all_end()   =0;
     };        
     
-    class Tensor1DUpdateTask : public ITask{
+    template<typename T>
+    class TensorUpdateTask : public ITask{
     private:
-        ITensor1DUpdater   *updater;
-        ITensor1DIterator  *iter;
+        ITensorUpdater<T>   *updater;
+        ITensorIterator<T>  *iter;
     private:
         int task;
         int silent, do_validation;
@@ -107,7 +109,7 @@ namespace apex_utils{
             }
         }
     public:
-        Tensor1DUpdateTask( ITensor1DUpdater *updater, ITensor1DIterator *iter ){
+        TensorUpdateTask( ITensorUpdater<T> *updater, ITensorIterator<T> *iter ){
             this->updater = updater;
             this->iter    = iter;   
             this->reset_default_param();
@@ -132,7 +134,7 @@ namespace apex_utils{
             default: apex_utils::error("unkown task");
             }
         }	
-        virtual ~Tensor1DUpdateTask(){}
+        virtual ~TensorUpdateTask(){}
     };
 };
 #endif

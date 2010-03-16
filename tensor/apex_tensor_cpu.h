@@ -112,6 +112,8 @@ namespace apex_tensor{
         inline CTensor3D& operator -= ( const CTensor3D &b );        
         
         inline apex_op_plan::TransposePlan<CTensor3D> T() const;
+        inline CTensor3D& operator =  ( const apex_op_plan::ClonePlan         <CTensor3D> &val );        
+        inline CTensor3D& operator =  ( const apex_op_plan::AllocLikePlan     <CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::SigmoidPlan       <CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::AddPlan<CTensor3D> &val );        
@@ -146,6 +148,8 @@ namespace apex_tensor{
         inline CTensor4D& operator -= ( const CTensor4D &b );        
 
         inline apex_op_plan::TransposePlan<CTensor4D> T() const;
+        inline CTensor4D& operator =  ( const apex_op_plan::ClonePlan       <CTensor4D> &val );        
+        inline CTensor4D& operator =  ( const apex_op_plan::AllocLikePlan   <CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::SigmoidPlan     <CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan<CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::AddPlan<CTensor4D> &val );        
@@ -228,7 +232,7 @@ namespace apex_tensor{
         void sample_gaussian( CTensor1D &state, TENSOR_FLOAT sd );        
         void sample_gaussian( CTensor2D &state, TENSOR_FLOAT sd ); 
         void sample_gaussian( CTensor3D &state, TENSOR_FLOAT sd );        
-        void sample_gaussian( CTensor4D &state, TENSOR_FLOAT sd );        
+        void sample_gaussian( CTensor4D &state, TENSOR_FLOAT sd );                
     };
 
     // arithmetic operations
@@ -284,6 +288,39 @@ namespace apex_tensor{
         void sub_dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
     };
     
+    // support for convolutional RBM
+    namespace tensor{
+        namespace crbm{
+            // normalize by maxpooling 2D
+            void norm_maxpooling_2D( CTensor3D &mean, const CTensor3D &energy, int pool_size );
+
+            // sample the data using 2D maxpooling 
+            void sample_maxpooling_2D( CTensor3D &state, const CTensor3D &mean, int pool_size );
+            
+            // pool up
+            void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ); 
+            
+            // 2D convolution with bias
+            // convolution, leaves the valid area
+            // dst = (~a) (*)  filter + bias 
+            void conv2_r_valid     ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias );
+            
+            // dst = ( a) (*) filter + bias
+            void conv2_full        ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias );
+            
+            // convolution with big filter
+            void add_conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b );
+            void sub_conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b );
+            
+            // sum over last two dimension
+            void add_sum_2D( CTensor1D &dst, const CTensor3D &src );
+            void sub_sum_2D( CTensor1D &dst, const CTensor3D &src );
+            
+            // calculate information of sparse regularization
+            void add_sparse_info( CTensor1D &sum_mf, CTensor1D &sum_mf_grad, const CTensor3D &src, int pool_size );
+        };        
+    };
+
     // host only code
     namespace cpu_only{
         // average value
