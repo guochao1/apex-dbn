@@ -383,15 +383,15 @@ namespace apex_tensor{
 	    		TENSOR_FLOAT tmp = 0;                                   \
 				for( size_t j = 0; j < srca.x_max; j ++)                \
 					op1;                                                \
-				dst[(int)i] op2 tmp;                                         \
+				dst[(int)i] op2 tmp;                                    \
 	    	}                                                           \
 		}                                                               \
 	
 #define APEX_SUPPORT_DOT_2D(func_name)                                  \
         void func_name( CTensor2D &dst , const CTensor2D &srca, const CTensor2D &srcb ){ \
             for( size_t i = 0; i < num_line( dst ); i ++ ){             \
-                CTensor1D dd = dst[(int)i];                                  \
-                func_name( dd, srca[(int)i], srcb );                         \
+                CTensor1D dd = dst[(int)i];                             \
+                func_name( dd, srca[(int)i], srcb );                    \
             }                                                           \
         }                                                               \
 
@@ -399,7 +399,6 @@ namespace apex_tensor{
         void func_name( CTensor2D &dst, const CTensor1D &srca, const CTensor1D &srcb ){ \
             for( size_t i = 0; i < num_line( dst ); i ++ ){             \
 				for( size_t j = 0; j < dst.x_max; j ++ )                \
-					dst[(int)i][(int)j] op srca[(int)i] * srcb[(int)j];                     \
             }                                                           \
 		}                                                               \
 
