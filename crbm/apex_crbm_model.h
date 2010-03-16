@@ -10,6 +10,9 @@ namespace apex_rbm{
 
     // training parameter of srbm
     struct CRBMTrainParam{
+        // maximum input size
+        int input_x_max, input_y_max;
+
         /* batch_size */
         int batch_size;
         
@@ -44,11 +47,14 @@ namespace apex_rbm{
             learning_rate     = 0.01f;
             momentum          = 0.0f;
             wd_h = wd_v = wd_W= 0.0f;
+            input_x_max = input_y_max = 28;
             chg_visible_bias = chg_hidden_bias = 1;
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
             persistent_cd = 0;
         }
         inline void set_param( const char *name, const char *val ){
+            if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
+            if( !strcmp("input_x_max", name ) )   input_x_max = atoi( val );
             if( !strcmp("batch_size", name ) )    batch_size = atoi( val );
             if( !strcmp("learning_rate", name ) ) learning_rate = (float)atof( val );
             if( !strcmp("momentum", name ) )      momentum = (float)atof( val );
@@ -71,7 +77,8 @@ namespace apex_rbm{
            reserved for constructor and factory 
          */
         int model_type;
-        
+        // pool size of maxpooling
+        int pool_size;
         /* number of visible and hidden unit */
         int v_max , h_max, y_max, x_max;
 
@@ -90,6 +97,7 @@ namespace apex_rbm{
             if( !strcmp("h_max", name ) )         h_max = atoi( val );
             if( !strcmp("y_max", name ) )         y_max = atoi( val );
             if( !strcmp("x_max", name ) )         x_max = atoi( val );
+            if( !strcmp("pool_size", name ) )         pool_size = atoi( val );
             if( !strcmp("v_sigma", name ) )       v_sigma = (float)atof( val );
             if( !strcmp("v_init_sigma", name ) )  v_init_sigma = (float)atof( val );
             if( !strcmp("h_init_sigma", name ) )  h_init_sigma = (float)atof( val );
