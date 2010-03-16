@@ -12,7 +12,7 @@ namespace apex_utils{
     /* iterator that  iterates over the MINIST data set */
     class MINISTIterator: public ITensor1DIterator{
     private:
-        size_t idx, max_idx;
+        int idx, max_idx;
         int pitch;
         int num_image, width, height;
         int trunk_size;
@@ -22,11 +22,11 @@ namespace apex_utils{
         char name_image_set[ 256 ];
         
         const apex_tensor::CTensor2D get_trunk( int start_idx, int max_idx ) const{
-            size_t y_max = max_idx - start_idx;
-            if( y_max > (size_t)trunk_size ) y_max = trunk_size;
+            int y_max = max_idx - start_idx;
+            if( y_max > trunk_size ) y_max = trunk_size;
             
             apex_tensor::CTensor2D m( y_max, data.y_max*data.x_max );
-            m.elem  = data[ (int)start_idx ].elem;
+            m.elem  = data[ start_idx ].elem;
             return m;
         } 
         
