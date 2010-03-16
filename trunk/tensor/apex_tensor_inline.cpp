@@ -234,11 +234,31 @@ namespace apex_tensor{
         op;                                                             \
         return *this;                                                   \
     }                                                                   \
+
+#define APEX_EVAL_CLONE_PLAN_3D(T,plan,op)                              \
+    inline TT3D& TT3D::operator= ( const apex_op_plan::plan<T> &val ){  \
+        this->set_param( val.a->z_max, val.a->y_max,val.a->x_max );     \
+        tensor::alloc_space( *this );                                   \
+        op;                                                             \
+        return *this;                                                   \
+    }                                                                   \
+
+#define APEX_EVAL_CLONE_PLAN_4D(T,plan,op)                              \
+    inline TT4D& TT4D::operator= ( const apex_op_plan::plan<T> &val ){  \
+        this->set_param( val.a->h_max,val.a->z_max,val.a->y_max,val.a->x_max ); \
+        tensor::alloc_space( *this );                                   \
+        op;                                                             \
+        return *this;                                                   \
+    }                                                                   \
     
     APEX_EVAL_CLONE_PLAN_1D(CTensor1D,ClonePlan,tensor::copy(*this,*(val.a)));
     APEX_EVAL_CLONE_PLAN_1D(CTensor1D,AllocLikePlan, );
     APEX_EVAL_CLONE_PLAN_2D(CTensor2D,ClonePlan,tensor::copy(*this,*(val.a)));
     APEX_EVAL_CLONE_PLAN_2D(CTensor2D,AllocLikePlan,);
+    APEX_EVAL_CLONE_PLAN_3D(CTensor3D,ClonePlan,tensor::copy(*this,*(val.a)));
+    APEX_EVAL_CLONE_PLAN_3D(CTensor3D,AllocLikePlan,);
+    APEX_EVAL_CLONE_PLAN_4D(CTensor4D,ClonePlan,tensor::copy(*this,*(val.a)));
+    APEX_EVAL_CLONE_PLAN_4D(CTensor4D,AllocLikePlan,);
     
 
 #undef APEX_EVAL_SCALE_ADD_PLAN

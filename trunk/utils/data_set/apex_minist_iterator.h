@@ -9,8 +9,21 @@
 #include "../apex_tensor_iterator.h"
 
 namespace apex_utils{
+    template<typename T>
+    inline void __minist_set_param( T & m, int z_max, int y_max, int x_max  );
+    
+    template<>
+    inline void __minist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max  ){
+        m.y_max = z_max; m.x_max = y_max * x_max; 
+    }
+    template<>
+    inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max  ){
+        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; 
+     }
+    
     /* iterator that  iterates over the MINIST data set */
-    class MINISTIterator: public ITensor1DIterator{
+    template<typename T>
+    class MINISTIterator: public ITensorIterator<T>{
     private:
         int idx, max_idx;
         int pitch;
@@ -21,13 +34,13 @@ namespace apex_utils{
     private:
         char name_image_set[ 256 ];
         
-        const apex_tensor::CTensor2D get_trunk( int start_idx, int max_idx ) const{
+        const T get_trunk( int start_idx, int max_idx ) const{
             int y_max = max_idx - start_idx;
-            if( y_max > trunk_size ) y_max = trunk_size;
-            
-            apex_tensor::CTensor2D m( y_max, data.y_max*data.x_max );
+            if( y_max > trunk_size ) y_max = trunk_size;            
+            T m; 
             m.pitch = data.pitch;
             m.elem  = data[ start_idx ].elem;
+            __minist_set_param<T>( m , y_max, data.y_max, data.x_max ); 
             return m;
         } 
         
@@ -38,7 +51,7 @@ namespace apex_utils{
         }
         virtual ~MINISTIterator(){
             if( data.elem != NULL )
-                apex_tensor::tensor::free_space( data );
+                delete [] data.elem;
         }
         virtual void set_param( const char *name, const char *val ){
             if( !strcmp( name, "image_set"   ) ) strcpy( name_image_set, val );        
@@ -93,7 +106,8 @@ namespace apex_utils{
             fclose( fi );
             
             data.set_param( num_image, width , height );
-            apex_tensor::tensor::alloc_space( data );
+			data.pitch = height * sizeof(apex_tensor::TENSOR_FLOAT);
+            data.elem  = new apex_tensor::TENSOR_FLOAT[ num_image*width*height ];
             
             for( int i = 0 ; i < num_image ; i ++ )
                 for( int y = 0; y < height ; y ++ )
@@ -115,17 +129,18 @@ namespace apex_utils{
         }
         
         // get current matrix 
-        virtual const apex_tensor::CTensor2D trunk() const{
+        virtual const T trunk() const{
             return get_trunk( (int)idx, (int)max_idx );
         }
         
+
         // set before first of the item
         virtual void before_first(){
             idx = -trunk_size;
         }
         
         // trunk used for validation
-        virtual const apex_tensor::CTensor2D validation_trunk()const{
+        virtual const T validation_trunk()const{
             return get_trunk( (int)max_idx, num_image );
         }
     };

@@ -108,6 +108,8 @@ namespace apex_tensor{
         inline GTensor3D& operator -= ( const GTensor3D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor3D> T() const;
+        inline GTensor3D& operator =  ( const apex_op_plan::ClonePlan      <CTensor3D> &val );        
+        inline GTensor3D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::SigmoidPlan     <GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::AddPlan<GTensor3D> &val );        
@@ -142,6 +144,8 @@ namespace apex_tensor{
         inline GTensor4D& operator -= ( const GTensor4D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor4D> T() const;
+        inline GTensor4D& operator =  ( const apex_op_plan::ClonePlan      <CTensor4D> &val );        
+        inline GTensor4D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::SigmoidPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::AddPlan<GTensor4D> &val );        
@@ -277,6 +281,39 @@ namespace apex_tensor{
         void dot_lt    ( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
         void add_dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
         void sub_dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+    };
+    
+    // support for convolutional RBM
+    namespace tensor{
+        namespace crbm{
+            // normalize by maxpooling 2D
+            void norm_maxpooling_2D( GTensor3D &mean, const GTensor3D &energy, int pool_size );
+
+            // sample the data using 2D maxpooling 
+            void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size );
+            
+            // pool up
+            void pool_up( GTensor3D &dst , const GTensor3D &src, int pool_size ); 
+            
+            // 2D convolution with bias
+            // convolution, leaves the valid area
+            // dst = (~a) (*)  filter + bias 
+            void conv2_r_valid     ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias );
+            
+            // dst = ( a) (*) filter + bias
+            void conv2_full        ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias );
+            
+            // convolution with big filter
+            void add_conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &b );
+            void sub_conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &b );
+            
+            // sum over last two dimension
+            void add_sum_2D( GTensor1D &dst, const GTensor3D &src );
+            void sub_sum_2D( GTensor1D &dst, const GTensor3D &src );
+            
+            // calculate information of sparse regularization
+            void add_sparse_info( GTensor1D &sum_mf, GTensor1D &sum_mf_grad, const GTensor3D &src, int pool_size );
+        };        
     };
 };
 
