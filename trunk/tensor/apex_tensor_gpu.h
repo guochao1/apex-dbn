@@ -185,6 +185,12 @@ namespace apex_tensor{
         void copy( GTensor4D &dst, const CTensor4D &src );
 
         // copy data from another tensor
+        void copy( CTensor1D &dst, const GTensor1D &src );
+        void copy( CTensor2D &dst, const GTensor2D &src );
+        void copy( CTensor3D &dst, const GTensor3D &src );
+        void copy( CTensor4D &dst, const GTensor4D &src );
+
+        // copy data from another tensor
         void copy( GTensor1D &dst, const GTensor1D &src );
         void copy( GTensor2D &dst, const GTensor2D &src );
         void copy( GTensor3D &dst, const GTensor3D &src );

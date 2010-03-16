@@ -291,6 +291,16 @@ namespace apex_tensor{
         TENSOR_FLOAT avg( const CTensor2D &a );
         TENSOR_FLOAT avg( const CTensor3D &a );
         TENSOR_FLOAT avg( const CTensor4D &a );
+        // min value
+        TENSOR_FLOAT min_value( const CTensor1D &a );
+        TENSOR_FLOAT min_value( const CTensor2D &a );
+        TENSOR_FLOAT min_value( const CTensor3D &a );
+        TENSOR_FLOAT min_value( const CTensor4D &a );
+        // max value
+        TENSOR_FLOAT max_value( const CTensor1D &a );
+        TENSOR_FLOAT max_value( const CTensor2D &a );
+        TENSOR_FLOAT max_value( const CTensor3D &a );
+        TENSOR_FLOAT max_value( const CTensor4D &a );
     };
 };
 
