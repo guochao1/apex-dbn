@@ -221,8 +221,8 @@ namespace apex_rbm{
             train_update();
         }
         virtual void train_update_trunk( const apex_tensor::CTensor2D &data ){
-            for( size_t i = 0 ; i < data.y_max ; i ++ )
-                train_update( data[(int)i] );
+            for( int i = 0 ; i < data.y_max ; i ++ )
+                train_update( data[i] );
         }
 
         // do validation, return the statistics
@@ -236,8 +236,8 @@ namespace apex_rbm{
             neg_grad_v = clone( stats.neg_grad_v );
             loss       = clone( stats.loss );
 
-            for( size_t i = 0 ; i < data.y_max ; i ++ ){
-                setup_input( data[(int)i] );
+            for( int i = 0 ; i < data.y_max ; i ++ ){
+                setup_input( data[i] );
 
                 TTensor1D &v_pos = layers.back().v_state;                
                 // whether can be use peristent chain

@@ -9,16 +9,16 @@
 // data structure for tensor
 namespace apex_tensor{
     struct GTensor1D{
-        size_t        x_max;        
+        int           x_max;        
         size_t        pitch;
         TENSOR_FLOAT *elem;
         
         GTensor1D(){}
-        GTensor1D( size_t x_max ){
+        GTensor1D( int x_max ){
             set_param( x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t x_max ){
+        inline void set_param( int x_max ){
             this->x_max = x_max;
         }        
 
@@ -44,16 +44,16 @@ namespace apex_tensor{
     };
 
     struct GTensor2D{
-        size_t        x_max, y_max;        
+        int           x_max, y_max;        
         size_t        pitch;
         TENSOR_FLOAT *elem;
 
         GTensor2D(){}       
-        GTensor2D( size_t y_max, size_t x_max ){
+        GTensor2D( int y_max, int x_max ){
             set_param( y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t y_max, size_t x_max ){
+        inline void set_param( int y_max, int x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
         }        
@@ -85,15 +85,15 @@ namespace apex_tensor{
     };
 
     struct GTensor3D{
-        size_t        x_max, y_max, z_max;                
+        int           x_max, y_max, z_max;                
         size_t        pitch;
         TENSOR_FLOAT *elem;
         GTensor3D(){}
-        GTensor3D( size_t z_max, size_t y_max, size_t x_max ){
+        GTensor3D( int z_max, int y_max, int x_max ){
             set_param( z_max, y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t z_max, size_t y_max, size_t x_max ){
+        inline void set_param( int z_max, int y_max, int x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
             this->z_max = z_max;
@@ -117,16 +117,16 @@ namespace apex_tensor{
     };
     
     struct GTensor4D{
-        size_t        x_max, y_max, z_max, h_max;        
+        int           x_max, y_max, z_max, h_max;        
         size_t        pitch;
 
         TENSOR_FLOAT *elem;
         GTensor4D(){}
-        GTensor4D( size_t h_max, size_t z_max, size_t y_max, size_t x_max ){
+        GTensor4D( int h_max, int z_max, int y_max, int x_max ){
             set_param( h_max, z_max, y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t h_max, size_t z_max, size_t y_max, size_t x_max ){
+        inline void set_param( int h_max, int z_max, int y_max, int x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
             this->z_max = z_max;

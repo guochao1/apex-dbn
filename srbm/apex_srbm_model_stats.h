@@ -14,7 +14,7 @@ namespace apex_rbm{
         apex_tensor::CTensor1D loss;
         int sample_counter;
     public:
-        SRBMModelStats( size_t v_max, size_t h_max ){
+        SRBMModelStats( int v_max, int h_max ){
             grad_W.set_param( v_max, h_max );
             grad_v.set_param( v_max );
             grad_h.set_param( h_max );

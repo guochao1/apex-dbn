@@ -6,16 +6,16 @@
 // data structure for tensor
 namespace apex_tensor{
     struct CTensor1D{
-        size_t        x_max;        
+        int           x_max;        
         size_t        pitch;
         TENSOR_FLOAT *elem;
         
         CTensor1D(){}
-        CTensor1D( size_t x_max ){
+        CTensor1D( int x_max ){
             set_param( x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t x_max ){
+        inline void set_param( int x_max ){
             this->x_max = x_max;
         }        
         // operators       
@@ -48,16 +48,16 @@ namespace apex_tensor{
     };
 
     struct CTensor2D{
-        size_t        x_max, y_max;        
+        int           x_max, y_max;        
         size_t        pitch;
         TENSOR_FLOAT *elem;
 
         CTensor2D(){}       
-        CTensor2D( size_t y_max, size_t x_max ){
+        CTensor2D( int y_max, int x_max ){
             set_param( y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t y_max, size_t x_max ){
+        inline void set_param( int y_max, int x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
         }        
@@ -89,15 +89,15 @@ namespace apex_tensor{
     };
 
     struct CTensor3D{
-        size_t        x_max, y_max, z_max;                
+        int           x_max, y_max, z_max;                
         size_t        pitch;
         TENSOR_FLOAT *elem;
         CTensor3D(){}
-        CTensor3D( size_t z_max, size_t y_max, size_t x_max ){
+        CTensor3D( int z_max, int y_max, int x_max ){
             set_param( z_max, y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t z_max, size_t y_max, size_t x_max ){
+        inline void set_param( int z_max, int y_max, int x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
             this->z_max = z_max;
@@ -121,16 +121,16 @@ namespace apex_tensor{
     };
     
     struct CTensor4D{
-        size_t        x_max, y_max, z_max, h_max;        
+        int           x_max, y_max, z_max, h_max;        
         size_t        pitch;
 
         TENSOR_FLOAT *elem;
         CTensor4D(){}
-        CTensor4D( size_t h_max, size_t z_max, size_t y_max, size_t x_max ){
+        CTensor4D( int h_max, int z_max, int y_max, int x_max ){
             set_param( h_max, z_max, y_max, x_max ); 
         }        
         // set the parameter of current data
-        inline void set_param( size_t h_max, size_t z_max, size_t y_max, size_t x_max ){
+        inline void set_param( int h_max, int z_max, int y_max, int x_max ){
             this->x_max = x_max;
             this->y_max = y_max;
             this->z_max = z_max;
