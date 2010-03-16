@@ -383,15 +383,15 @@ namespace apex_tensor{
 	    		TENSOR_FLOAT tmp = 0;                                   \
 				for( size_t j = 0; j < srca.x_max; j ++)                \
 					op1;                                                \
-				dst[i] op2 tmp;                                         \
+				dst[(int)i] op2 tmp;                                         \
 	    	}                                                           \
 		}                                                               \
 	
 #define APEX_SUPPORT_DOT_2D(func_name)                                  \
         void func_name( CTensor2D &dst , const CTensor2D &srca, const CTensor2D &srcb ){ \
             for( size_t i = 0; i < num_line( dst ); i ++ ){             \
-                CTensor1D dd = dst[i];                                  \
-                func_name( dd, srca[i], srcb );                         \
+                CTensor1D dd = dst[(int)i];                                  \
+                func_name( dd, srca[(int)i], srcb );                         \
             }                                                           \
         }                                                               \
 
@@ -399,7 +399,7 @@ namespace apex_tensor{
         void func_name( CTensor2D &dst, const CTensor1D &srca, const CTensor1D &srcb ){ \
             for( size_t i = 0; i < num_line( dst ); i ++ ){             \
 				for( size_t j = 0; j < dst.x_max; j ++ )                \
-					dst[i][j] op srca[i] * srcb[j];                     \
+					dst[(int)i][(int)j] op srca[(int)i] * srcb[(int)j];                     \
             }                                                           \
 		}                                                               \
 
@@ -407,17 +407,17 @@ namespace apex_tensor{
 
 	namespace tensor{
         //support dot operation
-		APEX_SUPPORT_DOT_1D( dot    , tmp += srca[j]*srcb[j][i] , = )
-		APEX_SUPPORT_DOT_1D( add_dot, tmp += srca[j]*srcb[j][i] , += )
-		APEX_SUPPORT_DOT_1D( sub_dot, tmp += srca[j]*srcb[j][i] , -= )
+		APEX_SUPPORT_DOT_1D( dot    , tmp += srca[(int)j]*srcb[(int)j][(int)i] , = )
+		APEX_SUPPORT_DOT_1D( add_dot, tmp += srca[(int)j]*srcb[(int)j][(int)i] , += )
+		APEX_SUPPORT_DOT_1D( sub_dot, tmp += srca[(int)j]*srcb[(int)j][(int)i] , -= )
         
         APEX_SUPPORT_DOT_2D( dot )                          
         APEX_SUPPORT_DOT_2D( add_dot )
 		APEX_SUPPORT_DOT_2D( sub_dot )
 
-   		APEX_SUPPORT_DOT_1D( dot_rt    , tmp += srca[j]*srcb[i][j] , =  )
-		APEX_SUPPORT_DOT_1D( add_dot_rt, tmp += srca[j]*srcb[i][j] , += )
-		APEX_SUPPORT_DOT_1D( sub_dot_rt, tmp += srca[j]*srcb[i][j] , -= )
+   		APEX_SUPPORT_DOT_1D( dot_rt    , tmp += srca[(int)j]*srcb[(int)i][(int)j] , =  )
+		APEX_SUPPORT_DOT_1D( add_dot_rt, tmp += srca[(int)j]*srcb[(int)i][(int)j] , += )
+		APEX_SUPPORT_DOT_1D( sub_dot_rt, tmp += srca[(int)j]*srcb[(int)i][(int)j] , -= )
 
         APEX_SUPPORT_DOT_2D( dot_rt )                          
         APEX_SUPPORT_DOT_2D( add_dot_rt )
