@@ -26,6 +26,7 @@ namespace apex_utils{
             if( y_max > trunk_size ) y_max = trunk_size;
             
             apex_tensor::CTensor2D m( y_max, data.y_max*data.x_max );
+            m.pitch = data.pitch;
             m.elem  = data[ start_idx ].elem;
             return m;
         } 

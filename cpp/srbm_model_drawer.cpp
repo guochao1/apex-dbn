@@ -11,7 +11,7 @@ using namespace cimg_library;
 using namespace apex_tensor;
 
 const int SCALE = 1;
-const int MAX_NUM_PER_LINE = 7;
+const int MAX_NUM_PER_LINE = 10;
 const int Y_MAX = 28, X_MAX = 28; 
 
 inline float norm( float val, float v_min, float v_max ){
@@ -42,7 +42,7 @@ inline void norm_sigmoid( CTensor3D &m, float v_bias ){
     }
 }
 int main( int argc, char *argv[] ){
-    if( argc < 3 ){
+    if( argc < 4 ){
         printf("Usage: <model in> <image_out> <method>");        
         return 0;
     }
@@ -54,11 +54,15 @@ int main( int argc, char *argv[] ){
     int h_max = model.layers[0].h_bias.x_max;
     
 	CTensor3D m( h_max, Y_MAX, X_MAX );
-    for( int h = 0 ; h < h_max ; h ++ )
+	apex_tensor::tensor::alloc_space( m );
+	
+	for( int h = 0 ; h < h_max ; h ++ )
         for( int y = 0 ; y < Y_MAX ; y ++ )
-            for( int x = 0 ; x < X_MAX ; x ++ )
+			for( int x = 0 ; x < X_MAX ; x ++ ){
+
 				m[h][y][x] = model.layers[0].Wvh[ y*X_MAX + x ][ h ];
-            
+			}
+
     switch( atoi( argv[3] ) ){
     case 0: norm_minmax( m );  break;        
 	case 2: norm_sigmoid( m, model.layers[0].v_bias[0] ); break;
@@ -82,5 +86,6 @@ int main( int argc, char *argv[] ){
 					} 
 	}
     img.save_bmp( argv[2] );
-    return 0;
+	apex_tensor::tensor::free_space( m );
+	return 0;
 }

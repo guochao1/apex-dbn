@@ -106,14 +106,14 @@ namespace apex_rbm{
             h_bias.set_param( param.h_max );
             v_bias.set_param( param.v_max );
             d_h_bias.set_param( param.h_max );
-            d_v_bias.set_param( param.h_max );
+			d_v_bias.set_param( param.v_max );
             Wvh.set_param  ( param.v_max, param.h_max );
             d_Wvh.set_param( param.v_max, param.h_max );
 
             apex_tensor::tensor::alloc_space( h_bias );
             apex_tensor::tensor::alloc_space( v_bias );
             apex_tensor::tensor::alloc_space( d_h_bias );
-            apex_tensor::tensor::alloc_space( d_h_bias );
+            apex_tensor::tensor::alloc_space( d_v_bias );
             apex_tensor::tensor::alloc_space( Wvh );
             apex_tensor::tensor::alloc_space( d_Wvh );
         }
