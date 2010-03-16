@@ -413,11 +413,24 @@ namespace apex_tensor{
             }                                                           \
 		}                                                               \
 
+#define APEX_SUPPORT_DOT_LT_2D(func_name,op)                               						\
+        inline void func_name( CTensor2D &dst, const CTensor2D &srca, const CTensor2D &srcb ){ 	\
+            for( int i = 0; i < num_line( dst ); i ++){                    						\
+				for( int j = 0; j < dst.x_max; j ++) {						               		\
+					TENSOR_FLOAT tmp = 0;														\
+					for( int k = 0; k < num_line( srca ); ++k)									\
+						tmp += srca[k][i] * srcb[k][j]; 										\
+					dst[i][j] op tmp;															\
+				}																				\
+			}                                                               					\
+		}																						\
+
+
     };
 
 	namespace tensor{
         //support dot operation
-		APEX_SUPPORT_DOT_1D( dot    , tmp += srca[j]*srcb[j][i] , = )
+		APEX_SUPPORT_DOT_1D( dot    , tmp += srca[j]*srcb[j][i] , =  )
 		APEX_SUPPORT_DOT_1D( add_dot, tmp += srca[j]*srcb[j][i] , += )
 		APEX_SUPPORT_DOT_1D( sub_dot, tmp += srca[j]*srcb[j][i] , -= )
         
@@ -436,6 +449,11 @@ namespace apex_tensor{
 		APEX_SUPPORT_DOT_LT_1D( dot_lt    , =  )
 		APEX_SUPPORT_DOT_LT_1D( add_dot_lt, += )
 		APEX_SUPPORT_DOT_LT_1D( sub_dot_lt, -= )
+
+		APEX_SUPPORT_DOT_LT_2D( dot_lt    , =  )
+		APEX_SUPPORT_DOT_LT_2D( add_dot_lt, += )
+		APEX_SUPPORT_DOT_LT_2D( sub_dot_lt, -= )
+ 
     };
 };
 #endif
