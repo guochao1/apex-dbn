@@ -35,7 +35,7 @@ namespace apex_utils{
             data.elem = NULL;
             max_idx   = 1 << 30;
         }
-        ~MINISTIterator(){
+        virtual ~MINISTIterator(){
             if( data.elem != NULL )
                 apex_tensor::tensor::free_space( data );
         }
