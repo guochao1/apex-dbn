@@ -160,8 +160,8 @@ namespace apex_tensor{
         // allocate space
         template<typename T>
         inline void alloc_space_template( T &ts ){
-            ts.pitch= ts.x_max;
-            ts.elem = new TENSOR_FLOAT[ num_bytes( ts ) ];
+            ts.pitch= ts.x_max * sizeof(TENSOR_FLOAT);
+            ts.elem = new TENSOR_FLOAT[ num_bytes( ts )/sizeof(TENSOR_FLOAT) ];
         }
         template<typename T>
         inline void free_space_template( T &ts ){
@@ -424,7 +424,6 @@ namespace apex_tensor{
 				}																				\
 			}                                                               					\
 		}																						\
-
 
     };
 

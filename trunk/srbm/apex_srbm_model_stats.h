@@ -58,12 +58,12 @@ namespace apex_rbm{
 
             fprintf( fo, "avg_loss=%f,", (float)apex_tensor::cpu_only::avg( loss ) / sample_counter );
 
-            fprintf( fo,"avg_h_grad=%f, avg_v_gRad=%f, avg_w_grad=%f", 
+            fprintf( fo,"avg_h_grad=%f, avg_v_grad=%f, avg_w_grad=%f,", 
                      (float)apex_tensor::cpu_only::avg( grad_h ) / sample_counter,
                      (float)apex_tensor::cpu_only::avg( grad_v ) / sample_counter,                     
                      (float)apex_tensor::cpu_only::avg( grad_W ) / sample_counter ); 
 
-            fprintf( fo, "pos_v_mean=%f, neg_v_mean=%f,pos_h_mean=%f,neg_h_mean=%f\n", 
+            fprintf( fo, "pos_v_mean=%f, neg_v_mean=%f, pos_h_mean=%f, neg_h_mean=%f\n", 
                      (float)apex_tensor::cpu_only::avg( pos_grad_v ) / sample_counter,
                      (float)apex_tensor::cpu_only::avg( neg_grad_v ) / sample_counter,                     
                      (float)apex_tensor::cpu_only::avg( pos_grad_h ) / sample_counter,
