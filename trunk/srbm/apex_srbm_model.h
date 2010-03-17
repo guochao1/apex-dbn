@@ -122,7 +122,7 @@ namespace apex_rbm{
             apex_tensor::tensor::free_space( h_bias );
             apex_tensor::tensor::free_space( v_bias );
             apex_tensor::tensor::free_space( d_h_bias );
-            apex_tensor::tensor::free_space( d_h_bias );
+            apex_tensor::tensor::free_space( d_v_bias );
             apex_tensor::tensor::free_space( Wvh );
             apex_tensor::tensor::free_space( d_Wvh );
         }
