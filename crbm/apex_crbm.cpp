@@ -36,7 +36,7 @@ namespace apex_rbm{
             mean = sigmoid( energy );
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
-            tensor::copy( v_next, h_curr );
+            tensor::crbm::copy_fit( v_next, h_curr );
         }
         // reget the bound of data
         virtual void reget_bound ( int &input_y_max, int &input_x_max  ){}
@@ -114,8 +114,8 @@ namespace apex_rbm{
             int h_x_max = x_max - W.x_max + 1;
             h_node->reget_hidden_bound( h_y_max, h_x_max );
 
-            v_state.set_param( model.param.v_max, h_y_max + W.y_max - 1, h_x_max+W.x_max-1 );
-            h_state.set_param( model.param.h_max, h_y_max , h_x_max );
+            v_state.set_param( model.param.v_max, h_y_max+W.y_max-1, h_x_max+W.x_max-1 );
+            h_state.set_param( model.param.h_max, h_y_max, h_x_max );
             tensor::alloc_space( v_state );
             tensor::alloc_space( h_state );
         }
@@ -131,7 +131,7 @@ namespace apex_rbm{
         
         // feed forward from v to h 
         inline void feed_forward( TTensor3D &v_state_next ){
-            tensor::crbm::conv2_r_valid( h_state, v_state , W , h_bias );
+            tensor::crbm::conv2_r_valid( h_state, v_state, W, h_bias );
             h_node->cal_mean( h_state, h_state );
             h_node->feed_forward( v_state_next, h_state );
         }        
@@ -220,7 +220,7 @@ namespace apex_rbm{
             ICRBMNode *v_node  = layers.back().v_node;
 
             // go up
-            tensor::crbm::conv2_r_valid( h_pos , v_pos, W , h_bias );
+            tensor::crbm::conv2_r_valid( h_pos, v_pos, W, h_bias );
             h_node->cal_mean( h_pos, h_pos );
 
             // negative steps
@@ -305,24 +305,24 @@ namespace apex_rbm{
             }
         }
         
-        inline void setup_input( const apex_tensor::CTensor2D &data ){
-            tensor::crbm::copy_fit( layers[0].v_state[0] , data );
+        inline void setup_input( const apex_tensor::CTensor3D &data ){
+            tensor::crbm::copy_fit( layers[0].v_state , data );
             for( size_t i = 1 ; i < layers.size() ; i ++ ){
                 layers[i-1].feed_forward( layers[i].v_state );
             }  
         }
     public:
-        virtual void train_update( const apex_tensor::CTensor2D &data ){
+        virtual void train_update( const apex_tensor::CTensor3D &data ){
             setup_input( data );
             train_update();
         }
-        virtual void train_update_trunk( const apex_tensor::CTensor3D &data ){
+        virtual void train_update_trunk( const apex_tensor::CTensor4D &data ){
             for( int i = 0 ; i < data.y_max ; i ++ )
                 train_update( data[i] );
         }
 
         // do validation, return the statistics
-        virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor3D &data ){
+        virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor4D &data ){
             TTensor4D grad_W;
             TTensor1D pos_grad_h, neg_grad_h, pos_grad_v, neg_grad_v, loss, grad_sparse;
             grad_W     = clone( stats.grad_W );

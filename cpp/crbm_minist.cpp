@@ -9,9 +9,9 @@ using namespace apex_utils;
 
 int main( int argc, char *argv[] ){
 	apex_tensor::init_tensor_engine_cpu( 10 );
-    MINISTIterator<apex_tensor::CTensor3D> itr;        
+    MINISTIterator<apex_tensor::CTensor4D> itr;        
     apex_rbm::CRBMTrainer trainer;
-	TensorUpdateTask<apex_tensor::CTensor3D> tsk( &trainer, &itr );	
+	TensorUpdateTask<apex_tensor::CTensor4D> tsk( &trainer, &itr );	
     return run_task( argc, argv, &tsk );
 }
 

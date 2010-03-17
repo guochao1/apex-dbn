@@ -11,7 +11,7 @@
 #include "../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
-	class CRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor3D> {
+	class CRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor4D> {
     private:
         // model parameter
         /* parameter for new layer */
@@ -119,15 +119,15 @@ namespace apex_rbm{
             fo_detail_log  = apex_utils::fopen_check( name_detail_log  , "w" );
         }      
         
-        virtual void train_update( const apex_tensor::CTensor2D &data ){
+        virtual void train_update( const apex_tensor::CTensor3D &data ){
             crbm->train_update( data );
         }
 
-        virtual void train_update_trunk( const apex_tensor::CTensor3D &data ){
+        virtual void train_update_trunk( const apex_tensor::CTensor4D &data ){
             crbm->train_update_trunk( data );
         }
 
-        virtual void validate_trunk    ( const apex_tensor::CTensor3D &data ){
+        virtual void validate_trunk    ( const apex_tensor::CTensor4D &data ){
             CRBMModelParam &param = model.layers.back().param;            
 			CRBMModelStats stats( param.v_max, param.h_max, param.y_max, param.x_max );
             crbm->validate_stats( stats, data );

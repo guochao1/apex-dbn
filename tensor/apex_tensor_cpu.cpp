@@ -483,6 +483,10 @@ namespace apex_tensor{
             void copy_fit( CTensor2D &dst, const CTensor2D &src ){
                 copy_template( dst, src );
             }
+            void copy_fit( CTensor3D &dst, const CTensor3D &src ){
+                for( int i = 0 ; i < dst.z_max ; i ++ )
+                    copy_template( dst[i], src[i] );                         
+            }
             
             // normalize by maxpooling 2D
             inline void norm_maxpooling_2D_inner( CTensor2D &mean, const CTensor2D &energy, int pool_size ){

@@ -19,8 +19,12 @@ namespace apex_utils{
     template<>
     inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max  ){
         m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; 
-     }
-    
+    }
+    template<>
+    inline void __minist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max  ){
+        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; 
+    }
+
     /* iterator that  iterates over the MINIST data set */
     template<typename T>
     class MINISTIterator: public ITensorIterator<T>{
