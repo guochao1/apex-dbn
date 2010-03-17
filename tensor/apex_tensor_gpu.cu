@@ -170,7 +170,7 @@ namespace apex_tensor{
         namespace crbm{
             void copy_fit( GTensor3D &dst, const CTensor3D &src ){
                 for( int i = 0 ; i < dst.z_max ; i ++ )
-                    copy_template<GTensor3D,CTensor3D,cudaMemcpyHostToDevice>( dst[i], src[i] );
+                    copy_template<GTensor2D,CTensor2D,cudaMemcpyHostToDevice>( dst[i], src[i] );
             } 
             
         };
