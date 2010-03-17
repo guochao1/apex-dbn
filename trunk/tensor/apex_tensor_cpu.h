@@ -299,6 +299,7 @@ namespace apex_tensor{
 
             // fit the last two dimension of src into dst's size, copy the fitted part into dst
             void copy_fit( CTensor2D &dst, const CTensor2D &src );
+            void copy_fit( CTensor3D &dst, const CTensor3D &src );
             
             // pool up
             void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ); 
