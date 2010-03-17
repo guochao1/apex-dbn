@@ -564,10 +564,10 @@ namespace apex_tensor{
             // convolution, leaves the valid area
             // dst = (~a) (*)  filter + bias 
             template<int st_method>
-            inline void conv2_r_valid_inner( CTensor2D &dst, const CTensor2D &a, const CTensor2D &filter, TENSOR_FLOAT bias = 0.0f ){
+            inline void conv2_r_valid_inner( CTensor2D &dst, const CTensor2D &a, const CTensor2D &filter ){
                 for( int y = 0 ; y < dst.y_max ; y ++ )
                     for( int x = 0 ; x < dst.x_max ; x ++ ){
-                        TENSOR_FLOAT sum = bias;
+                        TENSOR_FLOAT sum = 0.0f;
                         for( int dy = 0 ; dy < filter.y_max ; y ++ )
                             for( int dx = 0 ; dx < filter.x_max ; x ++ ){
                                 sum += a[y+dy][x+dx] * filter[dy][dx];
@@ -575,26 +575,6 @@ namespace apex_tensor{
                         store_method::__store<st_method>( dst[y][x] , sum );
                     }
             }
-            template<int st_method>
-            void conv2_r_valid_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
-                if( st_method == store_method::SAVE ){                    
-                    for( int h = 0 ; h < dst.z_max ; h ++ )
-                        conv2_r_valid_inner<store_method::SAVE>( dst[h], a[0], filter[0][h], bias[h] ); 
-
-                    for( int v = 1 ; v < a.z_max ; v ++ )
-                        for( int h = 0 ; h < dst.z_max ; h ++ )
-                            conv2_r_valid_inner<store_method::ADD>( dst[h], a[v], filter[v][h] ); 
-                }
-                else{
-                    for( int h = 0 ; h < dst.z_max ; h ++ )
-                        conv2_r_valid_inner<st_method>( dst[h], a[0], filter[0][h], bias[h] ); 
-
-                    for( int v = 1 ; v < a.z_max ; v ++ )
-                        for( int h = 0 ; h < dst.z_max ; h ++ )
-                            conv2_r_valid_inner<st_method>( dst[h], a[v], filter[v][h] ); 
-                }
-            }
-
             template<int st_method>
             void conv2_r_valid_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter ){
                 if( st_method == store_method::SAVE ){                    
@@ -606,17 +586,16 @@ namespace apex_tensor{
                             conv2_r_valid_inner<store_method::ADD>( dst[h], a[v], filter[v][h] ); 
                 }
                 else{
-                    for( int h = 0 ; h < dst.z_max ; h ++ )
-                        conv2_r_valid_inner<st_method>( dst[h], a[0], filter[0][h] ); 
-
-                    for( int v = 1 ; v < a.z_max ; v ++ )
+                    for( int v = 0 ; v < a.z_max ; v ++ )
                         for( int h = 0 ; h < dst.z_max ; h ++ )
                             conv2_r_valid_inner<st_method>( dst[h], a[v], filter[v][h] ); 
                 }
             }
                         
             void conv2_r_valid     ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
-                conv2_r_valid_inner<store_method::SAVE>( dst, a, filter, bias );
+                for( int h = 0 ; h < dst.z_max ; h ++ )
+                    dst[h] = bias[h];
+                conv2_r_valid_inner<store_method::ADD>( dst, a, filter );
             }
             
             template<int st_method>
@@ -631,24 +610,15 @@ namespace apex_tensor{
             }
             
             template<int st_method>
-            void conv2_full_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
+            void conv2_full_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter ){
                 if( st_method == store_method::SAVE ){      
-                    for( int v = 0 ; v < dst.z_max ; v ++ )
-                        dst[v] = bias[v];
-
+                    dst = 0.0f;
                     for( int v = 0 ; v < dst.z_max ; v ++ ){
                         for( int h = 0 ; h < a.z_max ; h ++ )
                             conv2_full_inner<store_method::ADD>( dst[v], a[h], filter[v][h] ); 
                     }
                 }
                 else{
-                    if( st_method == store_method::ADD ){
-                        for( int v = 0 ; v < dst.z_max ; v ++ )
-                            dst[v] += bias[v];
-                    }else{
-                        for( int v = 0 ; v < dst.z_max ; v ++ )
-                            dst[v] += -bias[v];
-                    }
                     for( int v = 0 ; v < dst.z_max ; v ++ ){
                         for( int h = 0 ; h < a.z_max ; h ++ )
                             conv2_full_inner<st_method>( dst[v], a[h], filter[v][h] ); 
@@ -658,7 +628,9 @@ namespace apex_tensor{
             
             // dst = ( a) (*) filter + bias
             void conv2_full        ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
-                conv2_full_inner<store_method::SAVE>( dst , a, filter, bias ); 
+                for( int v = 0 ; v < dst.z_max ; v ++ )
+                    dst[v] = bias[v];
+                conv2_full_inner<store_method::ADD>( dst , a, filter ); 
             }
             
             // convolution with big filter

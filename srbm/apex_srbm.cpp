@@ -150,7 +150,7 @@ namespace apex_rbm{
                 h_node->sample( h_neg, hh );
 
                 // go down
-                v_neg = dot( h_neg , W.T() );
+                v_neg = dot( h_neg, W.T() );
                 v_neg+= v_bias;
                 v_node->cal_mean( v_neg, v_neg );
                 v_node->sample  ( v_neg, v_neg );
@@ -172,11 +172,11 @@ namespace apex_rbm{
             
             if( param.chg_hidden_bias ){
                 h_bias = h_bias * ( 1-eta*param.wd_h ) + d_h_bias * eta;
-                h_bias*= param.momentum;
+                d_h_bias*= param.momentum;
             }
             if( param.chg_visible_bias ){
                 v_bias = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
-                v_bias*= param.momentum;
+                d_v_bias*= param.momentum;
             }
             W   = W * ( 1-eta*param.wd_W ) + d_W * eta;            
             d_W *= param.momentum;
@@ -192,8 +192,8 @@ namespace apex_rbm{
             persistent_ok = ( param.persistent_cd !=0 );
 
             // calculate the gradient
-            d_W += dot( v_pos.T() , h_pos );
-            d_W -= dot( v_neg.T() , h_neg );
+            d_W += dot( v_pos.T(), h_pos );
+            d_W -= dot( v_neg.T(), h_neg );
             if( param.chg_hidden_bias ){
                 d_h_bias += h_pos;
                 d_h_bias -= h_neg; 
@@ -293,7 +293,6 @@ namespace apex_rbm{
         virtual void set_cd_step( int cd_step ){
             this->cd_step = cd_step;
         }                
-
     };
     
     namespace factory{
