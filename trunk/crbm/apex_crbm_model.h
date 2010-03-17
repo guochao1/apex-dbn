@@ -192,7 +192,7 @@ namespace apex_rbm{
 
             for( int v = 0 ; v < param.v_max ; v ++ ){
                 for( int h = 0 ; h < param.h_max ; h ++ ){
-                    printf("W[%d][%d]:\n" , v,h );
+                    fprintf( fo, "W[%d][%d]:\n" , v, h );
                     for( int y = 0 ; y < param.y_max ; y ++ ){
                         for( int x = 0 ; x < param.x_max ; x ++ )
                             fprintf(fo,"%f\t", (float)W[v][h][y][x] );
