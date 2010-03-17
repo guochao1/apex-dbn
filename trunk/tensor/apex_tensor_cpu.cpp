@@ -150,6 +150,7 @@ namespace apex_tensor{
         }                                                               \
         
         APEX_USE_TEMPLATE_A_CPU_ONLY( avg )
+        APEX_USE_TEMPLATE_A_CPU_ONLY( sum )
         APEX_USE_TEMPLATE_A_CPU_ONLY( max_value )
         APEX_USE_TEMPLATE_A_CPU_ONLY( min_value )
         
@@ -191,10 +192,10 @@ namespace apex_tensor{
 
         template<typename T>
         inline void copy_template( T &dst, const T &src ){            
-            for( int i = 0 ; i < num_line( src ) ; i ++ ){
+            for( int i = 0 ; i < num_line( dst ) ; i ++ ){
                 TENSOR_FLOAT *d = get_line( dst, i );
                 const TENSOR_FLOAT *s = get_line_const( src, i );
-                memcpy( d, s, sizeof( TENSOR_FLOAT ) * src.x_max );
+                memcpy( d, s, sizeof( TENSOR_FLOAT ) * dst.x_max );
             }
         }
         
@@ -389,9 +390,9 @@ namespace apex_tensor{
     // definition of macros
 #define APEX_SUPPORT_DOT_1D(func_name,op1,op2)                          \
         void func_name( CTensor1D &dst, const CTensor1D &srca, const CTensor2D &srcb ){ \
-            for( int i = 0; i < dst.x_max; i ++){                       \
+            for( int i = 0; i < dst.x_max; i ++ ){                      \
 	    		TENSOR_FLOAT tmp = 0;                                   \
-				for( int j = 0; j < srca.x_max; j ++)                   \
+				for( int j = 0; j < srca.x_max; j ++ )                  \
 					op1;                                                \
 				dst[i] op2 tmp;                                         \
 	    	}                                                           \
@@ -453,6 +454,254 @@ namespace apex_tensor{
 		APEX_SUPPORT_DOT_LT_2D( add_dot_lt, += )
 		APEX_SUPPORT_DOT_LT_2D( sub_dot_lt, -= )
  
+    };
+
+    // support for CRBM
+    namespace tensor{
+        namespace crbm{
+            namespace store_method{
+                const int SAVE = 0;
+                const int ADD  = 1;
+                const int SUB  = 2;
+                template<int st_method>
+                inline void __store( TENSOR_FLOAT &dst, TENSOR_FLOAT src );
+                template<>
+                inline void __store<SAVE>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
+                    dst = src;  
+                }
+                template<>
+                inline void __store<ADD>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
+                    dst += src;  
+                }
+                template<>
+                inline void __store<SUB>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
+                    dst -= src;  
+                }
+            };
+            
+            // fit the last two dimension of src into dst's size, copy the fitted part into dst
+            void copy_fit( CTensor2D &dst, const CTensor2D &src ){
+                copy_template( dst, src );
+            }
+            
+            // normalize by maxpooling 2D
+            inline void norm_maxpooling_2D_inner( CTensor2D &mean, const CTensor2D &energy, int pool_size ){
+                for( int y = 0 ; y < mean.y_max ; y += pool_size )
+                    for( int x = 0 ; x < mean.x_max ; x += pool_size ){
+                        // get max value
+                        TENSOR_FLOAT mmax = energy[y][x];
+                        for( int dy = 0 ; dy < pool_size && y+dy < mean.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < pool_size && x+dx < mean.x_max ; dx ++ ){
+                                if( mmax < energy[y+dy][x+dx] ) mmax = energy[y+dy][x+dx];  
+                            }
+                        // cal sum
+                        TENSOR_FLOAT sum = 0.0f;
+                        for( int dy = 0 ; dy < pool_size && y+dy < mean.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < pool_size && x+dx < mean.x_max ; dx ++ ){
+                                mean[y+dy][x+dx] = (TENSOR_FLOAT)exp( energy[y+dy][x+dx] - mmax );
+                                sum += mean[y+dy][x+dx];
+                            }
+                        sum += (TENSOR_FLOAT)exp( -mmax );
+                        // normalize 
+                        for( int dy = 0 ; dy < pool_size && y+dy < mean.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < pool_size && x+dx < mean.x_max ; dx ++ )
+                                mean[y+dy][x+dx] /= sum;                                                    
+                    } 
+            } 
+
+            void norm_maxpooling_2D( CTensor3D &mean, const CTensor3D &energy, int pool_size ){
+                for( int z = 0 ; z < mean.z_max ; z ++ )
+                    norm_maxpooling_2D_inner( mean[z] , energy[z], pool_size );
+            }
+
+            inline void sample_maxpooling_2D_inner( CTensor2D &state, const CTensor2D &mean, int pool_size ){                
+                for( int y = 0 ; y < state.y_max ; y += pool_size )
+                    for( int x = 0 ; x < state.x_max ; x += pool_size ){
+                        bool hit = false;
+                        TENSOR_FLOAT sum = 0.0f;
+                        TENSOR_FLOAT rnd = (TENSOR_FLOAT)apex_random::next_double();
+                        for( int dy = 0 ; dy < pool_size && y+dy < state.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < pool_size && x+dx < state.x_max ; dx ++ ){
+                                sum += mean[y+dy][x+dx];
+                                if( !hit && sum >= rnd ){
+                                    state[y+dy][x+dx] = 1.0f; hit = true; 
+                                }else{
+                                    state[y+dy][x+dx] = 0.0f; 
+                                }                                
+                            }
+                    }
+            }
+
+            // sample the data using 2D maxpooling 
+            void sample_maxpooling_2D( CTensor3D &state, const CTensor3D &mean, int pool_size ){
+                for( int z = 0 ; z < state.z_max ; z ++ )
+                    sample_maxpooling_2D_inner( state[z], mean[z], pool_size );
+            }
+
+            template<int st_method>
+            inline void pool_up_inner( CTensor2D &dst, const CTensor2D &src, int pool_size ){                
+                for( int yy = 0 ; yy < dst.y_max ; yy ++ )
+                    for( int xx = 0 ; xx < dst.x_max ; xx ++ ){
+                        int y = yy * pool_size;
+                        int x = xx * pool_size;
+                        TENSOR_FLOAT sum = 0.0f;
+
+                        for( int dy = 0 ; dy < pool_size && y+dy < src.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < pool_size && x+dx < src.x_max ; dx ++ ){
+                                sum += src[y+dy][x+dx];
+                            }
+                        store_method::__store<st_method> ( dst[yy][xx] , sum );
+                    }
+            }
+
+            // pool up
+            void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ){
+                for( int z = 0 ; z < dst.z_max ; z ++ )
+                    pool_up_inner<store_method::SAVE>( dst[z], src[z], pool_size );
+            } 
+            
+            // 2D convolution with bias
+            // convolution, leaves the valid area
+            // dst = (~a) (*)  filter + bias 
+            template<int st_method>
+            inline void conv2_r_valid_inner( CTensor2D &dst, const CTensor2D &a, const CTensor2D &filter, TENSOR_FLOAT bias = 0.0f ){
+                for( int y = 0 ; y < dst.y_max ; y ++ )
+                    for( int x = 0 ; x < dst.x_max ; x ++ ){
+                        TENSOR_FLOAT sum = bias;
+                        for( int dy = 0 ; dy < filter.y_max ; y ++ )
+                            for( int dx = 0 ; dx < filter.x_max ; x ++ ){
+                                sum += a[y+dy][x+dx] * filter[dy][dx];
+                            }                
+                        store_method::__store<st_method>( dst[y][x] , sum );
+                    }
+            }
+            template<int st_method>
+            void conv2_r_valid_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
+                if( st_method == store_method::SAVE ){                    
+                    for( int h = 0 ; h < dst.z_max ; h ++ )
+                        conv2_r_valid_inner<store_method::SAVE>( dst[h], a[0], filter[0][h], bias[h] ); 
+
+                    for( int v = 1 ; v < a.z_max ; v ++ )
+                        for( int h = 0 ; h < dst.z_max ; h ++ )
+                            conv2_r_valid_inner<store_method::ADD>( dst[h], a[v], filter[v][h] ); 
+                }
+                else{
+                    for( int h = 0 ; h < dst.z_max ; h ++ )
+                        conv2_r_valid_inner<st_method>( dst[h], a[0], filter[0][h], bias[h] ); 
+
+                    for( int v = 1 ; v < a.z_max ; v ++ )
+                        for( int h = 0 ; h < dst.z_max ; h ++ )
+                            conv2_r_valid_inner<st_method>( dst[h], a[v], filter[v][h] ); 
+                }
+            }
+
+            template<int st_method>
+            void conv2_r_valid_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter ){
+                if( st_method == store_method::SAVE ){                    
+                    for( int h = 0 ; h < dst.z_max ; h ++ )
+                        conv2_r_valid_inner<store_method::SAVE>( dst[h], a[0], filter[0][h] ); 
+
+                    for( int v = 1 ; v < a.z_max ; v ++ )
+                        for( int h = 0 ; h < dst.z_max ; h ++ )
+                            conv2_r_valid_inner<store_method::ADD>( dst[h], a[v], filter[v][h] ); 
+                }
+                else{
+                    for( int h = 0 ; h < dst.z_max ; h ++ )
+                        conv2_r_valid_inner<st_method>( dst[h], a[0], filter[0][h] ); 
+
+                    for( int v = 1 ; v < a.z_max ; v ++ )
+                        for( int h = 0 ; h < dst.z_max ; h ++ )
+                            conv2_r_valid_inner<st_method>( dst[h], a[v], filter[v][h] ); 
+                }
+            }
+                        
+            void conv2_r_valid     ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
+                conv2_r_valid_inner<store_method::SAVE>( dst, a, filter, bias );
+            }
+            
+            template<int st_method>
+            inline void conv2_full_inner( CTensor2D &dst, const CTensor2D &a, const CTensor2D &filter ){
+                if( st_method == store_method::SAVE ) dst = 0.0f; 
+
+                for( int y = 0 ; y < a.y_max ; y ++ )
+                    for( int x = 0 ; x < a.x_max ; x ++ )
+                        for( int dy = 0 ; dy < filter.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < filter.x_max ; dx ++ )
+                                store_method::__store<st_method>( dst[y+dy][x+dx], a[y][x]*filter[dy][dx] );
+            }
+            
+            template<int st_method>
+            void conv2_full_inner( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
+                if( st_method == store_method::SAVE ){      
+                    for( int v = 0 ; v < dst.z_max ; v ++ )
+                        dst[v] = bias[v];
+
+                    for( int v = 0 ; v < dst.z_max ; v ++ ){
+                        for( int h = 0 ; h < a.z_max ; h ++ )
+                            conv2_full_inner<store_method::ADD>( dst[v], a[h], filter[v][h] ); 
+                    }
+                }
+                else{
+                    if( st_method == store_method::ADD ){
+                        for( int v = 0 ; v < dst.z_max ; v ++ )
+                            dst[v] += bias[v];
+                    }else{
+                        for( int v = 0 ; v < dst.z_max ; v ++ )
+                            dst[v] += -bias[v];
+                    }
+                    for( int v = 0 ; v < dst.z_max ; v ++ ){
+                        for( int h = 0 ; h < a.z_max ; h ++ )
+                            conv2_full_inner<st_method>( dst[v], a[h], filter[v][h] ); 
+                    }
+                }
+            }
+            
+            // dst = ( a) (*) filter + bias
+            void conv2_full        ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias ){
+                conv2_full_inner<store_method::SAVE>( dst , a, filter, bias ); 
+            }
+            
+            // convolution with big filter
+            void add_conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b ){
+                for( int v = 0 ; v < a.z_max ; v ++ )
+                    for( int h = 0 ; h < b.z_max ; h ++ )
+                        conv2_r_valid_inner<store_method::ADD>( dst[v][h], a[v], b[h] );
+            }
+            void sub_conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b ){
+                for( int v = 0 ; v < a.z_max ; v ++ )
+                    for( int h = 0 ; h < b.z_max ; h ++ )
+                        conv2_r_valid_inner<store_method::SUB>( dst[v][h], a[v], b[h] );
+            }
+            
+            // sum over last two dimension
+            void add_sum_2D( CTensor1D &dst, const CTensor3D &src ){
+                for( int i = 0 ; i < dst.x_max ; i ++ )
+                    dst += cpu_only::sum_template( src[i] );
+            }
+            void sub_sum_2D( CTensor1D &dst, const CTensor3D &src ){
+                for( int i = 0 ; i < dst.x_max ; i ++ )
+                    dst += -cpu_only::sum_template( src[i] );
+            }            
+            // calculate information of sparse regularization
+            void add_sparse_info( CTensor1D &sum_mf, CTensor1D &sum_mf_grad, const CTensor3D &src, int pool_size ){
+                for( int i = 0 ; i < sum_mf.x_max ; i ++ ){
+                    TENSOR_FLOAT s_mf = 0.0f, s_mf_grad = 0.0f;
+                    for( int y = 0 ; y < src.y_max ; y += pool_size )
+                        for( int x = 0 ; x < src.x_max ; x += pool_size ){
+
+                            TENSOR_FLOAT sum = 0.0f;                            
+                            for( int dy = 0 ; dy < pool_size && y+dy < src.y_max ; dy ++ )
+                                for( int dx = 0 ; dx < pool_size && x+dx < src.x_max ; dx ++ ){
+                                    sum += src[i][y+dy][x+dx];
+                                }
+                            s_mf += sum;
+                            s_mf_grad += sum * ( 1 - sum );
+                        }
+                    sum_mf[i] += s_mf;
+                    sum_mf_grad[i] += s_mf_grad;
+                }
+            }
+        };        
     };
 };
 #endif
