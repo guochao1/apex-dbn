@@ -151,7 +151,7 @@ namespace apex_rbm{
     // simple implementation of srbm
     class CRBMSimple:public ICRBM{
     private:
-        int  cd_step, sample_counter, h_size;
+        int  cd_step, sample_counter, h_size, v_size;
         CRBMTrainParam param;
         bool persistent_ok;        
     private:
@@ -184,7 +184,7 @@ namespace apex_rbm{
             
             h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;            
             h_size   = layers.back().h_state.y_max * layers.back().h_state.x_max;
-            
+            v_size   = layers.back().v_state.y_max * layers.back().v_state.x_max;
         }
     public:
         CRBMSimple( const CDBNModel &model, const CRBMTrainParam &param ){
@@ -218,7 +218,6 @@ namespace apex_rbm{
             TTensor4D & W      = layers.back().W;            
             ICRBMNode *h_node  = layers.back().h_node;
             ICRBMNode *v_node  = layers.back().v_node;
-
             // go up
             tensor::crbm::conv2_r_valid( h_pos, v_pos, W, h_bias );
             h_node->cal_mean( h_pos, h_pos );
@@ -317,10 +316,11 @@ namespace apex_rbm{
             train_update();
         }
         virtual void train_update_trunk( const apex_tensor::CTensor4D &data ){
-            for( int i = 0 ; i < data.y_max ; i ++ )
+            for( int i = 0 ; i < data.h_max ; i ++ )
                 train_update( data[i] );
         }
 
+        
         // do validation, return the statistics
         virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor4D &data ){
             TTensor4D grad_W;
@@ -332,35 +332,39 @@ namespace apex_rbm{
             neg_grad_v = clone( stats.neg_grad_v );
             loss       = clone( stats.loss );
             grad_sparse= clone( stats.grad_sparse );
-
-            for( int i = 0 ; i < data.y_max ; i ++ ){
-                setup_input( data[i] );
-
-                TTensor3D &v_pos = layers.back().v_state;                
-                TTensor3D &h_pos = layers.back().h_state;                
+            
+            TTensor3D &v_pos = layers.back().v_state;                
+            TTensor3D &h_pos = layers.back().h_state;     
+                        
+            for( int i = 0 ; i < data.h_max ; i ++ ){
+                setup_input( data[i] );                
                 // whether can be use peristent chain
                 TTensor3D &hp = persistent_ok ? h_neg : h_pos;
                 cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
                 persistent_ok = ( param.persistent_cd !=0 );
-             
                 
+                layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
+
                 tensor::crbm::add_conv2_r_big_filter( grad_W, v_pos, h_pos );
                 tensor::crbm::sub_conv2_r_big_filter( grad_W, v_neg, h_neg );                
 
                 tensor::crbm::add_sum_2D( pos_grad_h, h_pos );
-                tensor::crbm::sub_sum_2D( neg_grad_v, h_neg );                
-                tensor::crbm::add_sum_2D( pos_grad_h, v_pos );
+                tensor::crbm::sub_sum_2D( neg_grad_h, h_neg );               
+                tensor::crbm::add_sum_2D( pos_grad_v, v_pos );
                 tensor::crbm::sub_sum_2D( neg_grad_v, v_neg );
                 v_neg      -= v_pos;
                 v_neg       = v_neg * v_neg;
+
                 tensor::crbm::add_sum_2D( loss, v_neg );
-                
+
                 cal_sparse();
                 grad_sparse -= h_sum_mf;
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
             }                 
-      
-            stats.sample_counter += data.z_max;
+            stats.h_size = h_size;
+            stats.v_size = v_size;
+            stats.sample_counter += data.h_max;
+                        
             tensor::copy( stats.grad_W, grad_W );
             tensor::copy( stats.pos_grad_h, pos_grad_h );
             tensor::copy( stats.neg_grad_h, neg_grad_h );
