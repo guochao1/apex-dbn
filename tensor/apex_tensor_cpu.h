@@ -296,6 +296,9 @@ namespace apex_tensor{
 
             // sample the data using 2D maxpooling 
             void sample_maxpooling_2D( CTensor3D &state, const CTensor3D &mean, int pool_size );
+
+            // fit the last two dimension of src into dst's size, copy the fitted part into dst
+            void copy_fit( CTensor2D &dst, const CTensor2D &src );
             
             // pool up
             void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ); 

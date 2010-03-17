@@ -20,8 +20,10 @@ namespace apex_rbm{
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ) = 0;
         // reget the bound of data
         virtual void reget_bound ( int &input_y_max, int &input_x_max  ) = 0;
+        // reget the bound of hidden data 
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ) = 0;
         // calculate sparse_regularization
-        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos );
+        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ) = 0;
    };
 
     // bianry node
@@ -39,6 +41,8 @@ namespace apex_rbm{
         // reget the bound of data
         virtual void reget_bound ( int &input_y_max, int &input_x_max  ){}
         
+        // reget the bound of hidden data 
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ){ }
         virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ){
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , 1 );
         }
@@ -65,6 +69,11 @@ namespace apex_rbm{
         virtual void reget_bound ( int &input_y_max, int &input_x_max  ){
             input_x_max /= pool_size;
             input_y_max /= pool_size;
+        }
+        // reget the bound of hidden data 
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ){
+            h_y_max = (h_y_max / pool_size) * pool_size;
+            h_x_max = (h_x_max / pool_size) * pool_size;
         }
         virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ){
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , pool_size );
@@ -93,17 +102,22 @@ namespace apex_rbm{
         TTensor3D v_state, h_state;
         CRBMLayer(){}
         CRBMLayer( const CRBMModel &model, int y_max, int x_max ){
-            W      = clone( model.W );
-            h_bias = clone( model.h_bias );
-            v_bias = clone( model.v_bias );
-
-            v_state.set_param( model.param.v_max, y_max, x_max );
-            h_state.set_param( model.param.h_max, y_max-W.y_max+1, x_max-W.x_max+1 );
-            tensor::alloc_space( v_state );
-            tensor::alloc_space( h_state );
-
             v_node = create_visible_node( model.param );
             h_node = create_hidden_node ( model.param );
+
+            W      = clone( model.W );
+            h_bias = clone( model.h_bias );
+            v_bias = clone( model.v_bias );          
+
+            // we fit the input size to ensure perfect pooling
+            int h_y_max = y_max - W.y_max + 1;
+            int h_x_max = x_max - W.x_max + 1;
+            h_node->reget_hidden_bound( h_y_max, h_x_max );
+
+            v_state.set_param( model.param.v_max, h_y_max + W.y_max - 1, h_x_max+W.x_max-1 );
+            h_state.set_param( model.param.h_max, h_y_max , h_x_max );
+            tensor::alloc_space( v_state );
+            tensor::alloc_space( h_state );
         }
 
         inline void free_space(){
@@ -291,7 +305,7 @@ namespace apex_rbm{
         }
         
         inline void setup_input( const apex_tensor::CTensor2D &data ){
-            tensor::copy( layers[0].v_state[0] , data );
+            tensor::crbm::copy_fit( layers[0].v_state[0] , data );
             for( size_t i = 1 ; i < layers.size() ; i ++ ){
                 layers[i-1].feed_forward( layers[i].v_state );
             }  
