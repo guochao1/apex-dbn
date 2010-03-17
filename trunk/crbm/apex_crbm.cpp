@@ -177,8 +177,8 @@ namespace apex_rbm{
             
             h_sum_mf      = alloc_like( d_h_bias );
             h_sum_mf_grad = alloc_like( d_h_bias );
-            v_neg    = alloc_like( layers.back().v_state );
-            h_neg    = alloc_like( layers.back().h_state );
+            v_neg         = alloc_like( layers.back().v_state );
+            h_neg         = alloc_like( layers.back().h_state );
             
             sample_counter = 0; persistent_ok = false;            
             
@@ -230,12 +230,12 @@ namespace apex_rbm{
                 h_node->sample( h_neg, hh );
 
                 // go down
-                tensor::crbm::conv2_full( v_neg, h_neg , W , v_bias );
+                tensor::crbm::conv2_full( v_neg, h_neg, W, v_bias );
                 v_node->cal_mean( v_neg, v_neg );
                 v_node->sample  ( v_neg, v_neg );
 
                 // go up
-                tensor::crbm::conv2_r_valid( h_neg , v_neg, W , h_bias );
+                tensor::crbm::conv2_r_valid( h_neg, v_neg, W, h_bias );
                 h_node->cal_mean( h_neg, h_neg );
             }                                    
         }
@@ -245,6 +245,7 @@ namespace apex_rbm{
             h_sum_mf  *= (1.0f/(param.batch_size*h_size));
             h_sum_mf  += -param.sparse_level;                
             h_sum_mf   = h_sum_mf * h_sum_mf_grad;
+            // leave out a h_size
             h_sum_mf  *= param.sparse_lambda / param.batch_size;
         }
 
@@ -262,13 +263,13 @@ namespace apex_rbm{
 
                 d_h_bias -= h_sum_mf;
                 h_bias    = h_bias * ( 1-eta*param.wd_h ) + d_h_bias * eta;
-                h_bias   *= param.momentum;
+                d_h_bias  *= param.momentum;
                 
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
             }
             if( param.chg_visible_bias ){
-                v_bias = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
-                v_bias*= param.momentum;
+                v_bias    = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
+                d_v_bias *= param.momentum;
             }
             W   = W * ( 1-eta*param.wd_W ) + d_W * eta;            
             d_W *= param.momentum;

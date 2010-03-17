@@ -286,6 +286,9 @@ namespace apex_tensor{
     // support for convolutional RBM
     namespace tensor{
         namespace crbm{
+            // fit the last two dimension of src into dst's size, copy the fitted part into dst
+            void copy_fit( GTensor2D &dst, const GTensor2D &src );
+
             // normalize by maxpooling 2D
             void norm_maxpooling_2D( GTensor3D &mean, const GTensor3D &energy, int pool_size );
 
@@ -293,7 +296,7 @@ namespace apex_tensor{
             void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size );
             
             // pool up
-            void pool_up( GTensor3D &dst , const GTensor3D &src, int pool_size ); 
+            void pool_up( GTensor3D &dst , const GTensor3D &src, int pool_size );             
             
             // 2D convolution with bias
             // convolution, leaves the valid area
