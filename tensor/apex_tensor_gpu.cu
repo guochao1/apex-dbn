@@ -6,6 +6,14 @@
 
 // GPU implementation of tensor functions
 namespace apex_tensor{    
+    void init_engine_gpu( int seed ){
+        cuda_rand::rand_init();
+    }
+    
+    void destroy_engine_gpu(){
+        cuda_rand::rand_destroy();
+    }
+
     namespace cuda_tensor{
         template<typename T>
         inline void alloc_space_template( T &ts ){
@@ -66,18 +74,18 @@ namespace apex_tensor{
 
     namespace tensor{
         
-#define APEX_USE_TEMPLATE_STORE(func_name,sm)                           \
+#define APEX_USE_TEMPLATE_STORE(func_name,map_m,sm)                     \
         void func_name( GTensor1D &dst, float src ){                    \
-            cuda_tensor::store<sm ,GTensor1D>( dst, src );              \
+            cuda_tensor::map_m<sm ,GTensor1D>( dst, src );              \
         }                                                               \
         void func_name( GTensor2D &dst, float src ){                    \
-            cuda_tensor::store<sm ,GTensor2D>( dst, src );              \
+            cuda_tensor::map_m<sm ,GTensor2D>( dst, src );              \
         }                                                               \
         void func_name( GTensor3D &dst, float src ){                    \
-            cuda_tensor::store<sm ,GTensor3D>( dst, src );              \
+            cuda_tensor::map_m<sm ,GTensor3D>( dst, src );              \
         }                                                               \
         void func_name( GTensor4D &dst, float src ){                    \
-            cuda_tensor::store<sm ,GTensor4D>( dst, src );              \
+            cuda_tensor::map_m<sm ,GTensor4D>( dst, src );              \
         }                                                               \
 
 #define APEX_USE_TEMPLATE_MAP_A(func_name,sm,mm)                        \
@@ -94,14 +102,79 @@ namespace apex_tensor{
             cuda_tensor::map_A<sm ,mm,GTensor4D>( dst, src );           \
         }                                                               \
 
+#define APEX_USE_TEMPLATE_MAP_B(func_name,sm,mm)                        \
+        void func_name( GTensor1D &dst, const GTensor1D &src, float srcb ){ \
+            cuda_tensor::map_B<sm ,mm,GTensor1D>( dst, src, srcb );     \
+        }                                                               \
+        void func_name( GTensor2D &dst, const GTensor2D &src, float srcb ){ \
+            cuda_tensor::map_B<sm ,mm,GTensor2D>( dst, src, srcb );     \
+        }                                                               \
+        void func_name( GTensor3D &dst, const GTensor3D &src, float srcb ){ \
+            cuda_tensor::map_B<sm ,mm,GTensor3D>( dst, src, srcb );     \
+        }                                                               \
+        void func_name( GTensor4D &dst, const GTensor4D &src, float srcb ){ \
+            cuda_tensor::map_B<sm ,mm,GTensor4D>( dst, src, srcb );     \
+        }                                                               \
+
+#define APEX_USE_TEMPLATE_MAP_C(func_name,sm,mm)                        \
+        void func_name( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b ){ \
+            cuda_tensor::map_C<sm ,mm,GTensor1D>( dst, a, b );          \
+        }                                                               \
+        void func_name( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b ){ \
+            cuda_tensor::map_C<sm ,mm,GTensor2D>( dst, a, b );          \
+        }                                                               \
+        void func_name( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b ){ \
+            cuda_tensor::map_C<sm ,mm,GTensor3D>( dst, a, b );          \
+        }                                                               \
+        void func_name( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b ){ \
+            cuda_tensor::map_C<sm ,mm,GTensor4D>( dst, a, b );          \
+        }                                                               \
+
+#define APEX_USE_TEMPLATE_MAP_D(func_name,sm,mm)                        \
+        void func_name( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b, float sa, float sb ){ \
+            cuda_tensor::map_D<sm ,mm,GTensor1D>( dst, a, b, sa, sb );  \
+        }                                                               \
+        void func_name( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b, float sa, float sb ){ \
+            cuda_tensor::map_D<sm ,mm,GTensor2D>( dst, a, b, sa, sb );  \
+        }                                                               \
+        void func_name( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b, float sa, float sb ){ \
+            cuda_tensor::map_D<sm ,mm,GTensor3D>( dst, a, b, sa, sb );  \
+        }                                                               \
+        void func_name( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b, float sa, float sb ){ \
+            cuda_tensor::map_D<sm ,mm,GTensor4D>( dst, a, b, sa, sb );  \
+        }                                                               \
+
+#define APEX_USE_TEMPLATE_MAP_S(func_name,s_name,sm)                    \
+        void func_name( GTensor1D &dst, const GTensor1D &src ){         \
+            cuda_tensor::s_name<sm ,GTensor1D>( dst, src );             \
+        }                                                               \
+        void func_name( GTensor2D &dst, const GTensor2D &src ){         \
+            cuda_tensor::s_name<sm ,GTensor2D>( dst, src );             \
+        }                                                               \
+        void func_name( GTensor3D &dst, const GTensor3D &src ){         \
+            cuda_tensor::s_name<sm ,GTensor3D>( dst, src );             \
+        }                                                               \
+        void func_name( GTensor4D &dst, const GTensor4D &src ){         \
+            cuda_tensor::s_name<sm ,GTensor4D>( dst, src );             \
+        }                                                               \
+
     };
 
     namespace tensor{
         using namespace cuda_tensor;
 
-        APEX_USE_TEMPLATE_STORE( fill   , store_method::SAVE )
+        APEX_USE_TEMPLATE_STORE( fill   , store, store_method::SAVE )
+        APEX_USE_TEMPLATE_STORE( sample_gaussian, sample_gaussian, store_method::SAVE )
         APEX_USE_TEMPLATE_MAP_A( sigmoid, store_method::SAVE, map_method_A::SIGMOID )
+        APEX_USE_TEMPLATE_MAP_B( add    , store_method::SAVE, map_method_B::ADD     )
+        APEX_USE_TEMPLATE_MAP_B( sub    , store_method::SAVE, map_method_B::SUB     )
+        APEX_USE_TEMPLATE_MAP_B( mul    , store_method::SAVE, map_method_B::MUL     )
+        APEX_USE_TEMPLATE_MAP_C( add    , store_method::SAVE, map_method_B::ADD     )
+        APEX_USE_TEMPLATE_MAP_C( sub    , store_method::SAVE, map_method_B::SUB     )
+        APEX_USE_TEMPLATE_MAP_C( mul    , store_method::SAVE, map_method_B::MUL     )
+        APEX_USE_TEMPLATE_MAP_D( scale_add, store_method::SAVE, map_method_D::SCALE_ADD )
 		
+        APEX_USE_TEMPLATE_MAP_S( sample_binary, sample_binary, store_method::SAVE )
     };
 
     // support for CRBM

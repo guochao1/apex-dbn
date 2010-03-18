@@ -1,0 +1,6 @@
+MTGP is Mersene Twister for GPU
+We modify the code to get a random number generator used by this project
+
+
+
+mtgp32-interface.cu: is the interface of random number generator and we use this interface to generate random numbers 
