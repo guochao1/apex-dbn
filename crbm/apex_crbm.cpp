@@ -279,7 +279,7 @@ namespace apex_rbm{
             TTensor3D &v_pos = layers.back().v_state;
             TTensor3D &h_pos = layers.back().h_state;
 
-            // whether can be use peristent chain
+            // whether can be use persistent chain
             TTensor3D &hp = persistent_ok ? h_neg : h_pos;
             cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
             persistent_ok = ( param.persistent_cd !=0 );
@@ -338,7 +338,7 @@ namespace apex_rbm{
                         
             for( int i = 0 ; i < data.h_max ; i ++ ){
                 setup_input( data[i] );                
-                // whether can be use peristent chain
+                // whether can be use persistent chain
                 TTensor3D &hp = persistent_ok ? h_neg : h_pos;
                 cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
                 persistent_ok = ( param.persistent_cd !=0 );
