@@ -2,9 +2,7 @@
 #define _APEX_TENSOR_GPU_H_
 
 #include "apex_op_plan.h"
-#include "apex_tensor_cpu.h"
 #include "apex_tensor.h"
-
 
 // data structure for tensor
 namespace apex_tensor{
@@ -31,6 +29,7 @@ namespace apex_tensor{
         inline apex_op_plan::TransposePlan<GTensor1D> T() const;
         inline GTensor1D& operator =  ( const apex_op_plan::ClonePlan      <CTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::AllocLikePlan  <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::SigmoidPlan      <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AddPlan <GTensor1D> &val );        
@@ -69,6 +68,7 @@ namespace apex_tensor{
         inline apex_op_plan::TransposePlan<GTensor2D> T() const;
         inline GTensor2D& operator =  ( const apex_op_plan::ClonePlan      <CTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::AllocLikePlan  <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::SigmoidPlan      <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::AddPlan <GTensor2D> &val );        
@@ -110,6 +110,7 @@ namespace apex_tensor{
         inline apex_op_plan::TransposePlan<GTensor3D> T() const;
         inline GTensor3D& operator =  ( const apex_op_plan::ClonePlan      <CTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor3D> &val );        
+        inline GTensor3D& operator =  ( const apex_op_plan::AllocLikePlan  <GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::SigmoidPlan     <GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::AddPlan<GTensor3D> &val );        
@@ -146,6 +147,7 @@ namespace apex_tensor{
         inline apex_op_plan::TransposePlan<GTensor4D> T() const;
         inline GTensor4D& operator =  ( const apex_op_plan::ClonePlan      <CTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor4D> &val );        
+        inline GTensor4D& operator =  ( const apex_op_plan::AllocLikePlan  <GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::SigmoidPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::AddPlan<GTensor4D> &val );        
@@ -269,25 +271,27 @@ namespace apex_tensor{
         void dot      ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
         void dot      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );            
         // dst  += dot( a, b  ) 
-        void add_dot  ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
-        void add_dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );                    
+        void sadd__dot  ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void sadd__dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );                    
         // dst  = dot( a   ,  b.T )
         void dot_rt    ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
         void dot_rt    ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
         // dst += dot( a, b.T )
-        void add_dot_rt    ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
-        void add_dot_rt    ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
+        void sadd__dot_rt( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void sadd__dot_rt( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
         // dst  = dot( a.T , b )
-        void dot_lt    ( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
-        void add_dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
-        void sub_dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+        void dot_lt      ( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+        void sadd__dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+        void ssub__dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
     };
     
     // support for convolutional RBM
     namespace tensor{
         namespace crbm{
             // fit the last two dimension of src into dst's size, copy the fitted part into dst
-            void copy_fit( GTensor2D &dst, const GTensor2D &src );
+            void copy_fit( GTensor2D &dst, const CTensor2D &src );
+            void copy_fit( GTensor3D &dst, const CTensor3D &src );
+            void copy_fit( GTensor3D &dst, const GTensor3D &src );
 
             // normalize by maxpooling 2D
             void norm_maxpooling_2D( GTensor3D &mean, const GTensor3D &energy, int pool_size );
@@ -307,29 +311,18 @@ namespace apex_tensor{
             void conv2_full        ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias );
             
             // convolution with big filter
-            void add_conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &b );
-            void sub_conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &b );
+            void sadd__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &b );
+            void ssub__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &b );
             
             // sum over last two dimension
-            void add_sum_2D( GTensor1D &dst, const GTensor3D &src );
-            void sub_sum_2D( GTensor1D &dst, const GTensor3D &src );
+            void sadd__sum_2D( GTensor1D &dst, const GTensor3D &src );
+            void ssub__sum_2D( GTensor1D &dst, const GTensor3D &src );
             
             // calculate information of sparse regularization
             void add_sparse_info( GTensor1D &sum_mf, GTensor1D &sum_mf_grad, const GTensor3D &src, int pool_size );
         };        
     };
 };
-
-// definitions for inline functions 
-#define TT1D GTensor1D
-#define TT2D GTensor2D
-#define TT3D GTensor3D
-#define TT4D GTensor4D
-#include "apex_tensor_inline.cpp"
-#undef TT1D 
-#undef TT2D 
-#undef TT3D 
-#undef TT4D 
 
 #endif
 

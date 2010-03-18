@@ -179,7 +179,7 @@ namespace apex_tensor{
         return *this;                                                   \
     }                                                                   \
     inline T& T::operator+= ( const apex_op_plan::DotPlan<TA,TB> &val ){ \
-        tensor::add_dot( *this, *(val.a), *(val.b) );                   \
+        tensor::sadd__dot( *this, *(val.a), *(val.b) );                 \
         return *this;                                                   \
     }                                                                   \
 
@@ -189,11 +189,11 @@ namespace apex_tensor{
         return *this;                                                   \
     }                                                                   \
     inline T& T::operator+= ( const apex_op_plan::DotLTPlan<TA,TB> &val ){ \
-        tensor::add_dot_lt( *this, *(val.a), *(val.b) );                \
+        tensor::sadd__dot_lt( *this, *(val.a), *(val.b) );              \
         return *this;                                                   \
     }                                                                   \
     inline T& T::operator-= ( const apex_op_plan::DotLTPlan<TA,TB> &val ){ \
-        tensor::sub_dot_lt( *this, *(val.a), *(val.b) );                \
+        tensor::ssub__dot_lt( *this, *(val.a), *(val.b) );              \
         return *this;                                                   \
     }                                                                   \
 
@@ -203,7 +203,7 @@ namespace apex_tensor{
         return *this;                                                   \
     }                                                                   \
     inline T& T::operator+= ( const apex_op_plan::DotRTPlan<TA,TB> &val ){ \
-        tensor::add_dot_rt( *this, *(val.a), *(val.b) );                \
+        tensor::sadd__dot_rt( *this, *(val.a), *(val.b) );              \
         return *this;                                                   \
     }                                                                   \
     
@@ -253,12 +253,16 @@ namespace apex_tensor{
     
     APEX_EVAL_CLONE_PLAN_1D(CTensor1D,ClonePlan,tensor::copy(*this,*(val.a)));
     APEX_EVAL_CLONE_PLAN_1D(CTensor1D,AllocLikePlan, );
+    APEX_EVAL_CLONE_PLAN_1D(GTensor1D,AllocLikePlan, );
     APEX_EVAL_CLONE_PLAN_2D(CTensor2D,ClonePlan,tensor::copy(*this,*(val.a)));
     APEX_EVAL_CLONE_PLAN_2D(CTensor2D,AllocLikePlan,);
+    APEX_EVAL_CLONE_PLAN_2D(GTensor2D,AllocLikePlan,);
     APEX_EVAL_CLONE_PLAN_3D(CTensor3D,ClonePlan,tensor::copy(*this,*(val.a)));
     APEX_EVAL_CLONE_PLAN_3D(CTensor3D,AllocLikePlan,);
+    APEX_EVAL_CLONE_PLAN_3D(GTensor3D,AllocLikePlan,);
     APEX_EVAL_CLONE_PLAN_4D(CTensor4D,ClonePlan,tensor::copy(*this,*(val.a)));
     APEX_EVAL_CLONE_PLAN_4D(CTensor4D,AllocLikePlan,);
+    APEX_EVAL_CLONE_PLAN_4D(GTensor4D,AllocLikePlan,);
     
 
 #undef APEX_EVAL_SCALE_ADD_PLAN
