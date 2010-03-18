@@ -88,22 +88,17 @@ namespace apex_tensor{
         
         inline int num_elem( GTensor4D ts ){
             return ts.x_max * ts.y_max *ts.z_max * ts.h_max;
-        }
+        }       
 
         template<typename T>
         inline TENSOR_FLOAT *get_line( T &ts, size_t idx ){
-            return get_line( ts.elem, ts.pitch, idx );
+            return (TENSOR_FLOAT*)((char*)ts.elem + idx*ts.pitch);
         }
         
         template<typename T> 
-            inline const TENSOR_FLOAT *get_line_const( const T &ts, size_t idx ){
+        inline const TENSOR_FLOAT *get_line_const( const T &ts, size_t idx ){
             return (const TENSOR_FLOAT*)((const char*)ts.elem + idx*ts.pitch);
-        }
-        
-        template<typename T>
-        inline int get_stride( const T & ts ){
-            return (int)ts.pitch/sizeof(TENSOR_FLOAT);
-        }
+        }       
     };
 
     namespace cuda_tensor{
@@ -111,6 +106,18 @@ namespace apex_tensor{
         const int ALIGN_WIDTH      = 1 << ALIGN_BITS;
         const int BASE_THREAD_BITS = 8;
         const int BASE_THREAD_NUM  = 1<<BASE_THREAD_BITS;
+        
+        inline __device__ __host__ int get_align_width( int x_max ){
+            return ((x_max + ALIGN_WIDTH-1) >> ALIGN_BITS) <<ALIGN_BITS;
+        }
+        
+        __device__ float *get_line( float *elem, int idx, size_t pitch ){           
+            return (float*)((char*)elem + idx*pitch);
+        }
+        __device__ const float *get_line_const( const float *elem, int idx, size_t pitch ){           
+            return (const float*)((const char*)elem + idx*pitch);
+        }
+
 
         // support for store metohod
         namespace store_method{
@@ -150,6 +157,41 @@ namespace apex_tensor{
                 return 1.0f / ( 1 + __expf( -src ));
             }
         };
+
+        namespace map_method_B{
+            const int B_MASK  = 2<<5; 
+            const int ADD     = 0 | B_MASK;
+            const int SUB     = 1 | B_MASK;
+            const int MUL     = 2 | B_MASK;
+            
+            template<int mm>
+            __device__ float __map( float a, float b );
+			template<>
+            __device__ float __map<ADD>( float a, float b ){
+                return a + b;
+            }
+            template<>
+            __device__ float __map<SUB>( float a, float b ){
+                return a - b;
+            }
+            template<>
+            __device__ float __map<MUL>( float a, float b ){
+                return a * b;
+            }
+        };
+
+        namespace map_method_D{
+            const int D_MASK   = 4<<5; 
+            const int SCALE_ADD= 0 | D_MASK;
+            
+            template<int mm>
+            __device__ float __map( float a, float b, float sa, float sb );
+			template<>
+            __device__ float __map<SCALE_ADD>( float a, float b, float sa, float sb ){
+                return a * sa + b * sb;
+            }            
+        };
+        
     };
 
     namespace cuda_tensor{
@@ -158,5 +200,7 @@ namespace apex_tensor{
     };
     
 };
+
 #include "cuda_tensor_op.cu"
+#include "cuda_tensor_sampling.cu"
 #endif
