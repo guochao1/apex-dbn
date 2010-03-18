@@ -211,10 +211,15 @@ namespace apex_tensor{
             void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size ){
                 cuda_tensor::sample_maxpooling<store_method::SAVE>( state, mean, pool_size );
             }
-            
-            void conv2_r_valid     ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
+           
+            void conv2_r_valid( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
                 cuda_tensor::conv2_r_valid<store_method::SAVE>( dst, a, filter, bias );
             }
+            
+            void conv2_full   ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
+                cuda_tensor::conv2_full<store_method::SAVE>( dst, a, filter, bias );
+            }
+
         };
     };
 };
