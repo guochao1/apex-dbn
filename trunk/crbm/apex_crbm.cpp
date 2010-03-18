@@ -285,17 +285,17 @@ namespace apex_rbm{
             persistent_ok = ( param.persistent_cd !=0 );
 
             // calculate the gradient
-            tensor::crbm::add_conv2_r_big_filter( d_W, v_pos, h_pos );
-            tensor::crbm::sub_conv2_r_big_filter( d_W, v_neg, h_neg );
+            tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
+            tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
 
             if( param.chg_hidden_bias ){
-                tensor::crbm::add_sum_2D( d_h_bias, h_pos );
-                tensor::crbm::sub_sum_2D( d_h_bias, h_neg );         
+                tensor::crbm::sadd__sum_2D( d_h_bias, h_pos );
+                tensor::crbm::ssub__sum_2D( d_h_bias, h_neg );         
                 layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
             }
             if( param.chg_visible_bias ){
-                tensor::crbm::add_sum_2D( d_v_bias, v_pos );
-                tensor::crbm::sub_sum_2D( d_v_bias, v_neg );
+                tensor::crbm::sadd__sum_2D( d_v_bias, v_pos );
+                tensor::crbm::ssub__sum_2D( d_v_bias, v_neg );
             }
             
             if( ++sample_counter == param.batch_size ){
@@ -345,17 +345,17 @@ namespace apex_rbm{
                 
                 layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
 
-                tensor::crbm::add_conv2_r_big_filter( grad_W, v_pos, h_pos );
-                tensor::crbm::sub_conv2_r_big_filter( grad_W, v_neg, h_neg );                
+                tensor::crbm::sadd__conv2_r_big_filter( grad_W, v_pos, h_pos );
+                tensor::crbm::ssub__conv2_r_big_filter( grad_W, v_neg, h_neg );                
 
-                tensor::crbm::add_sum_2D( pos_grad_h, h_pos );
-                tensor::crbm::sub_sum_2D( neg_grad_h, h_neg );               
-                tensor::crbm::add_sum_2D( pos_grad_v, v_pos );
-                tensor::crbm::sub_sum_2D( neg_grad_v, v_neg );
+                tensor::crbm::sadd__sum_2D( pos_grad_h, h_pos );
+                tensor::crbm::ssub__sum_2D( neg_grad_h, h_neg );               
+                tensor::crbm::sadd__sum_2D( pos_grad_v, v_pos );
+                tensor::crbm::ssub__sum_2D( neg_grad_v, v_neg );
                 v_neg      -= v_pos;
                 v_neg       = v_neg * v_neg;
 
-                tensor::crbm::add_sum_2D( loss, v_neg );
+                tensor::crbm::sadd__sum_2D( loss, v_neg );
 
                 cal_sparse();
                 grad_sparse -= h_sum_mf;

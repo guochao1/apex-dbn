@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cmath>
 
+// option to open GPU implementation
+#define __APEX_TENSOR_USE_GPU__
+
 namespace apex_tensor{
     struct CTensor1D;
     struct CTensor2D;
@@ -54,5 +57,30 @@ namespace apex_tensor{
 
 #include "apex_tensor_cpu.h"
 #include "apex_tensor_gpu.h"
+
+// definitions for inline functions 
+#define TT1D CTensor1D
+#define TT2D CTensor2D
+#define TT3D CTensor3D
+#define TT4D CTensor4D
+#include "apex_tensor_inline.cpp"
+#undef TT1D 
+#undef TT2D 
+#undef TT3D 
+#undef TT4D 
+
+
+// definitions for inline functions 
+#define TT1D GTensor1D
+#define TT2D GTensor2D
+#define TT3D GTensor3D
+#define TT4D GTensor4D
+#include "apex_tensor_inline.cpp"
+#undef TT1D 
+#undef TT2D 
+#undef TT3D 
+#undef TT4D 
+
+
 #endif
 

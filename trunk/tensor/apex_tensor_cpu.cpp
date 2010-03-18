@@ -430,29 +430,29 @@ namespace apex_tensor{
 
 	namespace tensor{
         //support dot operation
-		APEX_SUPPORT_DOT_1D( dot    , tmp += srca[j]*srcb[j][i] , =  )
-		APEX_SUPPORT_DOT_1D( add_dot, tmp += srca[j]*srcb[j][i] , += )
-		APEX_SUPPORT_DOT_1D( sub_dot, tmp += srca[j]*srcb[j][i] , -= )
+		APEX_SUPPORT_DOT_1D( dot      , tmp += srca[j]*srcb[j][i] , =  )
+		APEX_SUPPORT_DOT_1D( sadd__dot, tmp += srca[j]*srcb[j][i] , += )
+		APEX_SUPPORT_DOT_1D( ssub__dot, tmp += srca[j]*srcb[j][i] , -= )
         
         APEX_SUPPORT_DOT_2D( dot )                          
-        APEX_SUPPORT_DOT_2D( add_dot )
-		APEX_SUPPORT_DOT_2D( sub_dot )
+        APEX_SUPPORT_DOT_2D( sadd__dot )
+		APEX_SUPPORT_DOT_2D( ssub__dot )
 
-   		APEX_SUPPORT_DOT_1D( dot_rt    , tmp += srca[j]*srcb[i][j] , =  )
-		APEX_SUPPORT_DOT_1D( add_dot_rt, tmp += srca[j]*srcb[i][j] , += )
-		APEX_SUPPORT_DOT_1D( sub_dot_rt, tmp += srca[j]*srcb[i][j] , -= )
+   		APEX_SUPPORT_DOT_1D( dot_rt      , tmp += srca[j]*srcb[i][j] , =  )
+		APEX_SUPPORT_DOT_1D( sadd__dot_rt, tmp += srca[j]*srcb[i][j] , += )
+		APEX_SUPPORT_DOT_1D( ssub__dot_rt, tmp += srca[j]*srcb[i][j] , -= )
 
         APEX_SUPPORT_DOT_2D( dot_rt )                          
-        APEX_SUPPORT_DOT_2D( add_dot_rt )
-		APEX_SUPPORT_DOT_2D( sub_dot_rt )
+        APEX_SUPPORT_DOT_2D( sadd__dot_rt )
+		APEX_SUPPORT_DOT_2D( ssub__dot_rt )
 
-		APEX_SUPPORT_DOT_LT_1D( dot_lt    , =  )
-		APEX_SUPPORT_DOT_LT_1D( add_dot_lt, += )
-		APEX_SUPPORT_DOT_LT_1D( sub_dot_lt, -= )
+		APEX_SUPPORT_DOT_LT_1D( dot_lt      , =  )
+		APEX_SUPPORT_DOT_LT_1D( sadd__dot_lt, += )
+		APEX_SUPPORT_DOT_LT_1D( ssub__dot_lt, -= )
 
-		APEX_SUPPORT_DOT_LT_2D( dot_lt    , =  )
-		APEX_SUPPORT_DOT_LT_2D( add_dot_lt, += )
-		APEX_SUPPORT_DOT_LT_2D( sub_dot_lt, -= )
+		APEX_SUPPORT_DOT_LT_2D( dot_lt      , =  )
+		APEX_SUPPORT_DOT_LT_2D( sadd__dot_lt, += )
+		APEX_SUPPORT_DOT_LT_2D( ssub__dot_lt, -= )
  
     };
 
@@ -640,23 +640,23 @@ namespace apex_tensor{
             }
             
             // convolution with big filter
-            void add_conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b ){
+            void sadd__conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b ){
                 for( int v = 0 ; v < a.z_max ; v ++ )
                     for( int h = 0 ; h < b.z_max ; h ++ )
                         conv2_r_valid_inner<store_method::ADD>( dst[v][h], a[v], b[h] );
             }
-            void sub_conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b ){
+            void ssub__conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b ){
                 for( int v = 0 ; v < a.z_max ; v ++ )
                     for( int h = 0 ; h < b.z_max ; h ++ )
                         conv2_r_valid_inner<store_method::SUB>( dst[v][h], a[v], b[h] );
             }
             
             // sum over last two dimension
-            void add_sum_2D( CTensor1D &dst, const CTensor3D &src ){
+            void sadd__sum_2D( CTensor1D &dst, const CTensor3D &src ){
                 for( int i = 0 ; i < dst.x_max ; i ++ )
                     dst[i] += cpu_only::sum_template( src[i] );
             }
-            void sub_sum_2D( CTensor1D &dst, const CTensor3D &src ){
+            void ssub__sum_2D( CTensor1D &dst, const CTensor3D &src ){
                 for( int i = 0 ; i < dst.x_max ; i ++ )
                     dst[i] -= cpu_only::sum_template( src[i] );
             }            
