@@ -5,7 +5,11 @@
 
 namespace apex_tensor{
     // private functions used to support tensor op 
-    namespace cuda_tensor{     
+    namespace cuda_tensor{
+        inline void error( const char *s ){
+            printf("error:%s\n",s ); exit( -1 );
+        }
+        
         inline void check_true( bool exp, const char *s ){
             if( !exp ){
                 printf("error:%s\n",s ); exit( -1 );
@@ -31,7 +35,7 @@ namespace apex_tensor{
         inline int num_elem( GTensor1D ts ){
             return ts.x_max;
         }
-        
+                
         inline size_t num_bytes( GTensor2D ts ){
             return ts.pitch*ts.y_max;
         }
@@ -203,4 +207,5 @@ namespace apex_tensor{
 
 #include "cuda_tensor_op.cu"
 #include "cuda_tensor_sampling.cu"
+#include "cuda_tensor_conv2_r_valid.cu"
 #endif

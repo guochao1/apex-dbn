@@ -6,11 +6,11 @@
 
 // GPU implementation of tensor functions
 namespace apex_tensor{    
-    void init_engine_gpu( int seed ){
+    void init_tensor_engine_gpu( void ){
         cuda_rand::rand_init();
     }
     
-    void destroy_engine_gpu(){
+    void destroy_tensor_engine_gpu(){
         cuda_rand::rand_destroy();
     }
 
@@ -158,6 +158,20 @@ namespace apex_tensor{
             cuda_tensor::s_name<sm ,GTensor4D>( dst, src );             \
         }                                                               \
 
+#define APEX_USE_TEMPLATE_MAP_SS(func_name,s_name,sm)                   \
+        void func_name( GTensor1D &dst, const GTensor1D &src, float srcb ){ \
+            cuda_tensor::s_name<sm ,GTensor1D>( dst, src, srcb );       \
+        }                                                               \
+        void func_name( GTensor2D &dst, const GTensor2D &src, float srcb ){ \
+            cuda_tensor::s_name<sm ,GTensor2D>( dst, src, srcb );       \
+        }                                                               \
+        void func_name( GTensor3D &dst, const GTensor3D &src, float srcb ){ \
+            cuda_tensor::s_name<sm ,GTensor3D>( dst, src, srcb );       \
+        }                                                               \
+        void func_name( GTensor4D &dst, const GTensor4D &src, float srcb ){ \
+            cuda_tensor::s_name<sm ,GTensor4D>( dst, src, srcb );       \
+        }                                                               \
+
     };
 
     namespace tensor{
@@ -174,7 +188,8 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_MAP_C( mul    , store_method::SAVE, map_method_B::MUL     )
         APEX_USE_TEMPLATE_MAP_D( scale_add, store_method::SAVE, map_method_D::SCALE_ADD )
 		
-        APEX_USE_TEMPLATE_MAP_S( sample_binary, sample_binary, store_method::SAVE )
+        APEX_USE_TEMPLATE_MAP_S ( sample_binary  , sample_binary  , store_method::SAVE )
+        APEX_USE_TEMPLATE_MAP_SS( sample_gaussian, sample_gaussian, store_method::SAVE )
     };
 
     // support for CRBM
@@ -193,6 +208,13 @@ namespace apex_tensor{
                     copy_template<GTensor2D,GTensor2D,cudaMemcpyDeviceToDevice>( dst[i], src[i] );
             } 
             
+            void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size ){
+                cuda_tensor::sample_maxpooling<store_method::SAVE>( state, mean, pool_size );
+            }
+            
+            void conv2_r_valid     ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
+                cuda_tensor::conv2_r_valid<store_method::SAVE>( dst, a, filter, bias );
+            }
         };
     };
 };
