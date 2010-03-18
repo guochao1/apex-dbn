@@ -654,11 +654,11 @@ namespace apex_tensor{
             // sum over last two dimension
             void add_sum_2D( CTensor1D &dst, const CTensor3D &src ){
                 for( int i = 0 ; i < dst.x_max ; i ++ )
-                    dst += cpu_only::sum_template( src[i] );
+                    dst[i] += cpu_only::sum_template( src[i] );
             }
             void sub_sum_2D( CTensor1D &dst, const CTensor3D &src ){
                 for( int i = 0 ; i < dst.x_max ; i ++ )
-                    dst += -cpu_only::sum_template( src[i] );
+                    dst[i] -= cpu_only::sum_template( src[i] );
             }            
             // calculate information of sparse regularization
             void add_sparse_info( CTensor1D &sum_mf, CTensor1D &sum_mf_grad, const CTensor3D &src, int pool_size ){
