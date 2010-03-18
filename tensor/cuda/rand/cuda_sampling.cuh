@@ -46,7 +46,7 @@ namespace cuda_rand{
     inline __device__ float sample_gaussian( float rnd, int tid ){
         // get gaussian random variable
         __shared__ float s_rnd[ 1<<block_dim_bits ];
-        s_rnd[ tid ] = rnd - 1.0f; 
+        s_rnd[ tid ] = rnd; 
         __syncthreads();
         cuda_rand::sample_standard_gaussian_by_pair( s_rnd, tid );
         __syncthreads();
@@ -55,7 +55,7 @@ namespace cuda_rand{
     
     
     template<int pool_bits>
-    inline __device__ void sample_maxpooling( int x_start, int y_start, float s_mm[16][16], float rnd01 ){
+    inline __device__ void sample_maxpooling( int y_start, int x_start, float s_mm[16][16], float rnd01 ){
         float sum = 0.0f;
         bool  hit = false;
         for( int y = y_start ; y < y_start + (1<<pool_bits) ; y ++ )
