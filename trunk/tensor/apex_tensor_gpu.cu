@@ -211,7 +211,11 @@ namespace apex_tensor{
             void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size ){
                 cuda_tensor::sample_maxpooling<store_method::SAVE>( state, mean, pool_size );
             }
-           
+            
+            void norm_maxpooling_2D( GTensor3D &mean, const GTensor3D &energy, int pool_size ){
+                cuda_tensor::norm_maxpooling<store_method::SAVE>( mean, energy, pool_size );
+            }
+            
             void conv2_r_valid( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
                 cuda_tensor::conv2_r_valid<store_method::SAVE>( dst, a, filter, bias );
             }
@@ -226,6 +230,23 @@ namespace apex_tensor{
 
             void ssub__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &filter ){
                 cuda_tensor::conv2_r_big_filter<store_method::SUB>( dst, a, filter );
+            }
+            
+            void sadd__sum_2D( GTensor1D &dst, const GTensor3D &src ){
+                cuda_tensor::tensor_sum_2D<store_method::ADD,map_method_A::IDENTITY>( dst, src );
+            }
+
+            void ssub__sum_2D( GTensor1D &dst, const GTensor3D &src ){
+                cuda_tensor::tensor_sum_2D<store_method::SUB,map_method_A::IDENTITY>( dst, src );
+            }
+            
+            void pool_up( GTensor3D &dst , const GTensor3D &src, int pool_size ){
+                cuda_tensor::pool_up<store_method::SAVE,map_method_A::IDENTITY>( dst, src, pool_size );
+            }
+            
+            void add_sparse_info( GTensor1D &sum_mf, GTensor1D &sum_mf_grad, const GTensor3D &src, int pool_size ){
+                cuda_tensor::pool_sum<store_method::ADD,map_method_A::IDENTITY,map_method_A::SIGMOID_GRAD,true>
+                    ( sum_mf, sum_mf_grad, src, pool_size );
             }
 
         };

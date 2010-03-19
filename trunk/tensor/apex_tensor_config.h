@@ -8,6 +8,10 @@
 // option to open GPU implementation as TTensor
 #define __APEX_TENSOR_USE_GPU__    
 
+// use kahan sum in GPU convolution
+#define __CUDA_CONV2_USE_KAHAN_SUM__
+
+
 /* debug options */
 //option to open debug for cuda_rand 
 //#define __DEBUG_CUDA_RAND__   

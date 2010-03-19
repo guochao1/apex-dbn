@@ -122,7 +122,6 @@ namespace apex_tensor{
             return (const float*)((const char*)elem + idx*pitch);
         }
 
-
         // support for store metohod
         namespace store_method{
             const int SAVE = 0;
@@ -151,14 +150,23 @@ namespace apex_tensor{
         };
 
         namespace map_method_A{
-            const int A_MASK  = 1<<5; 
-            const int SIGMOID = 0 | A_MASK;
-            
+            const int A_MASK       = 1<<5; 
+            const int IDENTITY     = 0 | A_MASK;
+            const int SIGMOID      = 1 | A_MASK;
+            const int SIGMOID_GRAD = 2 | A_MASK; 
             template<int mm>
             __device__ float __map( float src );
-			template<>
+            template<>
+            __device__ float __map<IDENTITY>( float src ){
+                return src;
+            }
+            template<>
             __device__ float __map<SIGMOID>( float src ){
                 return 1.0f / ( 1 + __expf( -src ));
+            }
+            template<>
+            __device__ float __map<SIGMOID_GRAD>( float src ){
+                return src * ( 1 - src );
             }
         };
 
@@ -198,6 +206,7 @@ namespace apex_tensor{
         
     };
 
+    // interface of inline functions
     namespace cuda_tensor{
         template<int st_m,typename T>
         inline void store( T &ts, float src );  
@@ -208,6 +217,5 @@ namespace apex_tensor{
 #include "cuda_tensor_op.cu"
 #include "cuda_tensor_sampling.cu"
 #include "cuda_tensor_conv2.cu"
-
-
+#include "cuda_tensor_pooling.cu"
 #endif

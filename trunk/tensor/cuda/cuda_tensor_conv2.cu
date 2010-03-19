@@ -4,7 +4,45 @@
 #include "cuda_tensor.cuh"
 
 namespace apex_tensor{
+
     namespace cuda_tensor{
+        // suppport for kahan sum procedure
+        namespace __conv2{
+            inline __device__ void kahan_sum( float &sum, float &c_kahan, float val ){
+                float y = val - c_kahan;
+                float t = sum + y;
+                c_kahan = ( t - sum ) -y;
+                sum     = t; 
+            }
+            
+            inline __device__ void add_sum( float &sum, float &c_kahan, float val ){
+#ifdef __CUDA_CONV2_USE_KAHAN_SUM__
+                kahan_sum( sum , c_kahan, val );
+#else
+                sum += val;            
+#endif
+            }
+            
+            inline __device__ void add_sum( float &sum, float val ){
+                sum += val;
+            }
+            
+#ifdef __CUDA_CONV2_USE_KAHAN_SUM__
+            
+#define  CUDA_CONV2_SUM_PARAM(x,y)   float &x, float &y
+#define  CUDA_CONV2_SUM_VAR_DEF(x,y) float x = 0.0f, y = 0.0f
+#define  CUDA_CONV2_SUM_ARG(x,y)     x, y
+            
+#else
+            
+#define  CUDA_CONV2_SUM_PARAM(x,y)   float &x
+#define  CUDA_CONV2_SUM_VAR_DEF(x,y) float x = 0.0f
+#define  CUDA_CONV2_SUM_ARG(x,y)     x
+            
+#endif            
+        };
+
+        // support for loading
         namespace __conv2{
             // load a segment into array, check whether the data is aligned 
             template< int x_size >
@@ -331,8 +369,8 @@ namespace apex_tensor{
     namespace cuda_tensor{
         /* calculate a block of convolution */  
         // restrict filter size to be in (16,16)
-        __device__ void __conv2_r_big_filter_block_procedure_1616_restricted( float &sum,
-                                                                              int   y_start , int x_start,
+        __device__ void __conv2_r_big_filter_block_procedure_1616_restricted( CUDA_CONV2_SUM_PARAM( sum, c_kahan ),
+                                                                              int   y_start, int x_start,
                                                                               float s_ft [16][16],
                                                                               float s_mat[32][32],
                                                                               const GTensor2D mat, 
@@ -348,8 +386,9 @@ namespace apex_tensor{
                                                             
             for( int dy = 0 ; dy < 16 ; dy ++ ){
                 for( int dx = 0 ; dx < 16 ; dx ++ ){
-                    /* s_ft get by broadcase, mat has no bank conflit  */                         
-                    sum += s_ft[ dy ][ dx ] * s_mat[ threadIdx.y + dy ][ threadIdx.x + dx ] ; 
+                    /* s_ft get by broadcast, mat has no bank conflit  */                         
+                    __conv2::add_sum( CUDA_CONV2_SUM_ARG( sum, c_kahan ), 
+                                      s_ft[ dy ][ dx ] * s_mat[ threadIdx.y + dy ][ threadIdx.x + dx ] ); 
                 }
             }        
         }
@@ -360,12 +399,12 @@ namespace apex_tensor{
                                                                         GTensor2D ans,
                                                                         const GTensor2D mat, 
                                                                         const GTensor2D filter ){
-            float sum = 0.0f;
+            CUDA_CONV2_SUM_VAR_DEF( sum, c_kahan );
 
             for( int yy = 0 ; yy < filter.y_max ; yy += 16 )
                 for( int xx = 0 ; xx < filter.x_max ; xx += 16 ){
                     __conv2_r_big_filter_block_procedure_1616_restricted
-                        ( sum, yy, xx, s_ft, s_mat, mat, filter );   
+                        ( CUDA_CONV2_SUM_ARG( sum, c_kahan ), yy, xx, s_ft, s_mat, mat, filter );   
                     __syncthreads();
                 }
                                                             
