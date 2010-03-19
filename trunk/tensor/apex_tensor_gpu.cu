@@ -220,6 +220,14 @@ namespace apex_tensor{
                 cuda_tensor::conv2_full<store_method::SAVE>( dst, a, filter, bias );
             }
 
+            void sadd__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &filter ){
+                cuda_tensor::conv2_r_big_filter<store_method::ADD>( dst, a, filter );
+            }
+
+            void ssub__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &filter ){
+                cuda_tensor::conv2_r_big_filter<store_method::SUB>( dst, a, filter );
+            }
+
         };
     };
 };

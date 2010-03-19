@@ -5,8 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 
-// option to open GPU implementation
-#define __APEX_TENSOR_USE_GPU__
+#include "apex_tensor_config.h"
 
 namespace apex_tensor{
     struct CTensor1D;
