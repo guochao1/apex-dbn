@@ -207,7 +207,7 @@ namespace apex_tensor{
 
 #include "cuda_tensor_op.cu"
 #include "cuda_tensor_sampling.cu"
-#include "cuda_tensor_conv2_full.cu"
-#include "cuda_tensor_conv2_r_valid.cu"
+#include "cuda_tensor_conv2.cu"
+
 
 #endif
