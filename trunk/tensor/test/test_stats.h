@@ -14,6 +14,7 @@ namespace apex_tensor{
         double time_A, time_B;
        
         T    abs_err_rel;
+        T    abs_err_relT;
         T    abs_err;
         int  sample_counter;
         
@@ -26,13 +27,16 @@ namespace apex_tensor{
         void init(){
             tensor::alloc_space( abs_err );
             tensor::alloc_space( abs_err_rel );
+            tensor::alloc_space( abs_err_relT );
             abs_err = 0.0f;
             abs_err_rel = 0.0f;
+            abs_err_relT= 0.0f;
         }
 
         ~ TestStats(){
             tensor::free_space( abs_err_rel );
             tensor::free_space( abs_err );
+            tensor::free_space( abs_err_relT );
         }
 
         void print(){
@@ -45,12 +49,17 @@ namespace apex_tensor{
                    (float)cpu_only::avg( abs_err_rel ) /sample_counter, 
                    (float)cpu_only::max_value( abs_err_rel )/sample_counter,
                    (float)cpu_only::var( abs_err_rel ) /sample_counter );            
+            printf("\tRTMAE=%f,RTMMAXE=%f,RTVAR_AE=%f\n", 
+                   (float)cpu_only::avg( abs_err_relT ) /sample_counter, 
+                   (float)cpu_only::max_value( abs_err_relT )/sample_counter,
+                   (float)cpu_only::var( abs_err_relT ) /sample_counter );            
         }
         
         void add_sample( T & ref, T & tester ){
             sample_counter ++;
 			tensor::sadd__abs_err    ( abs_err    , tester, ref );  
 			tensor::sadd__abs_err_rel( abs_err_rel, tester, ref );  
+            tensor::sadd__abs_err_relT( abs_err_relT , tester, ref );
         }       
     };
 };

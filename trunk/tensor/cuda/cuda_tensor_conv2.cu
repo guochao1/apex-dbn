@@ -432,7 +432,7 @@ namespace apex_tensor{
                 dim3 dimGrid ( ans.z_max, ans.h_max, 1  );
                 
                 __conv2_r_big_filter_kernel_1616_restricted <st_m><<<dimGrid,dimBlock>>> ( ans, mat, filter );
-            }{
+            }else{
                 error("too large answer size");
             }
         }        

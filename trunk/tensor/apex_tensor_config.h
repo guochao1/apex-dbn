@@ -9,7 +9,7 @@
 #define __APEX_TENSOR_USE_GPU__    
 
 // use kahan sum in GPU convolution
-#define __CUDA_CONV2_USE_KAHAN_SUM__
+//#define __CUDA_CONV2_USE_KAHAN_SUM__
 
 
 /* debug options */

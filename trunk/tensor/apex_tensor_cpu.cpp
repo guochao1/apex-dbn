@@ -289,9 +289,12 @@ namespace apex_tensor{
         
         // support for error estimation
         template<typename T>
-        APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_template, d[j] += fabs(a[j]-b[j]) )
+        APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_template, d[j] += (TENSOR_FLOAT)fabs(a[j]-b[j]) );
         template<typename T>
-        APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_rel_template, d[j] += fabs( 1 - b[j]/a[j] ) )
+        APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_rel_template, d[j] += (TENSOR_FLOAT)fabs( 1 - b[j]/a[j] ) );
+        template<typename T>
+		APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_relT_template, d[j] += (TENSOR_FLOAT)( fabs(a[j]) > 1e-5 ? fabs( 1 - b[j]/a[j]): (fabs(a[j]-b[j])/1e-5)));
+            
     };
     
 
@@ -406,6 +409,7 @@ namespace apex_tensor{
 
         APEX_USE_TEMPLATE_C( sadd__abs_err )
         APEX_USE_TEMPLATE_C( sadd__abs_err_rel )
+        APEX_USE_TEMPLATE_C( sadd__abs_err_relT )
     };
 
 	namespace tensor{
