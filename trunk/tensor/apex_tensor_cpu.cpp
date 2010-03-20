@@ -112,29 +112,42 @@ namespace apex_tensor{
     };
     
     namespace cpu_only{
-#define APEX_REDUCE_ALL_CPU_ONLY(func_name,init,rd)                     \
+#define APEX_REDUCE_ALL_CPU_ONLY(func_name,init,rd,last)                \
         TENSOR_FLOAT func_name( const T & ts ){                         \
-            TENSOR_FLOAT ans = init;                                    \
+            init;                                                       \
             for( int i = 0 ; i < tensor::num_line( ts ) ; i ++ ){       \
                 const TENSOR_FLOAT *a = tensor::get_line_const( ts, i ); \
-                for( int j = 0 ; j < ts.x_max ; j ++ )                  \
+                for( int j = 0 ; j < ts.x_max ; j ++ ){                 \
                     rd;                                                 \
+                }                                                       \
             }                                                           \
-            return ans;                                                 \
+            last;                                                       \
         }                                                               \
         
-        template<typename T>
-        APEX_REDUCE_ALL_CPU_ONLY( sum_template, 0.0f       , ans += a[j] );
-        template<typename T>
-        APEX_REDUCE_ALL_CPU_ONLY( min_value_template, ts.elem[0] , if( ans > a[j] ) ans = a[j];  );
-        template<typename T>
-        APEX_REDUCE_ALL_CPU_ONLY( max_value_template, ts.elem[0] , if( ans < a[j] ) ans = a[j];  );
+#define APEX_REDUCE_ALL_CPU_ONLY_A(func_name,init,rd) APEX_REDUCE_ALL_CPU_ONLY(func_name,TENSOR_FLOAT ans=init,rd,return ans )
         
+        
+        template<typename T>
+        APEX_REDUCE_ALL_CPU_ONLY_A( sum_template, 0.0f, ans += a[j] );
+        template<typename T>
+        APEX_REDUCE_ALL_CPU_ONLY_A( min_value_template, ts.elem[0] , if( ans > a[j] ) ans = a[j];  );
+        template<typename T>
+        APEX_REDUCE_ALL_CPU_ONLY_A( max_value_template, ts.elem[0] , if( ans < a[j] ) ans = a[j];  );
+        template<typename T>
+        APEX_REDUCE_ALL_CPU_ONLY( var_template, 
+                                  TENSOR_FLOAT s = 0.0f; TENSOR_FLOAT ss = 0.0f , 
+                                  s += a[j]; ss += a[j]*a[j] , 
+                                  int n = tensor::num_elem(ts); return ss/n - (s/n)*(s/n) ) 
+              
         template<typename T>
         TENSOR_FLOAT avg_template( const T & ts ){
             return sum_template( ts ) / tensor::num_elem( ts );
         }
-
+        template<typename T>
+        TENSOR_FLOAT std_var_template( const T &ts ){
+            return (TENSOR_FLOAT)sqrt( var_template( ts ) );
+        }
+        
 #define APEX_USE_TEMPLATE_A_CPU_ONLY(func_name)                         \
         TENSOR_FLOAT func_name( const CTensor1D &dst ){                 \
             return func_name##_template( dst );                         \
@@ -153,7 +166,8 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_A_CPU_ONLY( sum )
         APEX_USE_TEMPLATE_A_CPU_ONLY( max_value )
         APEX_USE_TEMPLATE_A_CPU_ONLY( min_value )
-        
+        APEX_USE_TEMPLATE_A_CPU_ONLY( var )
+        APEX_USE_TEMPLATE_A_CPU_ONLY( std_var )        
     };
     
     // template functions
@@ -273,8 +287,13 @@ namespace apex_tensor{
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j] );
         
+        // support for error estimation
+        template<typename T>
+        APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_template, d[j] += fabs(a[j]-b[j]) )
+        template<typename T>
+        APEX_ELEMENTWISE_BINARY_OP( sadd__abs_err_rel_template, d[j] += fabs( 1 - b[j]/a[j] ) )
     };
-
+    
 
     // definition of macros
     namespace tensor{
@@ -384,6 +403,9 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_E( sample_binary )
         APEX_USE_TEMPLATE_E( copy )
         APEX_USE_TEMPLATE_F( scale_add )        
+
+        APEX_USE_TEMPLATE_C( sadd__abs_err )
+        APEX_USE_TEMPLATE_C( sadd__abs_err_rel )
     };
 
 	namespace tensor{

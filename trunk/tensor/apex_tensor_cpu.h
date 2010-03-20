@@ -292,7 +292,19 @@ namespace apex_tensor{
         void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
     };
-    
+
+    // support for error esimtation
+    namespace tensor{
+        void sadd__abs_err( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        void sadd__abs_err( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        void sadd__abs_err( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        void sadd__abs_err( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+
+        void sadd__abs_err_rel( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        void sadd__abs_err_rel( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        void sadd__abs_err_rel( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        void sadd__abs_err_rel( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+    };
     // support for convolutional RBM
     namespace tensor{
         namespace crbm{
@@ -333,10 +345,29 @@ namespace apex_tensor{
     // host only code
     namespace cpu_only{
         // average value
+        TENSOR_FLOAT sum( const CTensor1D &a );
+        TENSOR_FLOAT sum( const CTensor2D &a );
+        TENSOR_FLOAT sum( const CTensor3D &a );
+        TENSOR_FLOAT sum( const CTensor4D &a );
+        
+        // average value
         TENSOR_FLOAT avg( const CTensor1D &a );
         TENSOR_FLOAT avg( const CTensor2D &a );
         TENSOR_FLOAT avg( const CTensor3D &a );
         TENSOR_FLOAT avg( const CTensor4D &a );
+
+        // variance
+        TENSOR_FLOAT var( const CTensor1D &a );
+        TENSOR_FLOAT var( const CTensor2D &a );
+        TENSOR_FLOAT var( const CTensor3D &a );
+        TENSOR_FLOAT var( const CTensor4D &a );
+        
+        // standard variance
+        TENSOR_FLOAT std_var( const CTensor1D &a );
+        TENSOR_FLOAT std_var( const CTensor2D &a );
+        TENSOR_FLOAT std_var( const CTensor3D &a );
+        TENSOR_FLOAT std_var( const CTensor4D &a );
+        
         // min value
         TENSOR_FLOAT min_value( const CTensor1D &a );
         TENSOR_FLOAT min_value( const CTensor2D &a );

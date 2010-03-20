@@ -116,7 +116,7 @@ namespace apex_tensor{
                 }                  
             }
             
-            // reverse load , the dimesion should be dim_x = dim_y, used to reverse the filter 
+            // reverse load 
             template<int y_size,int x_size>
             __device__ void __load_mat_shared_reverse_1616( float m_shared[y_size][x_size], 
                                                             const GTensor2D g_filter ){

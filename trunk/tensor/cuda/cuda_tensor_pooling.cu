@@ -128,6 +128,8 @@ namespace apex_tensor{
                         // no bank conflict in the same pool, since we only access bank in the same row 
                         sum = s_mm[ (threadIdx.y<<pool_bits) & 15 ][ (threadIdx.x<<pool_bits) & 15 ]; 
                     }
+                    // must sync here !!
+                    __syncthreads();
                 }
         }
         
@@ -347,6 +349,7 @@ namespace apex_tensor{
                         float s = s_mm[ threadIdx.y ][ threadIdx.x ];
                         store_method::__store<st_m>( dst[y_idx].elem[x_idx], s );
                     }
+                    // no need to sync
                 }
         }
         

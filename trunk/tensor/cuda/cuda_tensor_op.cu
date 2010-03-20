@@ -16,7 +16,7 @@ namespace apex_tensor{
 
             elem = get_line( elem, y, pitch );  
                         
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 store_method::__store<st_m>( elem[ x ] , src );
             }            
         }
@@ -51,7 +51,7 @@ namespace apex_tensor{
             elem_src = get_line_const( elem_src, y, pitch_src );
             
             
-            if( x < x_max  && y < y_max ){
+            if( y < y_max && x < x_max ){
                 float val = map_method_A::__map<mapm_A>( elem_src[x] );
                 store_method::__store<st_m>( elem_dst[x], val );
             }            
@@ -86,7 +86,7 @@ namespace apex_tensor{
             elem_src = get_line_const( elem_src, y, pitch_src );
             
             
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 float val = map_method_B::__map<mapm_B>( elem_src[x], src_b );
                 store_method::__store<st_m>( elem_dst[x] , val );
             }            
@@ -123,7 +123,7 @@ namespace apex_tensor{
             elem_srcb = get_line_const( elem_srcb, y, pitch_srcb );
             
             
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 float val = map_method_B::__map<mapm_B>( elem_srca[x], elem_srcb[x] );
                 store_method::__store<st_m>( elem_dst[x] , val );
             }            
@@ -161,7 +161,7 @@ namespace apex_tensor{
             elem_srcb = get_line_const( elem_srcb, y, pitch_srcb );
             
             
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 float val = map_method_D::__map<mapm_D>( elem_srca[x], elem_srcb[x], sa, sb );
                 store_method::__store<st_m>( elem_dst[x] , val );
             }            
