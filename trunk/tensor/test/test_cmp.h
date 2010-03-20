@@ -195,5 +195,225 @@ void test_conv2_r_big_filter( int num_iter ){
     tensor::free_space( tc_f );        
 }
 
+
+void test_norm_maxpooling_2D( int num_iter ){
+    GTensor3D tg_hp ( H_MAX, H_Y_MAX, H_X_MAX );
+    GTensor3D tg_h  ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_h     ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_hp    ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_hp_g  ( H_MAX, H_Y_MAX, H_X_MAX );
+
+
+	tensor::alloc_space( tg_hp );
+    tensor::alloc_space( tg_h );
+    tensor::alloc_space( tc_hp );
+    tensor::alloc_space( tc_h );
+    tensor::alloc_space( tc_hp_g );
+    printf("start test norm_maxpooling_2D\n");
+    
+	TestStats<CTensor3D> stats( "norm_maxpooling_2D_CPU","norm_maxpooling_2D_GPU");
+    stats.abs_err.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    stats.abs_err_rel.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    stats.abs_err_relT.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    stats.init();
+    
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+		tensor::sample_gaussian( tc_h, sd );
+        
+        tensor::copy( tg_h, tc_h );        
+
+        double c_start = clock();
+        tensor::crbm::norm_maxpooling_2D( tc_hp, tc_h, POOL_SIZE );
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+        double g_start = clock();
+        tensor::crbm::norm_maxpooling_2D( tg_hp, tg_h, POOL_SIZE );
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_hp_g, tg_hp );
+        stats.add_sample( tc_hp, tc_hp_g );
+    } 
+    printf("\n");
+    stats.print();
+
+    tensor::free_space( tg_hp );
+    tensor::free_space( tg_h );
+    tensor::free_space( tc_hp );
+    tensor::free_space( tc_h );
+    tensor::free_space( tc_hp_g );
+}
+
+void test_pool_up( int num_iter ){
+    GTensor3D tg_hp ( H_MAX, P_Y_MAX, P_X_MAX );
+    GTensor3D tg_h  ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_h     ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_hp    ( H_MAX, P_Y_MAX, P_X_MAX );
+    CTensor3D tc_hp_g  ( H_MAX, P_Y_MAX, P_X_MAX );
+
+
+	tensor::alloc_space( tg_hp );
+    tensor::alloc_space( tg_h );
+    tensor::alloc_space( tc_hp );
+    tensor::alloc_space( tc_h );
+    tensor::alloc_space( tc_hp_g );
+    printf("start test pool up\n");
+    
+	TestStats<CTensor3D> stats( "pool_up_CPU","pool_up_GPU");
+    stats.abs_err.set_param( H_MAX, P_Y_MAX, P_X_MAX );
+    stats.abs_err_rel.set_param( H_MAX, P_Y_MAX, P_X_MAX );
+    stats.abs_err_relT.set_param( H_MAX, P_Y_MAX, P_X_MAX );
+    stats.init();
+    
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+		tensor::sample_gaussian( tc_h, sd );
+        
+        tensor::copy( tg_h, tc_h );        
+
+        double c_start = clock();
+        tensor::crbm::pool_up( tc_hp, tc_h, POOL_SIZE );
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+        double g_start = clock();
+        tensor::crbm::pool_up( tg_hp, tg_h, POOL_SIZE );
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_hp_g, tg_hp );
+        stats.add_sample( tc_hp, tc_hp_g );
+    } 
+    printf("\n");
+    stats.print();
+
+    tensor::free_space( tg_hp );
+    tensor::free_space( tg_h );
+    tensor::free_space( tc_hp );
+    tensor::free_space( tc_h );
+    tensor::free_space( tc_hp_g );
+}
+
+void test_sum_2D( int num_iter ){
+    GTensor1D tg_s   ( H_MAX );
+    GTensor3D tg_h   ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_h   ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor1D tc_s   ( H_MAX );
+    CTensor1D tc_s_g( H_MAX );
+
+	tensor::alloc_space( tg_s );
+    tensor::alloc_space( tg_h );
+    tensor::alloc_space( tc_s );
+    tensor::alloc_space( tc_h );
+    tensor::alloc_space( tc_s_g );
+    printf("start test sum2D\n");
+    
+	TestStats<CTensor1D> stats( "sum2D_CPU","sum2D_GPU");
+    stats.abs_err.set_param( H_MAX );
+    stats.abs_err_rel.set_param( H_MAX );
+    stats.abs_err_relT.set_param( H_MAX );
+    stats.init();
+    
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+		tensor::sample_gaussian( tc_h, sd );
+        tensor::sample_gaussian( tc_s, sd );
+        
+        tensor::copy( tg_h, tc_h );        
+        tensor::copy( tg_s, tc_s );        
+        
+        double c_start = clock();
+        if( (i&1) == 0 ) 
+            tc_s += sum_2D( tc_h );
+        else
+            tc_s -= sum_2D( tc_h );
+
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+        double g_start = clock();
+        
+        if( (i&1) == 0 ) 
+            tg_s += sum_2D( tg_h );
+        else
+            tg_s -= sum_2D( tg_h );
+
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_s_g, tg_s );
+        stats.add_sample( tc_s, tc_s_g );
+    } 
+    printf("\n");
+    stats.print();
+
+    tensor::free_space( tg_s );
+    tensor::free_space( tg_h );
+    tensor::free_space( tc_s );
+    tensor::free_space( tc_h );
+    tensor::free_space( tc_s_g );
+}
+
+void test_add_sparse_info( int num_iter ){
+    GTensor1D tg_h_mf     ( H_MAX );
+    GTensor1D tg_h_mf_grad( H_MAX );
+    GTensor3D tg_h   ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_h   ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor1D tc_h_mf( H_MAX );
+    CTensor1D tc_h_mf_grad( H_MAX );
+    CTensor1D tc_h_mf_g( H_MAX );
+    CTensor1D tc_h_mf_grad_g( H_MAX );
+
+	tensor::alloc_space( tg_h_mf );
+    tensor::alloc_space( tg_h_mf_grad );
+    tensor::alloc_space( tg_h );
+    tensor::alloc_space( tc_h_mf );
+    tensor::alloc_space( tc_h_mf_grad );
+    tensor::alloc_space( tc_h );
+    tensor::alloc_space( tc_h_mf_g );
+    tensor::alloc_space( tc_h_mf_grad_g );
+
+    printf("start test add_sparse_info\n");
+    
+	TestStats<CTensor1D> stats( "add_sparse_info_CPU","add_sparse_info_GPU");
+    stats.abs_err.set_param( H_MAX );
+    stats.abs_err_rel.set_param( H_MAX );
+    stats.abs_err_relT.set_param( H_MAX );
+    stats.init();
+    
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+		tensor::sample_gaussian( tc_h, sd );
+        tensor::sample_gaussian( tc_h_mf, sd );
+        tensor::sample_gaussian( tc_h_mf_grad, sd );
+        
+        tensor::copy( tg_h, tc_h );        
+        tensor::copy( tg_h_mf, tc_h_mf );        
+        tensor::copy( tg_h_mf_grad, tc_h_mf_grad );        
+        
+        double c_start = clock();
+        tensor::crbm::add_sparse_info( tc_h_mf, tc_h_mf_grad, tc_h, POOL_SIZE );
+
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+        double g_start = clock();
+        tensor::crbm::add_sparse_info( tg_h_mf, tg_h_mf_grad, tg_h, POOL_SIZE );
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_h_mf_g, tg_h_mf );
+        tensor::copy( tc_h_mf_grad_g, tg_h_mf_grad );
+        stats.add_sample( tc_h_mf, tc_h_mf_g );
+        stats.add_sample( tc_h_mf_grad, tc_h_mf_grad_g );
+    } 
+    printf("\n");
+    stats.print();
+
+    tensor::free_space( tg_h_mf );
+    tensor::free_space( tg_h_mf_grad );
+    tensor::free_space( tg_h );
+    tensor::free_space( tc_h_mf );
+    tensor::free_space( tc_h_mf_grad );
+    tensor::free_space( tc_h );
+    tensor::free_space( tc_h_mf_g );
+    tensor::free_space( tc_h_mf_grad_g );
+}
+
+
 #endif
 
