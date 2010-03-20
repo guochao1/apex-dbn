@@ -304,6 +304,11 @@ namespace apex_tensor{
         void sadd__abs_err_rel( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
         void sadd__abs_err_rel( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
         void sadd__abs_err_rel( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+        // calculate relative error ,ignore the case when x <= 1e-6
+        void sadd__abs_err_relT( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        void sadd__abs_err_relT( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        void sadd__abs_err_relT( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        void sadd__abs_err_relT( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
     };
     // support for convolutional RBM
     namespace tensor{
