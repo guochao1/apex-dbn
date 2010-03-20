@@ -285,8 +285,8 @@ namespace apex_rbm{
             persistent_ok = ( param.persistent_cd !=0 );
 
             // calculate the gradient
-            tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
             tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
+            tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
 
             if( param.chg_hidden_bias ){
                 d_h_bias += sum_2D( h_pos );
