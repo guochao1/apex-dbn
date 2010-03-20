@@ -30,7 +30,7 @@ namespace apex_tensor{
         }    
         
         template<typename TA,typename TB,enum cudaMemcpyKind kind>
-        inline void copy_template( TA &dst, const TB &src ){
+        inline void copy_template( TA dst, const TB src ){
             cudaMemcpy2D( dst.elem, dst.pitch, src.elem, src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind );   
         }                 
     };
