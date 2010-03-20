@@ -205,7 +205,7 @@ namespace apex_tensor{
         }
 
         template<typename T>
-        inline void copy_template( T &dst, const T &src ){            
+        inline void copy_template( T dst, const T src ){            
             for( int i = 0 ; i < num_line( dst ) ; i ++ ){
                 TENSOR_FLOAT *d = get_line( dst, i );
                 const TENSOR_FLOAT *s = get_line_const( src, i );
@@ -515,7 +515,7 @@ namespace apex_tensor{
             }
             
             // normalize by maxpooling 2D
-            inline void norm_maxpooling_2D_inner( CTensor2D &mean, const CTensor2D &energy, int pool_size ){
+            inline void norm_maxpooling_2D_inner( CTensor2D mean, const CTensor2D energy, int pool_size ){
                 for( int y = 0 ; y < mean.y_max ; y += pool_size )
                     for( int x = 0 ; x < mean.x_max ; x += pool_size ){
                         // get max value
@@ -544,7 +544,7 @@ namespace apex_tensor{
                     norm_maxpooling_2D_inner( mean[z] , energy[z], pool_size );
             }
 
-            inline void sample_maxpooling_2D_inner( CTensor2D &state, const CTensor2D &mean, int pool_size ){                
+            inline void sample_maxpooling_2D_inner( CTensor2D state, const CTensor2D mean, int pool_size ){                
                 for( int y = 0 ; y < state.y_max ; y += pool_size )
                     for( int x = 0 ; x < state.x_max ; x += pool_size ){
                         bool hit = false;
@@ -569,7 +569,7 @@ namespace apex_tensor{
             }
 
             template<int st_method>
-            inline void pool_up_inner( CTensor2D &dst, const CTensor2D &src, int pool_size ){                
+            inline void pool_up_inner( CTensor2D dst, const CTensor2D src, int pool_size ){                
                 for( int yy = 0 ; yy < dst.y_max ; yy ++ )
                     for( int xx = 0 ; xx < dst.x_max ; xx ++ ){
                         int y = yy * pool_size;
@@ -594,7 +594,7 @@ namespace apex_tensor{
             // convolution, leaves the valid area
             // dst = (~a) (*)  filter + bias 
             template<int st_method>
-            inline void conv2_r_valid_inner( CTensor2D &dst, const CTensor2D &a, const CTensor2D &filter ){
+            inline void conv2_r_valid_inner( CTensor2D dst, const CTensor2D a, const CTensor2D filter ){
                 for( int y = 0 ; y < dst.y_max ; y ++ )
                     for( int x = 0 ; x < dst.x_max ; x ++ ){
                         TENSOR_FLOAT sum = 0.0f;                      
@@ -631,7 +631,7 @@ namespace apex_tensor{
             }
             
             template<int st_method>
-            inline void conv2_full_inner( CTensor2D &dst, const CTensor2D &a, const CTensor2D &filter ){
+            inline void conv2_full_inner( CTensor2D dst, const CTensor2D a, const CTensor2D filter ){
                 if( st_method == store_method::SAVE ) dst = 0.0f; 
 
                 for( int y = 0 ; y < a.y_max ; y ++ )
