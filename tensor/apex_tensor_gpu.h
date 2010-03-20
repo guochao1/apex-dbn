@@ -164,7 +164,10 @@ namespace apex_tensor{
     void init_tensor_engine_gpu( int seed );
     // this function is called when the program exits
     void destroy_tensor_engine_gpu();
- 
+    // sync gpu threads , wait until all gpu operations complete, 
+    // this functions is used for timing
+    void sync_gpu_threads();
+
     namespace tensor{
         // allocate space for given tensor
         void alloc_space( GTensor1D &ts );
@@ -284,6 +287,19 @@ namespace apex_tensor{
         void sadd__dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
         void ssub__dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
     };
+
+    // support for error esimtate
+    namespace tensor{
+        void sadd__abs_err( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b );
+        void sadd__abs_err( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );
+        void sadd__abs_err( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b );
+        void sadd__abs_err( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b );
+
+        void sadd__abs_err_rel( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b );
+        void sadd__abs_err_rel( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );
+        void sadd__abs_err_rel( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b );
+        void sadd__abs_err_rel( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b );
+    }
     
     // support for convolutional RBM
     namespace tensor{

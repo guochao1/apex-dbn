@@ -14,6 +14,10 @@ namespace apex_tensor{
         cuda_rand::rand_destroy();
     }
 
+    void sync_gpu_threads(){
+        cudaThreadSynchronize();
+    }
+
     namespace cuda_tensor{
         template<typename T>
         inline void alloc_space_template( T &ts ){
