@@ -61,7 +61,7 @@ namespace cuda_rand{
         for( int y = y_start ; y < y_start + (1<<pool_bits) ; y ++ )
             for( int x = x_start ; x < x_start + (1<<pool_bits) ; x ++ ){
                 sum += s_mm[y][x];
-                if( sum >= rnd01 && !hit ){
+                if( sum > rnd01 && !hit ){
                     hit = true; s_mm[y][x] = 1.0f;
                 } else{
                     s_mm[y][x] = 0.0f;

@@ -20,7 +20,7 @@ namespace apex_tensor{
             elem_dst = get_line      ( elem_dst, y, pitch_dst );
             elem_src = get_line_const( elem_src, y, pitch_src );
                         
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 float val = cuda_rand::sample_binary( elem_src[x], cuda_rand::get_rand( rnd, tid ) - 1.0f );
                 store_method::__store<st_m>( elem_dst[x], val );
             }            
@@ -57,7 +57,7 @@ namespace apex_tensor{
             elem_dst = get_line      ( elem_dst, y, pitch_dst );
             elem_src = get_line_const( elem_src, y, pitch_src );
                         
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 store_method::__store<st_m>( elem_dst[x], elem_src[x]+ r );
             }            
         }
@@ -93,7 +93,7 @@ namespace apex_tensor{
             
             elem_dst = get_line( elem_dst, y, pitch_dst );
                         
-            if( x < x_max  && y < y_max ){
+            if( y < y_max  && x < x_max ){
                 store_method::__store<st_m>( elem_dst[x], r );
             }            
         }

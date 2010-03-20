@@ -133,7 +133,8 @@ namespace apex_op_plan{
     inline apex_op_plan::DotRTPlan<TA,TB> dot( const TA &a, const apex_op_plan::TransposePlan<TB> &b ){ \
         return apex_op_plan::DotRTPlan<TA,TB>( &a, b.mat );              \
     }                                                                   \
-        
+
+           
     template<typename T,typename TV>
     struct ScaleAddPlan{
         const T *a,*b;
