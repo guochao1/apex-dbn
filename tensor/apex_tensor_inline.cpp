@@ -286,6 +286,17 @@ namespace apex_tensor{
     
 #undef APEX_EXPAND
 #undef APEX_EXPAND2
-        
+    
+    
+    APEX_ADD_SUPPORT_SUM_2D_OP( TT3D )    
+
+    inline TT1D& TT1D::operator+= ( const apex_op_plan::Sum2DPlan<TT3D> &val ){  
+        tensor::crbm::sadd__sum_2D( *this, *(val.a) );
+        return *this;                                                   
+    }                                                                   
+    inline TT1D& TT1D::operator-= ( const apex_op_plan::Sum2DPlan<TT3D> &val ){  
+        tensor::crbm::ssub__sum_2D( *this, *(val.a) );
+        return *this;                                                   
+    }                                                                   
 };
 

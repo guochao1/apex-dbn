@@ -29,6 +29,9 @@ namespace apex_op_plan{
     template<typename T>
     APEX_TEMPLATE_MAP_PLAN( AllocLikePlan )
 #define APEX_ADD_SUPPORT_ALLOC_LIKE_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,AllocLikePlan,alloc_like)  
+    template<typename T>
+    APEX_TEMPLATE_MAP_PLAN( Sum2DPlan )
+#define APEX_ADD_SUPPORT_SUM_2D_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,Sum2DPlan,sum_2D)  
 
     template<typename T>
     struct AddPlan{

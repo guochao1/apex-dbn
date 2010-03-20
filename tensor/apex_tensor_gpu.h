@@ -27,6 +27,8 @@ namespace apex_tensor{
         inline GTensor1D& operator -= ( const GTensor1D &b );        
 
         inline apex_op_plan::TransposePlan<GTensor1D> T() const;
+        inline GTensor1D& operator += ( const apex_op_plan::Sum2DPlan      <GTensor3D> &val );        
+        inline GTensor1D& operator -= ( const apex_op_plan::Sum2DPlan      <GTensor3D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ClonePlan      <CTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AllocLikePlan  <CTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AllocLikePlan  <GTensor1D> &val );        
