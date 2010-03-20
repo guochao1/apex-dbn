@@ -1,9 +1,11 @@
-BIN= srbm_minist crbm_minist
+BIN= srbm_model_drawer srbm_minist crbm_minist
 OPT= -msse2 -O3 -fno-strict-aliasing -Wall
 PRJ_DIR=..
 TENSOR_DIR=$(PRJ_DIR)/tensor
 SRBM_DIR=$(PRJ_DIR)/srbm
 CRBM_DIR=$(PRJ_DIR)/crbm
+NVCC    =nvcc
+OPTNVCC = -arch sm_11 -Xcompiler "$(OPT)" 
 all: $(BIN)
 
 clean:
@@ -18,11 +20,14 @@ apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
 	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp
 
-srbm_minist: srbm_minist.cpp apex_tensor_cpu.o  apex_srbm.o
-	g++ $(OPT) -o srbm_minist srbm_minist.cpp apex_tensor_cpu.o apex_srbm.o 
+apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $(TENSOR_DIR)/apex_tensor_gpu.cu $(TENSOR_DIR)/apex_tensor_inline.cpp
+	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
-crbm_minist: crbm_minist.cpp apex_tensor_cpu.o  apex_crbm.o
-	g++ $(OPT) -o crbm_minist crbm_minist.cpp apex_tensor_cpu.o apex_crbm.o 
+srbm_minist: srbm_minist.cpp apex_tensor_cpu.o  apex_srbm.o apex_tensor_gpu.o
+	$(NVCC) $(OPTNVCC) -o srbm_minist srbm_minist.cpp apex_tensor_cpu.o apex_srbm.o apex_tensor_gpu.o
+
+crbm_minist: crbm_minist.cpp apex_tensor_cpu.o  apex_crbm.o apex_tensor_gpu.o
+	$(NVCC) $(OPTNVCC) -o crbm_minist crbm_minist.cpp apex_tensor_cpu.o apex_crbm.o apex_tensor_gpu.o
 
 srbm_model_drawer: srbm_model_drawer.cpp apex_tensor_cpu.o  
-	g++ $(OPT) -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o
+	g++ $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o

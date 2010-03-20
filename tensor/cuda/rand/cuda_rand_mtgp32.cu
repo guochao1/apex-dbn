@@ -138,7 +138,7 @@ namespace cuda_rand{
             exit( -1 );
         }	
 		
-        if( __rand_counter + num > __BUF_LEN ){
+        if( __rand_counter + num > (size_t)__BUF_LEN ){
             __refresh_buffer();
         }
         __rand_counter += num;
