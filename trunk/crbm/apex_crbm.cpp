@@ -285,7 +285,13 @@ namespace apex_rbm{
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
             }
             if( param.chg_visible_bias ){
-                v_bias    = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
+                if( param.v_average ){
+                    // use average method to update visible bias
+                    float eta_v = param.learning_rate /(param.batch_size*v_size);
+                    v_bias    = v_bias * ( 1-eta_v*param.wd_v ) + d_v_bias * eta_v;
+                }else{
+                    v_bias    = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
+                }
                 d_v_bias *= param.momentum;
             }
             W   = W * ( 1-eta*param.wd_W ) + d_W * eta;            
