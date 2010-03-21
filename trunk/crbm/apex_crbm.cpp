@@ -186,12 +186,29 @@ namespace apex_rbm{
             h_size   = layers.back().h_state.y_max * layers.back().h_state.x_max;
             v_size   = layers.back().v_state.y_max * layers.back().v_state.x_max;
         }
+
+        inline void init_async(){
+            init_stream_engine( 3 );            
+            // initialize the stream engine to support aynchronize speed up
+            TTensor1D & h_bias = layers.back().h_bias;
+            TTensor1D & v_bias = layers.back().v_bias;
+            TTensor4D & W      = layers.back().W;            
+            async::set_dependecy( d_v_bias, 1 );
+            async::set_dependecy(   v_bias, 1 );
+            async::set_dependecy( d_h_bias, 2 );
+            async::set_dependecy(   h_bias, 2 );
+            async::set_dependecy( h_sum_mf, 2 );
+            async::set_dependecy( h_sum_mf_grad, 2 );
+            async::set_dependecy( d_W     , 3 );
+            async::set_dependecy(   W     , 3 );
+        }
     public:
         CRBMSimple( const CDBNModel &model, const CRBMTrainParam &param ){
             init( model, param.input_y_max, param.input_x_max );
             this->param = param;
             // intialize the tensor engine
             init_tensor_engine( 0 );
+            init_async();
         }
         
         // deallocate the space
@@ -207,6 +224,7 @@ namespace apex_rbm{
             tensor::free_space( h_neg );
             // destroy the tensor engine
             destroy_tensor_engine();
+            destroy_stream_engine();
         }              
     private:
         // calculate the datas in cd steps
@@ -284,10 +302,6 @@ namespace apex_rbm{
             cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
             persistent_ok = ( param.persistent_cd !=0 );
 
-            // calculate the gradient
-            tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
-            tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
-
             if( param.chg_hidden_bias ){
                 d_h_bias += sum_2D( h_pos );
                 d_h_bias -= sum_2D( h_neg );         
@@ -297,6 +311,10 @@ namespace apex_rbm{
                 d_v_bias += sum_2D( v_pos );
                 d_v_bias -= sum_2D( v_neg );
             }
+            
+            // calculate the gradient
+            tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
+            tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
             
             if( ++sample_counter == param.batch_size ){
                 update_weight();

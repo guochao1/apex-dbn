@@ -10,8 +10,9 @@ namespace apex_tensor{
         int           x_max;        
         size_t        pitch;
         TENSOR_FLOAT *elem;
-        
-        GTensor1D(){}
+        // stream dependecy, this variable is private
+        int           __stream_dep;
+        GTensor1D(){ __stream_dep = 0; }
         GTensor1D( int x_max ){
             set_param( x_max ); 
         }        
@@ -48,8 +49,9 @@ namespace apex_tensor{
         int           x_max, y_max;        
         size_t        pitch;
         TENSOR_FLOAT *elem;
-
-        GTensor2D(){}       
+        // stream dependecy, this variable is private
+        int           __stream_dep;
+        GTensor2D(){ __stream_dep = 0; }       
         GTensor2D( int y_max, int x_max ){
             set_param( y_max, x_max ); 
         }        
@@ -90,7 +92,9 @@ namespace apex_tensor{
         int           x_max, y_max, z_max;                
         size_t        pitch;
         TENSOR_FLOAT *elem;
-        GTensor3D(){}
+        // stream dependecy, this variable is private
+        int           __stream_dep;
+        GTensor3D(){ __stream_dep = 0; }
         GTensor3D( int z_max, int y_max, int x_max ){
             set_param( z_max, y_max, x_max ); 
         }        
@@ -124,9 +128,10 @@ namespace apex_tensor{
     struct GTensor4D{
         int           x_max, y_max, z_max, h_max;        
         size_t        pitch;
-
         TENSOR_FLOAT *elem;
-        GTensor4D(){}
+        // stream dependecy, this variable is private
+        int           __stream_dep;
+        GTensor4D(){ __stream_dep = 0; }
         GTensor4D( int h_max, int z_max, int y_max, int x_max ){
             set_param( h_max, z_max, y_max, x_max ); 
         }        
@@ -166,9 +171,25 @@ namespace apex_tensor{
     void init_tensor_engine_gpu( int seed );
     // this function is called when the program exits
     void destroy_tensor_engine_gpu();
+    // initialize the asynchronize stream engine
+    void init_stream_engine_gpu( int num_stream );
+    // destroy asynchronize stream engine
+    void destroy_stream_engine_gpu();
+
     // sync gpu threads , wait until all gpu operations complete, 
     // this functions is used for timing
     void sync_gpu_threads();
+    
+    // support for asynchronize execution
+    namespace async{
+        // set the dependecy of a data to stream,
+        // the setting operation on the data will be asynchronized, by default stream_id = 0
+        // if the stream id is invalid, then the stream will be set to default value
+        void set_dependecy( GTensor1D &ts, int stream_id );
+        void set_dependecy( GTensor2D &ts, int stream_id );
+        void set_dependecy( GTensor3D &ts, int stream_id );
+        void set_dependecy( GTensor4D &ts, int stream_id );
+    };
 
     namespace tensor{
         // allocate space for given tensor

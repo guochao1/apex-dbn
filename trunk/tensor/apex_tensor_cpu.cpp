@@ -24,6 +24,13 @@ namespace apex_tensor{
         // do nothing
     }    
 
+    namespace async{
+        void set_dependecy( CTensor1D &ts, int stream_id ){}
+        void set_dependecy( CTensor2D &ts, int stream_id ){}
+        void set_dependecy( CTensor3D &ts, int stream_id ){}
+        void set_dependecy( CTensor4D &ts, int stream_id ){}
+    };
+
     // private functions used to support tensor op 
     namespace tensor{     
         inline void check_true( bool exp, const char *s ){

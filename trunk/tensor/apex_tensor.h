@@ -20,6 +20,8 @@ namespace apex_tensor{
     typedef float TENSOR_FLOAT;
     void init_tensor_engine_cpu( int seed ); 
     void destroy_tensor_engine_cpu(); 
+    void init_stream_engine_gpu( int num_stream );
+    void destroy_stream_engine_gpu();
     void init_tensor_engine_gpu(); 
     void destroy_tensor_engine_gpu(); 
     
@@ -38,6 +40,12 @@ namespace apex_tensor{
         destroy_tensor_engine_gpu();
     }
     
+    inline void init_stream_engine( int num_stream ){
+        init_stream_engine_gpu( num_stream );
+    }
+    inline void destroy_stream_engine(){
+        destroy_stream_engine_gpu();
+    }
 #else
 
     typedef CTensor1D TTensor1D;
@@ -51,6 +59,8 @@ namespace apex_tensor{
     inline void destroy_tensor_engine(){
         destroy_tensor_engine_cpu();
     }
+    inline void init_stream_engine( int num_stream ){}
+    inline void destroy_stream_engine(){}
 #endif    
 };
 

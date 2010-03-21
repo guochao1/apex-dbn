@@ -4,6 +4,222 @@
 #include "../apex_tensor_gpu.h"
 
 namespace apex_tensor{
+    // support for asynchronize launch
+    namespace cuda_async{
+        const int NUM_STREAM_MAX = 5;
+        int       __num_stream = 0;
+        cudaStream_t __arr_stream[ NUM_STREAM_MAX + 1 ];
+        
+        inline void init_stream_engine( int num_stream ){
+#ifdef __APEX_TENSOR_GPU_USE_ASYNC__
+            if( __num_stream == 0 ){
+                if( num_stream > NUM_STREAM_MAX ) num_stream = NUM_STREAM_MAX;
+                __num_stream = num_stream;
+                for( int i = 1 ; i <= __num_stream ; i ++ )
+                    cudaStreamCreate( &__arr_stream[i] );
+            }
+#endif
+        }
+        inline void destroy_stream_engine(){
+#ifdef __APEX_TENSOR_GPU_USE_ASYNC__
+            for( int i = 1 ; i <= __num_stream ; i ++ )
+                cudaStreamDestroy( __arr_stream[i] );
+#endif
+        }
+        
+        template<typename T>
+        inline void set_stream_dep( T& dst, int stream_id ){
+            if( stream_id >= 0 && stream_id <= __num_stream )
+                dst.__stream_dep = stream_id;
+            else 
+                dst.__stream_dep = 0;
+        }
+        
+        // get stream for certain destination
+        template<typename T>
+        inline cudaStream_t get_stream( T& dst ){
+#ifdef __APEX_TENSOR_GPU_USE_ASYNC__            
+            if( dst.__stream_dep == 0 ) return 0;
+            if( dst.__stream_dep < __num_stream ) return __arr_stream[ dst.__stream_dep ];
+#endif
+            return 0;
+        }        
+
+        template<typename T,typename TA>
+        inline cudaStream_t get_stream( T& dst, const TA &src ){
+#ifdef __APEX_TENSOR_GPU_USE_ASYNC__            
+            if( dst.__stream_dep == 0 ) return 0;
+            if( src.__stream_dep != 0 && src.__stream_dep != dst.__stream_dep ) return 0;
+            if( dst.__stream_dep < __num_stream ) return __arr_stream[ dst.__stream_dep ];
+#endif
+            return 0;
+        }        
+
+        template<typename T,typename TA>
+        inline cudaStream_t get_stream( T &dsta, T &dstb, const TA &src ){
+#ifdef __APEX_TENSOR_GPU_USE_ASYNC__            
+            if( dsta.__stream_dep == 0 ) return 0;
+            if( dsta.__stream_dep != dstb.__stream_dep ) return 0;
+            if( src.__stream_dep != 0 && src.__stream_dep != dsta.__stream_dep ) return 0;
+            if( dsta.__stream_dep < __num_stream ) return __arr_stream[ dsta.__stream_dep ];
+#endif
+            return 0;
+        }        
+
+        template<typename T,typename TA, typename TB>
+        inline cudaStream_t get_stream( T& dst, const TA &srca, const TB &srcb ){
+#ifdef __APEX_TENSOR_GPU_USE_ASYNC__            
+            if( dst.__stream_dep == 0 ) return 0;
+            if( srca.__stream_dep != 0 && srca.__stream_dep != dst.__stream_dep ) return 0;
+            if( srcb.__stream_dep != 0 && srcb.__stream_dep != dst.__stream_dep ) return 0;
+            if( dst.__stream_dep < __num_stream ) return __arr_stream[ dst.__stream_dep ];
+#endif
+            return 0;
+        }        
+    };
+
+    // inner structure of GPU tensor for kernel argument passing 
+    namespace cuda_tensor{
+        struct __GT1D{
+            int    x_max;
+            float *elem;          
+            inline float &operator[]( int idx ){
+                return elem[idx];
+            }
+            inline const float &operator[]( int idx )const{
+                return elem[idx];
+            }
+        };
+        struct __GT2D{
+            int    x_max, y_max;
+            size_t pitch;
+            float *elem;  
+            inline __GT1D operator[]( int idx ){
+                __GT1D a;
+                a.elem = (float*)((char*)elem + idx*pitch);
+                a.x_max= x_max;
+                return a;
+            }
+            inline const __GT1D operator[]( int idx ) const{
+                __GT1D a;
+                a.elem = (float*)((char*)elem + idx*pitch);
+                a.x_max= x_max;
+                return a;
+            }
+        };
+        struct __GT3D{
+            int    x_max, y_max, z_max;
+            size_t pitch;
+            float *elem;
+            inline __GT2D operator[]( int idx ){
+                __GT2D a;
+                a.elem = (float*)((char*)elem + idx*pitch*y_max);
+                a.x_max= x_max;
+                a.y_max= y_max;
+                a.pitch= pitch;
+                return a;
+            }
+            inline const __GT2D operator[]( int idx )const{
+                __GT2D a;
+                a.elem = (float*)((char*)elem + idx*pitch*y_max);
+                a.x_max= x_max;
+                a.y_max= y_max;
+                a.pitch= pitch;
+                return a;
+            }
+        };       
+        struct __GT4D{
+            int    x_max, y_max, z_max, h_max;
+            size_t pitch;
+            float *elem;
+            inline __GT3D operator[]( int idx ){
+                __GT3D a;
+                a.elem = (float*)((char*)elem + idx*pitch*y_max*z_max);
+                a.x_max= x_max;
+                a.y_max= y_max;
+                a.z_max= z_max;
+                a.pitch= pitch;
+                return a;
+            }
+            inline const __GT3D operator[]( int idx )const{
+                __GT3D a;
+                a.elem = (float*)((char*)elem + idx*pitch*y_max*z_max);
+                a.x_max= x_max;
+                a.y_max= y_max;
+                a.z_max= z_max;
+                a.pitch=pitch;
+                return a;
+            }
+        };        
+        // constructors 
+        inline __GT1D __GT( GTensor1D & ts ){
+            __GT1D a;
+            a.x_max = ts.x_max;
+            a.elem  = ts.elem;
+            return a;
+        }        
+        inline const __GT1D __GT( const GTensor1D & ts ){
+            __GT1D a;
+            a.x_max = ts.x_max;
+            a.elem  = ts.elem;
+            return a;
+        }
+        inline __GT2D __GT( GTensor2D & ts ){
+            __GT2D a;
+            a.x_max = ts.x_max;
+            a.y_max = ts.y_max;
+            a.pitch = ts.pitch;
+            a.elem  = ts.elem;
+            return a;
+        }        
+        inline const __GT2D __GT( const GTensor2D & ts ){
+            __GT2D a;
+            a.x_max = ts.x_max;
+            a.y_max = ts.y_max;
+            a.pitch = ts.pitch;
+            a.elem  = ts.elem;
+            return a;
+        }        
+        inline __GT3D __GT( GTensor3D & ts ){
+            __GT3D a;
+            a.x_max = ts.x_max;
+            a.y_max = ts.y_max;
+            a.z_max = ts.z_max;
+            a.pitch = ts.pitch;
+            a.elem  = ts.elem;
+            return a;
+        }        
+        inline const __GT3D __GT( const GTensor3D & ts ){
+            __GT3D a;
+            a.x_max = ts.x_max;
+            a.y_max = ts.y_max;
+            a.z_max = ts.z_max;
+            a.pitch = ts.pitch;
+            a.elem  = ts.elem;
+            return a;
+        }        
+        inline __GT4D __GT( GTensor4D & ts ){
+            __GT4D a;
+            a.x_max = ts.x_max;
+            a.y_max = ts.y_max;
+            a.z_max = ts.z_max;
+            a.h_max = ts.h_max; 
+            a.pitch = ts.pitch;
+            a.elem  = ts.elem;
+            return a;
+        }        
+        inline const __GT4D __GT( const GTensor4D & ts ){
+            __GT4D a;
+            a.x_max = ts.x_max;
+            a.y_max = ts.y_max;
+            a.z_max = ts.z_max;
+            a.h_max = ts.h_max;
+            a.pitch = ts.pitch;
+            a.elem  = ts.elem;
+            return a;
+        }                              
+    };
+
     // private functions used to support tensor op 
     namespace cuda_tensor{
         inline void error( const char *s ){
