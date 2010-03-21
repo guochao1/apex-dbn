@@ -36,7 +36,9 @@ namespace apex_rbm{
         
         // whether to use persistent CD
         int persistent_cd;
-        
+
+        // whetehr to use average method to update visible bias
+        int v_average;
         
         CRBMTrainParam(){
             reset_default();
@@ -50,7 +52,7 @@ namespace apex_rbm{
             input_x_max = input_y_max = 28;
             chg_visible_bias = chg_hidden_bias = 1;
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
-            persistent_cd = 0;
+            persistent_cd = 0; v_average = 0;  
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
@@ -67,6 +69,7 @@ namespace apex_rbm{
             if( !strcmp("persistent_cd", name ) )    persistent_cd  = atoi( val );
             if( !strcmp("sparse_level", name )  )    sparse_level  = (float)atof( val );
             if( !strcmp("sparse_lambda", name ) )    sparse_lambda = (float)atof( val );
+            if( !strcmp("v_average", name ) )        v_average     = atoi( val );
         }
     };
     
