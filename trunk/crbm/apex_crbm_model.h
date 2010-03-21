@@ -190,9 +190,11 @@ namespace apex_rbm{
             for( int h = 0 ; h < param.h_max ; h ++ )
                 fprintf( fo, "%f\t", (float)h_bias[h] );
 
+            fprintf( fo, "\nW:%f\n",(float)apex_tensor::cpu_only::sum(W) );
+
             for( int v = 0 ; v < param.v_max ; v ++ ){
                 for( int h = 0 ; h < param.h_max ; h ++ ){
-                    fprintf( fo, "W[%d][%d]:\n" , v, h );
+					fprintf( fo, "W[%d][%d]:%f\n" , v, h, (float)apex_tensor::cpu_only::sum( W[v][h] ) );
                     for( int y = 0 ; y < param.y_max ; y ++ ){
                         for( int x = 0 ; x < param.x_max ; x ++ )
                             fprintf(fo,"%f\t", (float)W[v][h][y][x] );
