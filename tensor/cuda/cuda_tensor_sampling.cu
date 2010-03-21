@@ -113,8 +113,7 @@ namespace apex_tensor{
             sample_gaussian_kernel<st_m,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
                 ( dst.elem, dst.pitch, y_max, x_max, rnd, sd );
         } 
-        
-        
+                
         /* 
            sample maxpooling with pool_size = 2^pool_bits
            with block shape < 16 , 16 >
@@ -123,8 +122,8 @@ namespace apex_tensor{
         __device__ void __sample_maxpooling_procedure_1616( int block_y,
                                                             int block_x,    
                                                             float s_mm[16][16],
-                                                            GTensor2D dst,
-                                                            const GTensor2D prob,
+                                                            __GT2D dst,
+                                                            const __GT2D prob,
                                                             const float *rnd ){
             float r = cuda_rand::get_rand( rnd, (threadIdx.y <<4) + threadIdx.x ) - 1.0f;
             
@@ -139,7 +138,7 @@ namespace apex_tensor{
                     
                     // load data into memory 
                     if( y_idx < prob.y_max && x_idx < prob.x_max ) {
-                        s_mm[ threadIdx.y ][ threadIdx.x ] = prob[ y_idx ].elem[ x_idx ];
+                        s_mm[ threadIdx.y ][ threadIdx.x ] = prob[ y_idx ][ x_idx ];
                     }else{
                         s_mm[ threadIdx.y ][ threadIdx.x ] = 0.0f; 
                     }
@@ -156,7 +155,7 @@ namespace apex_tensor{
                     
                     if( y_idx < dst.y_max && x_idx < dst.x_max ) {
                         float s = s_mm[ threadIdx.y ][ threadIdx.x ];
-                        store_method::__store<st_m>( dst[y_idx].elem[x_idx], s );
+                        store_method::__store<st_m>( dst[y_idx][x_idx], s );
                     }
                 }
         }
@@ -164,8 +163,8 @@ namespace apex_tensor{
         /* pooling kernel, using 3DGrid */
         template<int st_m, int pool_bits>
         __global__ void __sample_maxpooling_1616_kernel_3DGrid( int grid_width, 
-                                                                GTensor3D dst, 
-                                                                const GTensor3D prob, 
+                                                                __GT3D dst, 
+                                                                const __GT3D prob, 
                                                                 const float *rnd ){
             const int block_z = blockIdx.y;
             const int block_y = blockIdx.x / grid_width;
@@ -196,13 +195,12 @@ namespace apex_tensor{
             const float *rnd  = cuda_rand::rand_singles( (dimGrid.y*dimGrid.x)<<8 );
             
             switch( pool_size ){
-            case 2: __sample_maxpooling_1616_kernel_3DGrid<st_m,1><<<dimGrid,dimBlock>>>( grid_width, dst, prob, rnd ); break;
-            case 4: __sample_maxpooling_1616_kernel_3DGrid<st_m,2><<<dimGrid,dimBlock>>>( grid_width, dst, prob, rnd ); break;   
-            case 8: __sample_maxpooling_1616_kernel_3DGrid<st_m,3><<<dimGrid,dimBlock>>>( grid_width, dst, prob, rnd ); break;   
+            case 2: __sample_maxpooling_1616_kernel_3DGrid<st_m,1><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd ); break;
+            case 4: __sample_maxpooling_1616_kernel_3DGrid<st_m,2><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd ); break;   
+            case 8: __sample_maxpooling_1616_kernel_3DGrid<st_m,3><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd ); break;   
             default: error("pooling size not supported");
             }
-        }                
-        
+        }                        
     };
 };
 #endif

@@ -47,14 +47,14 @@ namespace apex_tensor{
             // load a segment into array, check whether the data is aligned 
             template< int x_size >
             __device__ void __load_line_shared_pad_1616_check_align( float m_shared[x_size],
-                                                                     const GTensor1D m_global,
+                                                                     const __GT1D m_global,
                                                                      int x_start ){
                 // noting: x_start may be mis-aligned
                 const int x_shift = x_start & 15; // get the shifting area
                 if( threadIdx.x >= x_shift ){
                     int cx = x_start + threadIdx.x - x_shift;
                     if( cx < m_global.x_max && cx >= 0 ){
-                        m_shared[ threadIdx.x - x_shift ] = m_global.elem[ cx ];
+                        m_shared[ threadIdx.x - x_shift ] = m_global[ cx ];
                     }else{
                         m_shared[ threadIdx.x - x_shift ] = 0.0f;
                     }
@@ -63,7 +63,7 @@ namespace apex_tensor{
                     int xx = x       + threadIdx.x - x_shift;
                     int cx = x_start + xx;
                     if( cx < m_global.x_max && cx >= 0 ){
-                        m_shared[ xx ] = m_global.elem[ cx ]; 
+                        m_shared[ xx ] = m_global[ cx ]; 
                     }else{
                         m_shared[ xx ] = 0.0f;
                     }
@@ -72,7 +72,7 @@ namespace apex_tensor{
                     int xx = x_size  + threadIdx.x - x_shift;
                     int cx = x_start + xx;
                     if( cx < m_global.x_max && cx >= 0 ){
-                        m_shared[ xx ] = m_global.elem[ cx ];
+                        m_shared[ xx ] = m_global[ cx ];
                     }else{
                         m_shared[ xx ] = 0.0f;
                     }
@@ -82,13 +82,13 @@ namespace apex_tensor{
             // load data into array, the x_start is ensured to be aligned 
             template< int x_size >
             __device__ void __load_line_shared_pad_1616_aligned( float m_shared[x_size],
-                                                                 const GTensor1D m_global,
+                                                                 const __GT1D m_global,
                                                                  int x_start ){
                 for( int x = 0 ; x < x_size ; x += 16 ){
                     int xx = x       + threadIdx.x;
                     int cx = x_start + xx;
                     if( cx < m_global.x_max && cx >= 0 ){
-                        m_shared[ xx ] = m_global.elem[ cx ]; 
+                        m_shared[ xx ] = m_global[ cx ]; 
                     }else{
                         m_shared[ xx ] = 0.0f;
                     }
@@ -99,7 +99,7 @@ namespace apex_tensor{
             // pad exceeding dimsions with 0
             template<int y_size, int x_size,bool check_align>
             __device__ void __load_mat_shared_pad_1616( float m_shared[y_size][x_size], 
-                                                        const GTensor2D m_global, 
+                                                        const __GT2D m_global, 
                                                         int y_start ,int x_start ){
                 for( int y = 0; y < y_size; y += 16 ){
                     int yy =  y + threadIdx.y; // consant in warp
@@ -119,7 +119,7 @@ namespace apex_tensor{
             // reverse load 
             template<int y_size,int x_size>
             __device__ void __load_mat_shared_reverse_1616( float m_shared[y_size][x_size], 
-                                                            const GTensor2D g_filter ){
+                                                            const __GT2D g_filter ){
                 for( int y = 0; y < y_size; y +=16 ){
                     for( int x = 0; x < x_size; x +=16 ){                        
                         int yy =  y + threadIdx.y; // consant in warp
@@ -127,7 +127,7 @@ namespace apex_tensor{
                         
                         if( yy < g_filter.y_max && xx < g_filter.x_max ){
                             // stride = 1 aligned
-                            m_shared[ g_filter.y_max - yy - 1 ][ g_filter.x_max - xx - 1 ] = g_filter[ yy ].elem[ xx ];
+                            m_shared[ g_filter.y_max - yy - 1 ][ g_filter.x_max - xx - 1 ] = g_filter[ yy ][ xx ];
                         }
                     }
                 }
@@ -147,8 +147,8 @@ namespace apex_tensor{
                                                         float s_ft[y_size][x_size] ,
                                                         float s_mm[y_size+16][x_size+16],
                                                         int ans_y_max, int ans_x_max,
-                                                        const GTensor2D mat,
-                                                        const GTensor2D filter ){
+                                                        const __GT2D mat,
+                                                        const __GT2D filter ){
             // load filter into shared memory
             __conv2::__load_mat_shared_pad_1616<y_size, x_size, false>
                 ( s_ft , filter, 0, 0 ); 
@@ -182,8 +182,8 @@ namespace apex_tensor{
                                                         float s_ft[y_size][x_size],
                                                         float s_mm[y_size+16][x_size+16],
                                                         int   ans_y_max, int ans_x_max,
-                                                        const GTensor3D mat,
-                                                        const GTensor4D filter ){        
+                                                        const __GT3D mat,
+                                                        const __GT4D filter ){        
             
             for( int v = 0 ;  v < filter.h_max ; v ++ ){                
                 __conv2_r_valid_procedure_1616<y_size,x_size>
@@ -199,10 +199,10 @@ namespace apex_tensor{
         
         template<int st_m,int y_size,int x_size>
         __global__ void __conv2_r_valid_kernel_1616( int grid_width, 
-                                                     GTensor3D ans,                                                   
-                                                     const GTensor3D mat,
-                                                     const GTensor4D filter,
-                                                     const GTensor1D h_bias   ){
+                                                     __GT3D ans,                                                   
+                                                     const __GT3D mat,
+                                                     const __GT4D filter,
+                                                     const __GT1D h_bias   ){
             // unzip the block index
             const int block_z = blockIdx.y;
             const int block_y = blockIdx.x / grid_width;
@@ -216,7 +216,7 @@ namespace apex_tensor{
             if( threadIdx.x == 15 && threadIdx.y == 15 ){
                 // we use last thread to do the job, since
                 // last thread may more likely to be idle
-                bias = h_bias.elem[ block_z ];
+                bias = h_bias[ block_z ];
                 // we don't sync threads here, note we may sync it in the latter operaton
             }
 
@@ -231,7 +231,7 @@ namespace apex_tensor{
             const int  y_idx    = (block_y<<4) + threadIdx.y;
             const int  x_idx    = (block_x<<4) + threadIdx.x;            
             if( y_idx < ans.y_max && x_idx < ans.x_max ){
-                store_method::__store<st_m>( ans[ block_z ][ y_idx ].elem[ x_idx ] , sum );    
+                store_method::__store<st_m>( ans[ block_z ][ y_idx ][ x_idx ] , sum );    
             }   
         }
         
@@ -246,7 +246,8 @@ namespace apex_tensor{
                 int  grid_width  = (ans.x_max+15) >> 4;           
                 dim3 dimBlock( 16, 16, 1 );
                 dim3 dimGrid ( grid_width * grid_height ,  filter.z_max , 1 );
-                __conv2_r_valid_kernel_1616 <st_m,16,16> <<<dimGrid,dimBlock>>> ( grid_width, ans , mat, filter, h_bias );
+                __conv2_r_valid_kernel_1616 <st_m,16,16> <<<dimGrid,dimBlock>>> 
+                    ( grid_width, __GT(ans) , __GT(mat), __GT(filter), __GT(h_bias) );
             }
             else{
                 error("too large filter size");
@@ -263,8 +264,8 @@ namespace apex_tensor{
                                                      float s_ft[y_size   ][x_size],
                                                      float s_mm[y_size+16][x_size+16],
                                                      int   ans_y_max, int ans_x_max,
-                                                     const GTensor2D mat,
-                                                     const GTensor2D filter ){
+                                                     const __GT2D mat,
+                                                     const __GT2D filter ){
             // load filter into shared memory
             __conv2::__load_mat_shared_reverse_1616< y_size, x_size >( s_ft, filter );
             
@@ -295,9 +296,9 @@ namespace apex_tensor{
                                                      int v_idx, int block_y, int block_x,
                                                      float s_ft[y_size   ][x_size] ,
                                                      float s_mm[y_size+16][x_size+16] ,
-                                                     const GTensor3D ans,
-                                                     const GTensor3D mat,
-                                                     const GTensor4D filter ){        
+                                                     const __GT3D ans,
+                                                     const __GT3D mat,
+                                                     const __GT4D filter ){        
             for( int h = 0 ; h < filter.z_max ; h ++ ){
                 __conv2_full_procedure_1616<y_size,x_size>
                     ( sum ,
@@ -310,10 +311,10 @@ namespace apex_tensor{
         /* convolution with bias */
         template<int st_m, int y_size, int x_size>
         __global__ void __conv2_full_kernel_1616( int grid_width,
-                                                  GTensor3D ans,
-                                                  const GTensor3D mat,
-                                                  const GTensor4D filter,
-                                                  const GTensor1D v_bias ){
+                                                  __GT3D ans,
+                                                  const __GT3D mat,
+                                                  const __GT4D filter,
+                                                  const __GT1D v_bias ){
             int block_z = blockIdx.y;
             int block_y = blockIdx.x / grid_width;
             int block_x = blockIdx.x % grid_width;
@@ -326,7 +327,7 @@ namespace apex_tensor{
             if( threadIdx.y == 15 && threadIdx.x == 15 ){
                 // we use last thread because last thread seems more likely to be idle
                 // no need to sync because sync will occur in latter procedure
-                bias = v_bias.elem[ block_z ];
+                bias = v_bias[ block_z ];
             }
         
             float sum = 0.0f;
@@ -341,15 +342,15 @@ namespace apex_tensor{
             const int  x_idx = (block_x<<4) + threadIdx.x;
             
             if( y_idx < ans.y_max && x_idx < ans.x_max ){ 
-                store_method::__store<st_m>( ans[ block_z ][ y_idx ].elem[ x_idx ] , sum );    
+                store_method::__store<st_m>( ans[ block_z ][ y_idx ][ x_idx ] , sum );    
             }
         }
 
         template<int st_m>
-        inline void conv2_full( GTensor3D ans,
-                                const GTensor3D mat,
-                                const GTensor4D filter,
-                                const GTensor1D v_bias  ){
+        inline void conv2_full( GTensor3D &ans,
+                                const GTensor3D &mat,
+                                const GTensor4D &filter,
+                                const GTensor1D &v_bias  ){
             if( filter.y_max <= 16 && filter.x_max <= 16 ){
                 int  grid_height= (ans.y_max+15) >> 4 ;
                 int  grid_width = (ans.x_max+15) >> 4;
@@ -357,7 +358,7 @@ namespace apex_tensor{
                 dim3 dimBlock( 16, 16, 1 );
                 dim3 dimGrid ( grid_width*grid_height, filter.h_max );
                 
-                __conv2_full_kernel_1616<st_m,16,16> <<<dimGrid,dimBlock>>> ( grid_width, ans, mat, filter, v_bias );
+                __conv2_full_kernel_1616<st_m,16,16> <<<dimGrid,dimBlock>>> ( grid_width, __GT(ans), __GT(mat), __GT(filter), __GT(v_bias) );
                 
             }else{                
                 error("too large filter size");
@@ -373,8 +374,8 @@ namespace apex_tensor{
                                                                               int   y_start, int x_start,
                                                                               float s_ft [16][16],
                                                                               float s_mat[32][32],
-                                                                              const GTensor2D mat, 
-                                                                              const GTensor2D filter ){
+                                                                              const __GT2D mat, 
+                                                                              const __GT2D filter ){
             // load in file
             __conv2::__load_mat_shared_pad_1616<16,16,false>
                 ( s_ft, filter, y_start, x_start );
@@ -396,9 +397,9 @@ namespace apex_tensor{
         template<int st_m>
         __device__ void __conv2_r_big_filter_procedure_1616_restricted( float s_ft [16][16],
                                                                         float s_mat[32][32],
-                                                                        GTensor2D ans,
-                                                                        const GTensor2D mat, 
-                                                                        const GTensor2D filter ){
+                                                                        __GT2D ans,
+                                                                        const __GT2D mat, 
+                                                                        const __GT2D filter ){
             CUDA_CONV2_SUM_VAR_DEF( sum, c_kahan );
 
             for( int yy = 0 ; yy < filter.y_max ; yy += 16 )
@@ -409,14 +410,14 @@ namespace apex_tensor{
                 }
                                                             
             if( threadIdx.y < ans.y_max && threadIdx.x < ans.x_max ){                
-                store_method::__store<st_m>( ans[ threadIdx.y ].elem[ threadIdx.x ], sum );
+                store_method::__store<st_m>( ans[ threadIdx.y ][ threadIdx.x ], sum );
             }            
         }
                 
         template<int st_m>
-        __global__ void __conv2_r_big_filter_kernel_1616_restricted( GTensor4D ans,
-                                                                     const GTensor3D mat, 
-                                                                     const GTensor3D filter ){
+        __global__ void __conv2_r_big_filter_kernel_1616_restricted( __GT4D ans,
+                                                                     const __GT3D mat, 
+                                                                     const __GT3D filter ){
             __shared__ float s_ft [ 16 ][ 16 ];
             __shared__ float s_mat[ 32 ][ 32 ];
             __conv2_r_big_filter_procedure_1616_restricted<st_m>
@@ -424,14 +425,15 @@ namespace apex_tensor{
         }
 
         template<int st_m>
-        inline void conv2_r_big_filter( GTensor4D ans,
-                                        const GTensor3D mat,
-                                        const GTensor3D filter ){
+        inline void conv2_r_big_filter( GTensor4D &ans,
+                                        const GTensor3D &mat,
+                                        const GTensor3D &filter ){
             if( ans.x_max <= 16 && ans.y_max <= 16 ){
                 dim3 dimBlock( 16,16, 1 );
                 dim3 dimGrid ( ans.z_max, ans.h_max, 1  );
                 
-                __conv2_r_big_filter_kernel_1616_restricted <st_m><<<dimGrid,dimBlock>>> ( ans, mat, filter );
+                __conv2_r_big_filter_kernel_1616_restricted <st_m><<<dimGrid,dimBlock,0,cuda_async::get_stream(ans,mat,filter)>>> 
+                    ( __GT(ans), __GT(mat), __GT(filter) );
             }else{
                 error("too large answer size");
             }

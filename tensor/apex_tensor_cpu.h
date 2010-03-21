@@ -175,6 +175,13 @@ namespace apex_tensor{
     // this function is called when the program exits
     void destroy_tensor_engine_cpu(); 
     
+    namespace async{
+        void set_dependecy( CTensor1D &ts, int stream_id );
+        void set_dependecy( CTensor2D &ts, int stream_id );
+        void set_dependecy( CTensor3D &ts, int stream_id );
+        void set_dependecy( CTensor4D &ts, int stream_id );
+    };
+    
     namespace tensor{        
         // allocate space for given tensor
         void alloc_space( CTensor1D &ts );

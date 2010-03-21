@@ -33,7 +33,7 @@ namespace apex_tensor{
             dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
             dim3 dimGrid ( num_block      , 1, 1 );
             
-            store_kernel<st_m,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
+            store_kernel<st_m,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(ts)>>>
                 ( ts.elem, ts.pitch, y_max, x_max, src );
         }  
         
@@ -68,7 +68,7 @@ namespace apex_tensor{
             dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
             dim3 dimGrid ( num_block      , 1, 1 );
             
-            map_A_kernel<st_m,mapm_A,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
+            map_A_kernel<st_m,mapm_A,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(dst,src)>>>
                 ( dst.elem, src.elem, dst.pitch,  src.pitch, y_max, x_max );
         } 
         
@@ -103,7 +103,7 @@ namespace apex_tensor{
             dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
             dim3 dimGrid ( num_block      , 1, 1 );
             
-            map_B_kernel<st_m,mapm_B,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
+            map_B_kernel<st_m,mapm_B,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(dst,src)>>>
                 ( dst.elem, src.elem, dst.pitch,  src.pitch, y_max, x_max, src_b );
         }          
 
@@ -140,7 +140,7 @@ namespace apex_tensor{
             dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
             dim3 dimGrid ( num_block      , 1, 1 );
             
-            map_C_kernel<st_m,mapm_B,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
+            map_C_kernel<st_m,mapm_B,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(dst,srca,srcb)>>>
                 ( dst.elem, srca.elem, srcb.elem, dst.pitch, srca.pitch, srcb.pitch, y_max, x_max );
         }          
 
@@ -178,7 +178,7 @@ namespace apex_tensor{
             dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
             dim3 dimGrid ( num_block      , 1, 1 );
             
-            map_D_kernel<st_m,mapm_D,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
+            map_D_kernel<st_m,mapm_D,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(dst,srca,srcb)>>>
                 ( dst.elem, srca.elem, srcb.elem, dst.pitch, srca.pitch, srcb.pitch, y_max, x_max, sa, sb );
         }                  
     };

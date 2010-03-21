@@ -18,6 +18,29 @@ namespace apex_tensor{
         cudaThreadSynchronize();
     }
 
+    void init_stream_engine_gpu( int num_stream ){
+        cuda_async::init_stream_engine( num_stream );
+    }
+    void destroy_stream_engine_gpu(){
+        cuda_async::destroy_stream_engine();
+    }
+    
+    // asynchronize support
+    namespace async{
+        void set_dependecy( GTensor1D &dst, int stream_id ){
+            cuda_async::set_stream_dep( dst, stream_id );
+        }
+        void set_dependecy( GTensor2D &dst, int stream_id ){
+            cuda_async::set_stream_dep( dst, stream_id );
+        }
+        void set_dependecy( GTensor3D &dst, int stream_id ){
+            cuda_async::set_stream_dep( dst, stream_id );
+        }
+        void set_dependecy( GTensor4D &dst, int stream_id ){
+            cuda_async::set_stream_dep( dst, stream_id );
+        }
+    };
+    
     namespace cuda_tensor{
         template<typename T>
         inline void alloc_space_template( T &ts ){
@@ -65,7 +88,7 @@ namespace apex_tensor{
         }                                                               \
 
     };
-    
+
     // interface function
     namespace tensor{
         using namespace cuda_tensor;

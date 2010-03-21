@@ -8,6 +8,9 @@
 // option to open GPU implementation as TTensor
 #define __APEX_TENSOR_USE_GPU__    
 
+// option to open asynchronize stream support 
+#define __APEX_TENSOR_GPU_USE_ASYNC__
+
 // use kahan sum in GPU convolution
 //#define __CUDA_CONV2_USE_KAHAN_SUM__
 
