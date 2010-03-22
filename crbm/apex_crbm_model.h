@@ -40,6 +40,12 @@ namespace apex_rbm{
         // whetehr to use average method to update visible bias
         int v_average;
         
+        // whether to forward bias to next layer 
+        int forward_bias;
+
+        // sample negative sample or use mean field 
+        int sample_v_neg;
+
         CRBMTrainParam(){
             reset_default();
         }
@@ -52,7 +58,8 @@ namespace apex_rbm{
             input_x_max = input_y_max = 28;
             chg_visible_bias = chg_hidden_bias = 1;
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
-            persistent_cd = 0; v_average = 0;  
+            persistent_cd = 0; v_average = 0; forward_bias = 1;
+            sample_v_neg = 1;
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
@@ -70,6 +77,8 @@ namespace apex_rbm{
             if( !strcmp("sparse_level", name )  )    sparse_level  = (float)atof( val );
             if( !strcmp("sparse_lambda", name ) )    sparse_lambda = (float)atof( val );
             if( !strcmp("v_average", name ) )        v_average     = atoi( val );
+            if( !strcmp("forward_bias", name ) )     forward_bias  = atoi( val );
+            if( !strcmp("sample_v_neg", name ) )     sample_v_neg  = atoi( val );
         }
     };
     
