@@ -70,7 +70,8 @@ namespace apex_rbm{
         }   
         
         virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
-            v_bias_next = h_bias_curr + (float)( 2.0 * log(pool_size) );
+			tensor::copy( v_bias_next, h_bias_curr);
+			v_bias_next += (float)( 2.0 * log((double)pool_size) );
         }
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
             tensor::crbm::pool_up( v_next, h_curr, pool_size );
