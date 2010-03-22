@@ -277,9 +277,9 @@ namespace apex_rbm{
             if( param.chg_hidden_bias ){
                 // calculate sparse grad
                 cal_sparse();
-
-                d_h_bias -= h_sum_mf;
                 h_bias    = h_bias * ( 1-eta*param.wd_h ) + d_h_bias * eta;
+                // add sparse regularization
+                h_bias    -=h_sum_mf *eta; 
                 d_h_bias  *= param.momentum;
                 
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
