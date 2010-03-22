@@ -18,6 +18,8 @@ namespace apex_rbm{
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy) = 0;
         // feed forward data needed   
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ) = 0;
+        // feed forward bias to next layer 
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ) = 0;
         // reget the bound of data
         virtual void reget_bound ( int &input_y_max, int &input_x_max  ) = 0;
         // reget the bound of hidden data 
@@ -37,6 +39,10 @@ namespace apex_rbm{
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
             tensor::crbm::copy_fit( v_next, h_curr );
+        }
+        
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
+            tensor::copy( v_bias_next, h_bias_curr );
         }
         // reget the bound of data
         virtual void reget_bound ( int &input_y_max, int &input_x_max  ){}
@@ -61,7 +67,11 @@ namespace apex_rbm{
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
             tensor::crbm::norm_maxpooling_2D( mean, energy, pool_size );
-        }               
+        }   
+        
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
+            v_bias_next = h_bias_curr + (float)( 2.0 * log(pool_size) );
+        }
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
             tensor::crbm::pool_up( v_next, h_curr, pool_size );
         }
@@ -127,6 +137,10 @@ namespace apex_rbm{
             tensor::free_space( v_state );
             tensor::free_space( h_state );
             delete v_node; delete h_node;
+        }
+        
+        inline void forward_bias( TTensor1D &v_bias_next ){
+            h_node->forward_bias( v_bias_next, h_bias );
         }
         
         // feed forward from v to h 
@@ -206,6 +220,12 @@ namespace apex_rbm{
         CRBMSimple( const CDBNModel &model, const CRBMTrainParam &param ){
             init( model, param.input_y_max, param.input_x_max );
             this->param = param;
+
+            // forward_bias
+            if( param.forward_bias!=0 && layers.size() > 1 ){
+                layers[ layers.size()-2 ].forward_bias( layers.back().v_bias );
+            }
+
             // intialize the tensor engine
             init_tensor_engine( 0 );
             init_async();
@@ -249,7 +269,10 @@ namespace apex_rbm{
                 // go down
                 tensor::crbm::conv2_full( v_neg, h_neg, W, v_bias );
                 v_node->cal_mean( v_neg, v_neg );
-                v_node->sample  ( v_neg, v_neg );
+
+                if( param.sample_v_neg != 0 ){
+                    v_node->sample  ( v_neg, v_neg );
+                }
 
                 // go up
                 tensor::crbm::conv2_r_valid( h_neg, v_neg, W, h_bias );
