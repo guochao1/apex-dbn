@@ -287,7 +287,7 @@ namespace apex_rbm{
             h_sum_mf  += -param.sparse_level;                
             h_sum_mf   = h_sum_mf * h_sum_mf_grad;
             // leave out a h_size
-            h_sum_mf  *= param.sparse_lambda / param.batch_size;
+            h_sum_mf  *= param.sparse_lambda;
         }
 
         // update the weight of the last layer
@@ -309,7 +309,7 @@ namespace apex_rbm{
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
             }
             if( param.chg_visible_bias ){
-                if( param.v_average ){
+				if( param.v_average ){
                     // use average method to update visible bias
                     float eta_v = param.learning_rate /(param.batch_size*v_size);
                     v_bias    = v_bias * ( 1-eta_v*param.wd_v ) + d_v_bias * eta_v;
