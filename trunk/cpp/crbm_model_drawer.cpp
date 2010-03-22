@@ -11,7 +11,6 @@
 using namespace cimg_library;
 using namespace apex_tensor;
 
-const int SCALE = 2;
 const int MAX_NUM_PER_LINE = 7;
 
 inline float norm( float val, float v_min, float v_max ){
@@ -28,7 +27,7 @@ inline void norm_minmax( CTensor3D &m ){
     for( int h = 0 ; h < m.z_max ; h ++ ){
         for( int y = 0 ; y < m.y_max ; y ++ )
             for( int x = 0 ; x < m.x_max ; x ++  ){
-                m[h][y][x] = norm(m[h][y][x], w_min, w_max );
+                m[h][y][x] = norm( m[h][y][x], w_min, w_max );
             }
     }
 }
@@ -42,6 +41,59 @@ inline void norm_sigmoid( CTensor3D &m, float v_bias ){
     }
 }
 
+inline void draw_mat( CTensor3D &m, const char *fname, int method, int scale, float bs = 0.0f ){
+    switch( method ){
+    case 0: norm_minmax( m );  break;        
+    case 2: norm_sigmoid( m, bs ); break;
+    }
+
+    // drawing procedure 
+    int y_count = (m.z_max + MAX_NUM_PER_LINE-1) / MAX_NUM_PER_LINE; 
+    CImg<unsigned char> img( (m.x_max+1)*MAX_NUM_PER_LINE*scale + 1 , (m.y_max+1)*y_count*scale +1 , 1 , 1 , 0 );
+    
+    for( int h = 0 ; h < m.z_max ; h ++ ){
+        int xx = h % MAX_NUM_PER_LINE;
+        int yy = h / MAX_NUM_PER_LINE;
+		
+        for( int y = 0 ; y < m.y_max ; y ++ )
+            for( int x = 0 ; x < m.x_max ; x ++  )
+                for( int dy = 0 ; dy < scale ; dy ++ )
+					for( int dx = 0 ; dx < scale ; dx ++ ){
+                        const int y_idx =  yy*(m.y_max+1)*scale + (y+1)*scale + dy;
+						const int x_idx =  xx*(m.x_max+1)*scale + (x+1)*scale + dx;
+						img( x_idx ,y_idx ) =(unsigned char) ( m[ h ][ y ][ x ]*255 );					
+					} 
+	}
+    img.save_bmp( fname );
+}
+
+inline CTensor4D pool_down( CTensor4D m , int pool_size ){
+    CTensor4D mm( m.h_max, m.z_max, m.y_max*pool_size, m.x_max*pool_size );
+    tensor::alloc_space( mm );
+    for( int v = 0 ; v < m.h_max ; v ++ )
+        for( int h = 0 ; h < m.z_max ; h ++ )
+            for( int y = 0 ; y < mm.y_max ; y ++ )
+                for( int x = 0 ; x < mm.x_max ; x ++ )
+                    mm[v][h][y][x] = m[v][h][y/pool_size][x/pool_size] / (pool_size*pool_size);
+    tensor::free_space( m ) ;
+    return mm;
+}   
+
+inline CTensor4D infer_down( CTensor4D m, CTensor4D W ){
+    CTensor4D mm( m.h_max, W.h_max, m.y_max +W.y_max-1 , m.x_max+W.x_max-1 );
+    CTensor1D bs( W.h_max );
+    tensor::alloc_space( mm );
+    tensor::alloc_space( bs );
+    bs = 0.0f;
+  
+    for( int i = 0 ; i < m.h_max ; i ++ )
+		tensor::crbm::conv2_full( mm[i], m[i], W, bs );
+    
+    tensor::free_space( m  );
+    tensor::free_space( bs );
+    return mm;
+}
+
 int main( int argc, char *argv[] ){
     if( argc < 4 ){
         printf("Usage: <model in> <image_out> <method>");        
@@ -51,32 +103,35 @@ int main( int argc, char *argv[] ){
     FILE *fi = apex_utils::fopen_check( argv[1] , "rb" );
     model.load_from_file( fi );
     fclose( fi );	
-    
-	CTensor3D &m = model.layers[0].W[0];
+    if( model.layers.size() == 1 ){
+        CTensor3D &m = model.layers[0].W[0];
+        draw_mat( m, argv[2], atoi( argv[3]), 2, model.layers[0].v_bias[0] );
+    }else{
+        CTensor4D &mw = model.layers.back().W;
 
-    switch( atoi( argv[3] ) ){
-    case 0: norm_minmax( m );  break;        
-	case 2: norm_sigmoid( m, model.layers[0].v_bias[0] ); break;
+        CTensor4D m( mw.z_max, mw.h_max, mw.y_max, mw.x_max  ); 
+        tensor::alloc_space( m );
+
+        for( int h = 0 ; h < mw.z_max ; h ++ )
+            for( int v = 0 ; v < mw.h_max ; v ++ )
+                for( int y = 0; y < mw.y_max ; y ++ )
+                    for( int x = 0 ; x < mw.x_max ; x ++ )
+                        if( mw[v][h][y][x] > 0.0f ) 
+                            m[h][v][y][x] = mw[v][h][y][x];
+                        else 
+                            m[h][v][y][x] = 0.0f;
+         
+        for( int i = (int)model.layers.size()-2 ; i >=0 ; i -- ){
+            m = pool_down ( m, model.layers[i].param.pool_size );
+            m = infer_down( m, model.layers[i].W );
+        }   
+
+        CTensor3D mm( m.h_max, m.y_max , m.x_max ); 
+        mm.elem = m.elem; mm.pitch = m.pitch; 
+
+        draw_mat( mm, argv[2], atoi( argv[3]), 1 );
+        
+        tensor::free_space( m );
     }
-
-    // drawing procedure 
-    int y_count = (m.z_max + MAX_NUM_PER_LINE-1) / MAX_NUM_PER_LINE; 
-    CImg<unsigned char> img( (m.x_max+1)*MAX_NUM_PER_LINE*SCALE + 1 , (m.y_max+1)*y_count*SCALE +1 , 1 , 1 , 0 );
-    
-    for( int h = 0 ; h < m.z_max ; h ++ ){
-        int xx = h % MAX_NUM_PER_LINE;
-        int yy = h / MAX_NUM_PER_LINE;
-		
-        for( int y = 0 ; y < m.y_max ; y ++ )
-            for( int x = 0 ; x < m.x_max ; x ++  )
-                for( int dy = 0 ; dy < SCALE ; dy ++ )
-					for( int dx = 0 ; dx < SCALE ; dx ++ ){
-                        const int y_idx =  yy*(m.y_max+1)*SCALE + (y+1)*SCALE + dy;
-						const int x_idx =  xx*(m.x_max+1)*SCALE + (x+1)*SCALE + dx;
-						img( x_idx ,y_idx ) =(unsigned char) ( m[ h ][ y ][ x ]*255 );					
-					} 
-	}
-    img.save_bmp( argv[2] );
-	apex_tensor::tensor::free_space( m );
 	return 0;
 }
