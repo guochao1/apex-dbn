@@ -141,7 +141,7 @@ int main( int argc, char *argv[] ){
         CTensor3D mm( m.h_max, m.y_max , m.x_max ); 
         mm.elem = m.elem; mm.pitch = m.pitch; 
 
-        draw_mat( mm, argv[2], atoi( argv[3]), 1 );
+        draw_mat( mm, argv[2], atoi( argv[3]), 2 );
         
         tensor::free_space( m );
     }

@@ -16,9 +16,9 @@ namespace cuda_rand{
         u1 = r * __cosf(phi);
         u2 = r * __sinf(phi);
     }
-
+    
     /* transform the random number to (0,1]*/
-    __device__ float __to_upper_uniform( float r ){
+    __device__ float __to_upper_uniform( float r ){       
         return ( r * 4294967296.0f + 1.0f ) / 4294967296.0f;  
     }
     
