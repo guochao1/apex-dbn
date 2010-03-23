@@ -41,9 +41,21 @@ inline void norm_sigmoid( CTensor3D &m, float v_bias ){
     }
 }
 
+
+inline void norm_minmax2( CTensor3D &m ){
+    for( int h = 0 ; h < m.z_max ; h ++ ){
+		float w_max = cpu_only::max_value( m[h] );
+		float w_min = cpu_only::min_value( m[h] );
+        for( int y = 0 ; y < m.y_max ; y ++ )
+            for( int x = 0 ; x < m.x_max ; x ++  ){
+                m[h][y][x] = norm( m[h][y][x], w_min, w_max );
+            }
+    }
+}
 inline void draw_mat( CTensor3D &m, const char *fname, int method, int scale, float bs = 0.0f ){
     switch( method ){
-    case 0: norm_minmax( m );  break;        
+    case 0: norm_minmax( m );  break;     
+	case 1: norm_minmax2( m );  break;     
     case 2: norm_sigmoid( m, bs ); break;
     }
 
