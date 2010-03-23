@@ -17,6 +17,7 @@ apex_srbm.o: $(SRBM_DIR)/apex_srbm.cpp
 apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp 
 	g++ $(OPT) -c -o apex_crbm.o  $(CRBM_DIR)/apex_crbm.cpp
 
+
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
 	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp
 
