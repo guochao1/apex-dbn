@@ -66,6 +66,7 @@ namespace apex_rbm{
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
             mean =  energy * sigma;
+			mean+=  0.20f;
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
             tensor::crbm::copy_fit( v_next, h_curr );
@@ -437,10 +438,11 @@ namespace apex_rbm{
                 v_neg       = v_neg * v_neg;
 
                 loss += sum_2D( v_neg );
-
-                cal_sparse();
-                grad_sparse -= h_sum_mf;
-                h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
+				if( i % param.batch_size == param.batch_size - 1 ){ 
+					cal_sparse();	
+					grad_sparse -= h_sum_mf;
+					h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
+				}
             }                 
             stats.h_size = h_size;
             stats.v_size = v_size;
