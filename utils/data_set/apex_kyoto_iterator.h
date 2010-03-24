@@ -1,0 +1,98 @@
+#ifndef _APEX_KYOTO_ITERATOR_H_
+#define _APEX_KYOTO_ITERATOR_H_
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+#include "../apex_utils.h"
+#include "../apex_tensor_iterator.h"
+
+namespace apex_utils{
+    template<typename T>
+    inline void __kyoto_set_param( T & m, int z_max, int y_max, int x_max  );
+    
+    template<>
+    inline void __kyoto_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max  ){
+        m.y_max = z_max; m.x_max = y_max * x_max; 
+    }
+    template<>
+    inline void __kyoto_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max  ){
+        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; 
+    }
+    template<>
+    inline void __kyoto_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max  ){
+        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; 
+    }
+
+    /* iterator that  iterates over the MINIST data set */
+    template<typename T>
+    class KyotoIterator: public ITensorIterator<T>{
+    private:
+        int idx, max_idx;
+        int pitch;
+        int num_image, width, height;
+        int trunk_size;
+        
+        apex_tensor::CTensor3D data;
+    private:
+        char name_image_set[ 256 ];
+        
+        const T get_trunk( int start_idx, int max_idx ) const{
+            int y_max = max_idx - start_idx;
+            if( y_max > trunk_size ) y_max = trunk_size;            
+            T m; 
+            m.pitch = data.pitch;
+            m.elem  = data[ start_idx ].elem;
+            __kyoto_set_param<T>( m , y_max, data.y_max, data.x_max ); 
+            return m;
+        } 
+        
+    public:    
+        KyotoIterator(){
+            data.elem = NULL;
+            max_idx   = 1 << 30;
+        }
+        virtual ~KyotoIterator(){
+            if( data.elem != NULL )
+                delete [] data.elem;
+        }
+        virtual void set_param( const char *name, const char *val ){
+            if( !strcmp( name, "image_set"   ) ) strcpy( name_image_set, val );        
+            if( !strcmp( name, "image_amount") ) max_idx = atoi( val );
+            if( !strcmp( name, "trunk_size"  ) ) trunk_size = atoi( val );
+        }
+
+        // initialize the model
+        virtual void init( void ){
+            FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
+            apex_tensor::tensor::load_from_file( data , fi );
+            fclose( fi );
+            if( max_idx > data.z_max ) max_idx = data.z_max;
+        }
+        
+        // move to next mat
+        virtual bool next_trunk(){
+            idx += trunk_size;
+            if( idx >= max_idx ) return false;        
+            return true;
+        }
+        
+        // get current matrix 
+        virtual const T trunk() const{
+            return get_trunk( (int)idx, (int)max_idx );
+        }
+        
+
+        // set before first of the item
+        virtual void before_first(){
+            idx = -trunk_size;
+        }
+        
+        // trunk used for validation
+        virtual const T validation_trunk()const{
+            return get_trunk( (int)max_idx, num_image );
+        }
+    };
+};
+#endif
