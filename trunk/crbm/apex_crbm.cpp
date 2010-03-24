@@ -59,14 +59,13 @@ namespace apex_rbm{
         float sigma;
     public:
         CRBMGaussianNode( float sigma ){
-            this->sigma =  sigma;
+            this->sigma       = sigma;
         }
         virtual void sample  ( TTensor3D &state, const TTensor3D &mean ){
             tensor::sample_gaussian( state, mean, sigma );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
-            mean =  energy * sigma;
-			mean+=  0.20f;
+            mean =  energy;
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
             tensor::crbm::copy_fit( v_next, h_curr );
@@ -87,18 +86,26 @@ namespace apex_rbm{
     
 
     // maxpooling node 
+    template<bool scale_energy>
     class CRBMMaxpoolNode : public ICRBMNode{
     private:
         int pool_size;
+        float energy_scale;
     public:
-        CRBMMaxpoolNode( const CRBMModelParam &param ){
+        CRBMMaxpoolNode( const CRBMModelParam &param, float energy_scale = 1.0f ){
             pool_size = param.pool_size;
+            this->energy_scale = energy_scale;
         }
         virtual void sample  ( TTensor3D &state, const TTensor3D &mean ){
             tensor::crbm::sample_maxpooling_2D( state, mean, pool_size );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
-            tensor::crbm::norm_maxpooling_2D( mean, energy, pool_size );
+            if( !scale_energy ){ 
+                tensor::crbm::norm_maxpooling_2D( mean, energy, pool_size );
+            }else{
+                mean = energy * energy_scale;
+                tensor::crbm::norm_maxpooling_2D( mean, mean, pool_size );
+            }
         }   
         
         virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
@@ -133,8 +140,8 @@ namespace apex_rbm{
     }
     inline ICRBMNode *create_hidden_node( const CRBMModelParam &param ){
         switch( param.model_type ){
-        case 0:
-        case 1: return new CRBMMaxpoolNode( param );
+        case 0: return new CRBMMaxpoolNode<false>( param );
+        case 1: return new CRBMMaxpoolNode<true> ( param, param.v_sigma );
         default: return NULL;
         }
     }
