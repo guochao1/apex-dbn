@@ -8,7 +8,7 @@
 #include <ctime>
 using namespace apex_tensor;
 
-const int NUM_ITER = 100;
+const int NUM_ITER = 300;
 
 const int POOL_SIZE = 2;
 const int V_MAX   = 20;
@@ -30,6 +30,8 @@ int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine_gpu();
 
+    test_gaussian( NUM_ITER );
+    
     test_norm_maxpooling_2D( NUM_ITER );
     test_add_sparse_info( NUM_ITER );
 	test_pool_up( NUM_ITER );
