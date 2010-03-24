@@ -1,4 +1,4 @@
-BIN= srbm_model_drawer srbm_minist crbm_minist
+BIN= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto
 OPT= -msse2 -O3 -fno-strict-aliasing -Wall
 PRJ_DIR=..
 TENSOR_DIR=$(PRJ_DIR)/tensor
@@ -29,6 +29,9 @@ srbm_minist: srbm_minist.cpp apex_tensor_cpu.o  apex_srbm.o apex_tensor_gpu.o
 
 crbm_minist: crbm_minist.cpp apex_tensor_cpu.o  apex_crbm.o apex_tensor_gpu.o
 	$(NVCC) $(OPTNVCC) -o crbm_minist crbm_minist.cpp apex_tensor_cpu.o apex_crbm.o apex_tensor_gpu.o
+
+crbm_kyoto: crbm_kyoto.cpp apex_tensor_cpu.o  apex_crbm.o apex_tensor_gpu.o
+	$(NVCC) $(OPTNVCC) -o crbm_kyoto crbm_kyoto.cpp apex_tensor_cpu.o apex_crbm.o apex_tensor_gpu.o
 
 srbm_model_drawer: srbm_model_drawer.cpp apex_tensor_cpu.o  
 	g++ $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o
