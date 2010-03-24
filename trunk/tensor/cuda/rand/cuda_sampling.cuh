@@ -17,35 +17,34 @@ namespace cuda_rand{
         u2 = r * __sinf(phi);
     }
     
-    /* transform the random number to (0,1]*/
-    __device__ float __to_upper_uniform( float r ){       
-        return ( r * 4294967296.0f + 1.0f ) / 4294967296.0f;  
+    // transofrm r in [1,2) into (0,1]
+    inline __device__ float __to_upper_uniform( float r ){
+        return  2.0f - r;
     }
-    
-    // sample standard normal distribution
-    inline __device__ void sample_standard_gaussian( float &rx, float &ry ){
-        // do box muller
-        float tx = rx;
-        float ty = ry;
-        tx = __to_upper_uniform( tx );
-        ty = __to_upper_uniform( ty );
 
-        __box_muller( tx, ty );
-        
-        rx = tx; ry = ty;
+    // sample standard normal distribution
+    inline __device__ void sample_standard_gaussian( float &tx, float &ty ){
+        // do box muller
+        tx =  __to_upper_uniform( tx );
+        ty =  __to_upper_uniform( ty );
+
+        __box_muller( tx, ty );        
     } 
 
     /* sample gaussian random variable, pairs the threads and do box muller */
     inline __device__ void sample_standard_gaussian_by_pair( float s_rnd[], int tid ){
-        if( (tid & 1) == 0 ){
-            sample_standard_gaussian( s_rnd[tid], s_rnd[tid+1] );           
+         if( (tid & 1) == 0 ){
+             float rx = s_rnd[tid];
+             float ry = s_rnd[tid+1];
+             sample_standard_gaussian( rx, ry );             
+             s_rnd[tid]   = rx; 
+             s_rnd[tid+1] = ry;                         
         }
     }
 
     template<int block_dim_bits>
-    inline __device__ float sample_gaussian( float rnd, int tid ){
+    inline __device__ float sample_gaussian( float rnd, int tid, float s_rnd[1<<block_dim_bits] ){
         // get gaussian random variable
-        __shared__ float s_rnd[ 1<<block_dim_bits ];
         s_rnd[ tid ] = rnd; 
         __syncthreads();
         cuda_rand::sample_standard_gaussian_by_pair( s_rnd, tid );
@@ -72,5 +71,4 @@ namespace cuda_rand{
 };
 
 #endif
-
 

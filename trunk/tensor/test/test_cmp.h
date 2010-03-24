@@ -8,6 +8,30 @@
 #include <ctime>
 using namespace apex_tensor;
 
+void test_gaussian( int num_iter ){
+    GTensor4D tg_f  ( V_MAX, H_MAX,  F_Y_MAX, F_X_MAX );
+    CTensor4D tc_f  ( V_MAX, H_MAX,  F_Y_MAX, F_X_MAX );
+    
+    tensor::alloc_space( tg_f );
+    tensor::alloc_space( tc_f );
+    printf("start test sample gaussian\n");
+    
+    double mean=0.0, var=0.0;
+
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+		tensor::sample_gaussian( tg_f, sd ); 
+        tensor::copy( tc_f, tg_f );
+        mean += (double)apex_tensor::cpu_only::avg( tc_f );
+        var  += (double)apex_tensor::cpu_only::var( tc_f );
+    } 
+    printf("\nmean=%lf, sd_var=%lf, sd=%f\n" , mean/num_iter, sqrt( var/num_iter ), sd ); 
+    
+    tensor::free_space( tg_f );
+    tensor::free_space( tc_f );
+}
+
 void test_conv2_r_valid( int num_iter ){
     GTensor1D tg_hb ( H_MAX );
     GTensor3D tg_v  ( V_MAX, V_Y_MAX, V_X_MAX );

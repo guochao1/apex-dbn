@@ -48,8 +48,9 @@ namespace apex_tensor{
                                                 size_t pitch_dst, size_t pitch_src,
                                                 int y_max       , int x_max,
                                                 const float *rnd, float sd  ){
+            __shared__ float s_rnd[ 1<<block_dim_bits ];
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;            
-            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid)-1.0f , threadIdx.x ) * sd ;
+            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid), threadIdx.x, s_rnd ) * sd ;
             const int x_mm= get_align_width( x_max );
             const int y   = tid / x_mm;
             const int x   = tid % x_mm;
@@ -84,9 +85,9 @@ namespace apex_tensor{
                                                 size_t pitch_dst,
                                                 int y_max       , int x_max,
                                                 const float *rnd, float sd  ){
-
+            __shared__ float s_rnd[ 1<<block_dim_bits ];
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;            
-            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid)-1.0f , threadIdx.x ) * sd ;
+            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid), threadIdx.x, s_rnd ) * sd;            
             const int x_mm= get_align_width( x_max );
             const int y   = tid / x_mm;
             const int x   = tid % x_mm;

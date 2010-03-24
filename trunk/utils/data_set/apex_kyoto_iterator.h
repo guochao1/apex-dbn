@@ -30,10 +30,9 @@ namespace apex_utils{
     class KyotoIterator: public ITensorIterator<T>{
     private:
         int idx, max_idx;
-        int pitch;
-        int num_image, width, height;
         int trunk_size;
-        
+        int width, height;
+        int silent;
         apex_tensor::CTensor3D data;
     private:
         char name_image_set[ 256 ];
@@ -52,6 +51,7 @@ namespace apex_utils{
         KyotoIterator(){
             data.elem = NULL;
             max_idx   = 1 << 30;
+            silent = 0;
         }
         virtual ~KyotoIterator(){
             if( data.elem != NULL )
@@ -61,14 +61,40 @@ namespace apex_utils{
             if( !strcmp( name, "image_set"   ) ) strcpy( name_image_set, val );        
             if( !strcmp( name, "image_amount") ) max_idx = atoi( val );
             if( !strcmp( name, "trunk_size"  ) ) trunk_size = atoi( val );
+            if( !strcmp( name, "region_width") ) width = atoi( val ); 
+            if( !strcmp( name, "region_height")) height= atoi( val ); 
+            if( !strcmp( name, "silent"))        silent= atoi( val ); 
         }
 
         // initialize the model
         virtual void init( void ){
+            apex_tensor::CTensor3D tdata;
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
-            apex_tensor::tensor::load_from_file( data , fi );
+            apex_tensor::tensor::load_from_file( tdata , fi );
             fclose( fi );
+
+            int yy_max = tdata.y_max / height;
+            int xx_max = tdata.x_max / width;
+            data.set_param( tdata.z_max*yy_max*xx_max, height, width );
+            apex_tensor::tensor::alloc_space( data );
+
+            for( int i = 0 ; i < tdata.z_max ; i ++ ){
+                for( int y = 0 ; y < yy_max ; y ++ )
+                    for( int x = 0 ; x < xx_max ; x ++ ){
+						const int yy = y * height;
+						const int xx = x * width;
+                        for( int dy = 0 ; dy < height ; dy ++ )
+                            for( int dx = 0 ; dx < width ; dx ++ )
+                                data[ i*yy_max*xx_max +  y*xx_max + x ][dy][dx] 
+                                    = tdata[i][yy+dy][xx+dx];
+                    }                        
+            }                
+
+            apex_tensor::tensor::free_space( tdata );
+
             if( max_idx > data.z_max ) max_idx = data.z_max;
+            if( silent == 0 )
+                printf("Kyoto Dataset, %d images loaded, %d sample generated\n", tdata.z_max, data.z_max );            
         }
         
         // move to next mat
@@ -91,7 +117,7 @@ namespace apex_utils{
         
         // trunk used for validation
         virtual const T validation_trunk()const{
-            return get_trunk( (int)max_idx, num_image );
+            return get_trunk( (int)max_idx, data.z_max );
         }
     };
 };
