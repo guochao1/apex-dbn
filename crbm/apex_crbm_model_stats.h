@@ -69,11 +69,16 @@ namespace apex_rbm{
                      (float)apex_tensor::cpu_only::avg( grad_W ) / ss,
                      (float)apex_tensor::cpu_only::avg( grad_sparse ) / ss ); 
 
-            fprintf( fo, "pos_v_mean=%f, neg_v_mean=%f, pos_h_mean=%f, neg_h_mean=%f\n", 
+            fprintf( fo, "pos_v_mean=%f, neg_v_mean=%f, pos_h_mean=%f, neg_h_mean=%f,", 
                      (float)apex_tensor::cpu_only::avg( pos_grad_v ) / vs,
                      (float)apex_tensor::cpu_only::avg( neg_grad_v ) / vs,                     
                      (float)apex_tensor::cpu_only::avg( pos_grad_h ) / ss,
                      (float)apex_tensor::cpu_only::avg( neg_grad_h ) / ss ); 
+            
+            fprintf( fo, "w_grad_max=%f, w_grad_min=%f, w_grad_var=%f\n",
+                     (float)apex_tensor::cpu_only::max_value( grad_W ) / ss,
+                     (float)apex_tensor::cpu_only::min_value( grad_W ) / ss,
+                     (float)apex_tensor::cpu_only::var( grad_W ) / ss       );
 
             fflush( fo );
         }                        
