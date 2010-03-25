@@ -23,7 +23,7 @@ namespace apex_rbm{
         float momentum;
 
         /* weight decay of h, v, W , sum of W*/
-        float wd_h, wd_v, wd_W;
+        float wd_h, wd_v, wd_W, wd_Wsum;
 
         // decay of learning rate 
         float learning_rate_decay;
@@ -36,6 +36,9 @@ namespace apex_rbm{
 
         // method of sparse regularization
         int sparse_reg_method;
+        
+        // use group regularization
+        int use_group_reg;
         
         // whether to use persistent CD
         int persistent_cd;
@@ -62,7 +65,7 @@ namespace apex_rbm{
             chg_visible_bias = chg_hidden_bias = 1;
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
             persistent_cd = 0; v_average = 0; forward_bias = 1;
-            sample_v_neg = 1; sparse_reg_method = 0;
+            sample_v_neg = 1; sparse_reg_method = 0; use_group_reg = 0;
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
@@ -73,6 +76,7 @@ namespace apex_rbm{
             if( !strcmp("wd_h", name ) )          wd_h = (float)atof( val );
             if( !strcmp("wd_v", name ) )          wd_v = (float)atof( val );
             if( !strcmp("wd_W", name ) )          wd_W = (float)atof( val );
+            if( !strcmp("wd_Wsum", name ) )       wd_Wsum = (float)atof( val );
             if( !strcmp("wd_node", name ) )       wd_h = wd_v = (float)atof( val );
             if( !strcmp("chg_visible_bias", name ) ) chg_visible_bias = atoi( val );
             if( !strcmp("chg_hidden_bias", name ) )  chg_hidden_bias  = atoi( val );
@@ -83,6 +87,7 @@ namespace apex_rbm{
             if( !strcmp("v_average", name ) )        v_average     = atoi( val );
             if( !strcmp("forward_bias", name ) )     forward_bias  = atoi( val );
             if( !strcmp("sample_v_neg", name ) )     sample_v_neg  = atoi( val );
+            if( !strcmp("use_group_reg", name ) )     use_group_reg = atoi( val );
         }
     };
     

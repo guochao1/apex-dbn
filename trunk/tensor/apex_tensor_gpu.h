@@ -356,6 +356,10 @@ namespace apex_tensor{
             // sum over last two dimension
             void sadd__sum_2D( GTensor1D &dst, const GTensor3D &src );
             void ssub__sum_2D( GTensor1D &dst, const GTensor3D &src );
+
+            // add last two dimension 
+            void sum_2D    ( GTensor2D &dst, const GTensor4D &src );            
+            void sadd__scale( GTensor4D &dst, const GTensor2D &src, TENSOR_FLOAT scale_src );
             
             // calculate information of sparse regularization
             void add_sparse_info( GTensor1D &sum_mf, GTensor1D &sum_mf_grad, const GTensor3D &src, int pool_size );

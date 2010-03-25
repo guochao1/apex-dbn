@@ -181,6 +181,44 @@ namespace apex_tensor{
             map_D_kernel<st_m,mapm_D,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(dst,srca,srcb)>>>
                 ( dst.elem, srca.elem, srcb.elem, dst.pitch, srca.pitch, srcb.pitch, y_max, x_max, sa, sb );
         }                  
+
+        
+        template<int st_m,int mapm_B,int block_dim_bits >
+        __global__ void map_E_kernel( __GT4D dst,
+                                      const __GT2D src, float src_b ){
+            const int block_y = blockIdx.y / dst.z_max;
+            const int block_x = blockIdx.y % dst.z_max;
+        
+            __shared__ float src_a;
+            if( threadIdx.x == 0 ){
+                src_a = src[block_y][block_x];
+            }
+            __GT2D dd = dst[block_y][block_y];
+            const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;
+            const int x_mm= get_align_width( dst.x_max );
+            const int y   = tid / x_mm;
+            const int x   = tid % x_mm;                                                
+            
+            __syncthreads();
+
+            if( y < dst.y_max  && x < dst.x_max ){
+                float val = map_method_B::__map<mapm_B>( src_a, src_b );
+                store_method::__store<st_m>( dd[y][x] , val );
+            }            
+        }
+        
+        template<int st_m,int mapm_B>
+        inline void map_E( GTensor4D &dst, const GTensor2D &src, float src_b ){
+            int stride    = get_align_width( dst.x_max );            
+            int num_block = (dst.y_max*stride + BASE_THREAD_NUM-1)/BASE_THREAD_NUM;
+
+            dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
+            dim3 dimGrid ( num_block      , dst.z_max*dst.h_max, 1 );
+            
+            map_E_kernel<st_m,mapm_B,BASE_THREAD_BITS> <<<dimGrid,dimBlock,0,cuda_async::get_stream(dst,src)>>>
+                ( __GT(dst), __GT(src), src_b );
+        }          
+        
     };
 };
 
