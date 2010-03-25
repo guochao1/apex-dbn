@@ -32,7 +32,7 @@ namespace apex_utils{
         int idx, max_idx;
         int trunk_size;
         int width, height;
-        int silent;
+        int silent, normalize;
         apex_tensor::CTensor3D data;
     private:
         char name_image_set[ 256 ];
@@ -51,7 +51,7 @@ namespace apex_utils{
         KyotoIterator(){
             data.elem = NULL;
             max_idx   = 1 << 30;
-            silent = 0;
+            silent = 0; normalize = 0;
         }
         virtual ~KyotoIterator(){
             if( data.elem != NULL )
@@ -64,6 +64,7 @@ namespace apex_utils{
             if( !strcmp( name, "region_width") ) width = atoi( val ); 
             if( !strcmp( name, "region_height")) height= atoi( val ); 
             if( !strcmp( name, "silent"))        silent= atoi( val ); 
+            if( !strcmp( name, "normalize"))     normalize = atoi( val );
         }
 
         // initialize the model
@@ -83,10 +84,16 @@ namespace apex_utils{
                     for( int x = 0 ; x < xx_max ; x ++ ){
 						const int yy = y * height;
 						const int xx = x * width;
+						apex_tensor::CTensor2D &dd = data[ i*yy_max*xx_max + y*xx_max + x ];
                         for( int dy = 0 ; dy < height ; dy ++ )
                             for( int dx = 0 ; dx < width ; dx ++ )
-                                data[ i*yy_max*xx_max +  y*xx_max + x ][dy][dx] 
+                                dd[dy][dx] 
                                     = tdata[i][yy+dy][xx+dx];
+
+                        // normalize to standard distribution
+                        if( normalize != 0 ) {
+                            dd += -apex_tensor::cpu_only::avg( dd );
+                        }
                     }                        
             }                
 
