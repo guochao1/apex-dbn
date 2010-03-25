@@ -327,9 +327,13 @@ namespace apex_rbm{
         inline void cal_sparse(){
             h_sum_mf  *= (1.0f/(param.batch_size*h_size));
             h_sum_mf  += -param.sparse_level;                
-            h_sum_mf   = h_sum_mf * h_sum_mf_grad;
-            // leave out a h_size
-            h_sum_mf  *= param.sparse_lambda;
+            if( param.sparse_reg_method == 0  ){
+                h_sum_mf   = h_sum_mf * h_sum_mf_grad;
+                // leave out a h_size
+                h_sum_mf  *= param.sparse_lambda;
+            }else{
+                h_sum_mf  *= param.sparse_lambda*param.batch_size*h_size;
+            }
         }
 
         // update the weight of the last layer
