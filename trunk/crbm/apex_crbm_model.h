@@ -33,6 +33,9 @@ namespace apex_rbm{
 
         // sparse regularization parameter
         float sparse_level, sparse_lambda;
+
+        // method of sparse regularization
+        int sparse_reg_method;
         
         // whether to use persistent CD
         int persistent_cd;
@@ -59,7 +62,7 @@ namespace apex_rbm{
             chg_visible_bias = chg_hidden_bias = 1;
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
             persistent_cd = 0; v_average = 0; forward_bias = 1;
-            sample_v_neg = 1;
+            sample_v_neg = 1; sparse_reg_method = 0;
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
@@ -76,6 +79,7 @@ namespace apex_rbm{
             if( !strcmp("persistent_cd", name ) )    persistent_cd  = atoi( val );
             if( !strcmp("sparse_level", name )  )    sparse_level  = (float)atof( val );
             if( !strcmp("sparse_lambda", name ) )    sparse_lambda = (float)atof( val );
+            if( !strcmp("sparse_reg_method", name ) )sparse_reg_method = atoi( val );
             if( !strcmp("v_average", name ) )        v_average     = atoi( val );
             if( !strcmp("forward_bias", name ) )     forward_bias  = atoi( val );
             if( !strcmp("sample_v_neg", name ) )     sample_v_neg  = atoi( val );
@@ -109,7 +113,7 @@ namespace apex_rbm{
             if( !strcmp("h_max", name ) )         h_max = atoi( val );
             if( !strcmp("y_max", name ) )         y_max = atoi( val );
             if( !strcmp("x_max", name ) )         x_max = atoi( val );
-            if( !strcmp("pool_size", name ) )         pool_size = atoi( val );
+            if( !strcmp("pool_size", name ) )     pool_size = atoi( val );
             if( !strcmp("v_sigma", name ) )       v_sigma = (float)atof( val );
             if( !strcmp("v_init_sigma", name ) )  v_init_sigma = (float)atof( val );
             if( !strcmp("h_init_sigma", name ) )  h_init_sigma = (float)atof( val );
