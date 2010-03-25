@@ -215,6 +215,7 @@ namespace apex_rbm{
         TTensor1D d_h_bias, d_v_bias;
         TTensor1D h_sum_mf, h_sum_mf_grad;
         TTensor4D d_W;
+        TTensor2D wd_sum;
     private:
         // nodes of each layer
         vector<CRBMLayer> layers;
@@ -231,11 +232,14 @@ namespace apex_rbm{
             d_h_bias = clone( model.layers.back().d_h_bias );
             d_v_bias = clone( model.layers.back().d_v_bias );
             d_W      = clone( model.layers.back().d_W );
-            
+  
             h_sum_mf      = alloc_like( d_h_bias );
             h_sum_mf_grad = alloc_like( d_h_bias );
             v_neg         = alloc_like( layers.back().v_state );
             h_neg         = alloc_like( layers.back().h_state );
+
+            wd_sum.set_param( d_W.h_max, d_W.z_max );
+            tensor::alloc_space( wd_sum );
             
             sample_counter = 0; persistent_ok = false;            
             
@@ -283,6 +287,7 @@ namespace apex_rbm{
             tensor::free_space( d_h_bias );
             tensor::free_space( d_v_bias );
             tensor::free_space( d_W );
+            tensor::free_space( wd_sum );
             tensor::free_space( v_neg );
             tensor::free_space( h_neg );
             // destroy the tensor engine
@@ -364,7 +369,17 @@ namespace apex_rbm{
                 }
                 d_v_bias *= param.momentum;
             }
-            W   = W * ( 1-eta*param.wd_W ) + d_W * eta;            
+            // use group regularization
+            if( param.use_group_reg != 0 ){
+                tensor::crbm::sum_2D( wd_sum , W );
+            }
+            
+            W  = W * ( 1-eta*param.wd_W ) + d_W * eta;            
+            
+            if( param.use_group_reg != 0 ){
+                tensor::crbm::sadd__scale( W , wd_sum, -param.wd_Wsum );
+            }
+            
             d_W *= param.momentum;
         }
 

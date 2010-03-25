@@ -92,7 +92,25 @@ namespace apex_tensor{
             dim3 dimBlock( 16 , 16 );
             dim3 dimGrid ( src.z_max ,1 );
             __tensor_sum_2D_kernel<st_m,map_m><<<dimGrid,dimBlock,0,cuda_async::get_stream(r,src)>>>( r.elem, __GT(src) );
-        }    
+        }
+
+        template<int st_m, int map_m>
+        __global__ void __tensor_sum_2D_kernel( __GT2D dst , const __GT4D src ){
+            __shared__ float s_mmx[16][16];
+            
+            __tensor_sum_2D_procedure<map_m>( s_mmx, src[ blockIdx.y ][ blockIdx.x ] );
+            // we only depend on thread 0 0
+            if( threadIdx.y == 0 && threadIdx.x == 0 ){
+                store_method::__store<st_m>( dst[ blockIdx.y ][ blockIdx.x ], s_mmx[0][0] ); 
+            }
+        }
+        
+        template<int st_m, int map_m>
+        inline void tensor_sum_2D( GTensor2D &r , const GTensor4D &src ){
+            dim3 dimBlock( 16, 16 );
+            dim3 dimGrid ( src.z_max, src.h_max );
+            __tensor_sum_2D_kernel<st_m,map_m><<<dimGrid,dimBlock,0,cuda_async::get_stream(r,src)>>>( __GT(r), __GT(src) );
+        }
     };
 
     // pool 
