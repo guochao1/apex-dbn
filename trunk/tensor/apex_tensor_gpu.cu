@@ -44,17 +44,23 @@ namespace apex_tensor{
     namespace cuda_tensor{
         template<typename T>
         inline void alloc_space_template( T &ts ){
-            cudaMallocPitch( (void**)&ts.elem, &ts.pitch, ts.x_max*sizeof(TENSOR_FLOAT), num_line(ts) );
+            if( cudaMallocPitch( (void**)&ts.elem, &ts.pitch, ts.x_max*sizeof(TENSOR_FLOAT), num_line(ts) ) != cudaSuccess ){
+                error("gpu:error allocate space");
+            } 
         }     
 
         template<typename T>
         inline void free_space_template( T &ts ){
-            cudaFree( ts.elem );
+            if( cudaFree( ts.elem ) != cudaSuccess ){
+                error("gpu:error free space");
+            }
         }    
         
         template<typename TA,typename TB,enum cudaMemcpyKind kind>
         inline void copy_template( TA dst, const TB src ){
-            cudaMemcpy2D( dst.elem, dst.pitch, src.elem, src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind );   
+            if( cudaMemcpy2D( dst.elem, dst.pitch, src.elem, src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind ) != cudaSuccess ){
+                error("gpu:error memcpy\n");
+            }   
         }                 
     };
     

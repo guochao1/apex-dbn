@@ -56,17 +56,17 @@ namespace apex_rbm{
     
     class CRBMGaussianNode : public ICRBMNode{
     private:
-        float sigma, sigma_sqr;
+        float sigma;
     public:
         CRBMGaussianNode( float sigma ){
             this->sigma       = sigma;
-            this->sigma_sqr   = sigma*sigma;
+            //            this->sigma_sqr   = sigma*sigma;
         }
         virtual void sample  ( TTensor3D &state, const TTensor3D &mean ){
             tensor::sample_gaussian( state, mean, sigma );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
-            mean =  energy * sigma_sqr;
+            mean =  energy; // * sigma_sqr;
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
             tensor::crbm::copy_fit( v_next, h_curr );
@@ -142,7 +142,7 @@ namespace apex_rbm{
     inline ICRBMNode *create_hidden_node( const CRBMModelParam &param ){
         switch( param.model_type ){
         case 0: return new CRBMMaxpoolNode<false>( param );
-        case 1: return new CRBMMaxpoolNode<false>( param );
+        case 1: return new CRBMMaxpoolNode<true> ( param, 1.0f/(param.v_sigma*param.v_sigma) );
         default: return NULL;
         }
     }
@@ -262,6 +262,7 @@ namespace apex_rbm{
             async::set_dependecy( h_sum_mf_grad, 2 );
             async::set_dependecy( d_W     , 3 );
             async::set_dependecy(   W     , 3 );
+            async::set_dependecy( wd_sum  , 3 );
         }
     public:
         CRBMSimple( const CDBNModel &model, const CRBMTrainParam &param ){
@@ -276,6 +277,8 @@ namespace apex_rbm{
             // intialize the tensor engine
             init_tensor_engine( 0 );
             init_async();
+            
+            printf("CRBM initialized, h_size=%d, v_size=%d\n", h_size, v_size );
         }
         
         // deallocate the space
@@ -377,7 +380,7 @@ namespace apex_rbm{
             W  = W * ( 1-eta*param.wd_W ) + d_W * eta;            
             
             if( param.use_group_reg != 0 ){
-                tensor::crbm::sadd__scale( W , wd_sum, -param.wd_Wsum );
+                tensor::crbm::sadd__scale( W, wd_sum, -param.wd_Wsum*eta );
             }
             
             d_W *= param.momentum;
