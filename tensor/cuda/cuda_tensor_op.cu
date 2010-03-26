@@ -195,13 +195,13 @@ namespace apex_tensor{
             }
             __GT2D dd = dst[block_y][block_y];
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;
-            const int x_mm= get_align_width( dst.x_max );
+            const int x_mm= get_align_width( dd.x_max );
             const int y   = tid / x_mm;
             const int x   = tid % x_mm;                                                
             
             __syncthreads();
 
-            if( y < dst.y_max  && x < dst.x_max ){
+            if( y < dd.y_max  && x < dd.x_max ){
                 float val = map_method_B::__map<mapm_B>( src_a, src_b );
                 store_method::__store<st_m>( dd[y][x] , val );
             }            
