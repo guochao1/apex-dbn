@@ -381,18 +381,18 @@ void test_sum_2D( int num_iter ){
 }
 
 void test_sum_2DX( int num_iter ){
-    GTensor1D tg_s   ( V_MAX, H_MAX );
-    GTensor3D tg_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
-    CTensor3D tc_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
-    CTensor1D tc_s   ( V_MAX, H_MAX );
-    CTensor1D tc_s_g ( V_MAX, H_MAX );
+    GTensor2D tg_s   ( V_MAX, H_MAX );
+    GTensor4D tg_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
+    CTensor4D tc_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
+    CTensor2D tc_s   ( V_MAX, H_MAX );
+    CTensor2D tc_s_g ( V_MAX, H_MAX );
 
 	tensor::alloc_space( tg_s );
     tensor::alloc_space( tg_h );
     tensor::alloc_space( tc_s );
     tensor::alloc_space( tc_h );
     tensor::alloc_space( tc_s_g );
-    printf("start test sum2D\n");
+    printf("start test sum2DX\n");
     
 	TestStats<CTensor2D> stats( "sum2DX_CPU","sum2DX_GPU");
     stats.abs_err.set_param( V_MAX, H_MAX );
@@ -435,18 +435,18 @@ void test_sum_2DX( int num_iter ){
 
 
 void test_sadd__scale( int num_iter ){
-    GTensor1D tg_s   ( V_MAX, H_MAX );
-    GTensor2D tg_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
-    CTensor3D tc_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
-    CTensor1D tc_s   ( V_MAX, H_MAX );
-    CTensor1D tc_h_g ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
+    GTensor2D tg_s   ( V_MAX, H_MAX );
+    GTensor4D tg_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
+    CTensor4D tc_h   ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
+    CTensor2D tc_s   ( V_MAX, H_MAX );
+    CTensor4D tc_h_g ( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
 
 	tensor::alloc_space( tg_s );
     tensor::alloc_space( tg_h );
     tensor::alloc_space( tc_s );
     tensor::alloc_space( tc_h );
-    tensor::alloc_space( tc_s_g );
-    printf("start test sum2D\n");
+    tensor::alloc_space( tc_h_g );
+    printf("start sadd__scale\n");
     
 	TestStats<CTensor4D> stats( "sadd__scale_CPU","sdd__scale_GPU");
     stats.abs_err.set_param( V_MAX, H_MAX, F_Y_MAX, F_X_MAX );
@@ -459,18 +459,18 @@ void test_sadd__scale( int num_iter ){
 		printf("round [%8d]", i);
 		tensor::sample_gaussian( tc_h, sd );
         tensor::sample_gaussian( tc_s, sd );
-        
+
         tensor::copy( tg_h, tc_h );        
         tensor::copy( tg_s, tc_s );        
         
         double c_start = clock();
 
-        tensor::crbm::sadd__scale( tc_h, tc_s, 0.2 );
+        tensor::crbm::sadd__scale( tc_h, tc_s, 0.2f );
 
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         double g_start = clock();
         
-        tensor::crbm::sadd__scale( tg_h, tg_s, 0.2 );
+        tensor::crbm::sadd__scale( tg_h, tg_s, 0.2f );
 
         sync_gpu_threads();
         stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
@@ -484,7 +484,7 @@ void test_sadd__scale( int num_iter ){
     tensor::free_space( tg_h );
     tensor::free_space( tc_s );
     tensor::free_space( tc_h );
-    tensor::free_space( tc_s_g );
+    tensor::free_space( tc_h_g );
 }
 
 void test_add_sparse_info( int num_iter ){
