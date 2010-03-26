@@ -193,7 +193,7 @@ namespace apex_tensor{
             if( threadIdx.x == 0 ){
                 src_a = src[block_y][block_x];
             }
-            __GT2D dd = dst[block_y][block_y];
+            __GT2D dd = dst[block_y][block_x];
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;
             const int x_mm= get_align_width( dd.x_max );
             const int y   = tid / x_mm;

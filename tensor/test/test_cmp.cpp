@@ -8,15 +8,15 @@
 #include <ctime>
 using namespace apex_tensor;
 
-const int NUM_ITER = 300;
+const int NUM_ITER = 20;
 
 const int POOL_SIZE = 2;
-const int V_MAX   = 20;
-const int H_MAX   = 15;
+const int V_MAX   = 1;
+const int H_MAX   = 2;
 const int V_Y_MAX = 127;
 const int V_X_MAX = 287;
-const int F_Y_MAX = 12;
-const int F_X_MAX = 12;
+const int F_Y_MAX = 2;
+const int F_X_MAX = 2;
 const int H_Y_MAX = V_Y_MAX - F_Y_MAX + 1; 
 const int H_X_MAX = V_X_MAX - F_X_MAX + 1; 
 const int P_Y_MAX = H_Y_MAX / POOL_SIZE;
@@ -29,10 +29,11 @@ const TENSOR_FLOAT sd = 1.0f;
 int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine_gpu();
-    
-    test_sum2D( NUM_ITER );
-    test_sum2DX( NUM_ITER );
+
     test_sadd__scale( NUM_ITER );
+    test_sum_2D( NUM_ITER );
+    test_sum_2DX( NUM_ITER );
+    
     
     test_gaussian( NUM_ITER );
     
