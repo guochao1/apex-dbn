@@ -29,7 +29,11 @@ const TENSOR_FLOAT sd = 1.0f;
 int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine_gpu();
-
+    
+    test_sum2D( NUM_ITER );
+    test_sum2DX( NUM_ITER );
+    test_sadd__scale( NUM_ITER );
+    
     test_gaussian( NUM_ITER );
     
     test_norm_maxpooling_2D( NUM_ITER );
@@ -39,7 +43,7 @@ int main( void ){
 	test_conv2_r_big_filter( NUM_ITER );
     test_conv2_r_valid( NUM_ITER );
 	test_conv2_full( NUM_ITER );
-
+    
     system("pause");
     return 0;
 } 

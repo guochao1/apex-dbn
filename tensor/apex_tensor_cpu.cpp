@@ -693,6 +693,21 @@ namespace apex_tensor{
                 for( int i = 0 ; i < dst.x_max ; i ++ )
                     dst[i] -= cpu_only::sum_template( src[i] );
             }            
+
+            void sum_2D    ( CTensor2D &dst, const CTensor4D &src ){
+                for( int i = 0 ; i < dst.y_max ; i ++ )
+                    for( int j = 0 ; j < dst.x_max ; j ++ )
+                        dst[i][j] = cpu_only::sum_template( src[i][j] );
+            }            
+            
+            
+            void sadd__scale( CTensor4D &dst, const CTensor2D &src, TENSOR_FLOAT scale_src ){
+                for( int i = 0 ; i < src.y_max ; i ++ )
+                    for( int j = 0 ; j < src.x_max ; j ++ ){
+                        dst[i][j] += src[i][j] * scale_src;
+                    }
+            }
+            
             // calculate information of sparse regularization
             void add_sparse_info( CTensor1D &sum_mf, CTensor1D &sum_mf_grad, const CTensor3D &src, int pool_size ){
                 for( int i = 0 ; i < sum_mf.x_max ; i ++ ){
