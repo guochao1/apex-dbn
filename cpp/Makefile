@@ -1,11 +1,19 @@
-BIN= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto
-OPT= -msse2 -O3 -fno-strict-aliasing -Wall
-PRJ_DIR=..
-TENSOR_DIR=$(PRJ_DIR)/tensor
-SRBM_DIR=$(PRJ_DIR)/srbm
-CRBM_DIR=$(PRJ_DIR)/crbm
-NVCC    =nvcc
-OPTNVCC = -arch sm_11 -Xcompiler "$(OPT)" 
+# build apex tensor and rbm
+ifeq ($(cpu), 1)
+	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0 
+else
+	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
+endif
+
+BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper
+OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
+PRJ_DIR:=..
+TENSOR_DIR:=$(PRJ_DIR)/tensor
+SRBM_DIR:=$(PRJ_DIR)/srbm
+CRBM_DIR:=$(PRJ_DIR)/crbm
+NVCC    :=nvcc
+OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)" 
+
 all: $(BIN)
 
 clean:
@@ -35,3 +43,10 @@ crbm_kyoto: crbm_kyoto.cpp apex_tensor_cpu.o  apex_crbm.o apex_tensor_gpu.o
 
 srbm_model_drawer: srbm_model_drawer.cpp apex_tensor_cpu.o  
 	g++ $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o
+
+crbm_model_drawer: crbm_model_drawer.cpp apex_tensor_cpu.o  
+	g++ $(OPT) -lpthread -lX11  -o crbm_model_drawer crbm_model_drawer.cpp apex_tensor_cpu.o
+
+crbm_model_dumper: crbm_model_dumper.cpp apex_tensor_cpu.o  
+	g++ $(OPT) -lpthread -lX11  -o crbm_model_dumper crbm_model_dumper.cpp apex_tensor_cpu.o
+

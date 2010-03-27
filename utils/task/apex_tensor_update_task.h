@@ -91,6 +91,7 @@ namespace apex_utils{
                         if( !silent ){
                             printf("\r                                                               \r");
                             printf("round %8d:[%8d] %.3lf sec elapsed, %.3lf sec for validation", i , sample_counter*trunk_size, elapsed, valid_elapsed );
+                            fflush( stdout );
                         }
                     }
                 }
