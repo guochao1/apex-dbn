@@ -5,7 +5,7 @@ else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
 endif
 
-BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper
+BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper 
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -49,4 +49,3 @@ crbm_model_drawer: crbm_model_drawer.cpp apex_tensor_cpu.o
 
 crbm_model_dumper: crbm_model_dumper.cpp apex_tensor_cpu.o  
 	g++ $(OPT) -lpthread -lX11  -o crbm_model_dumper crbm_model_dumper.cpp apex_tensor_cpu.o
-

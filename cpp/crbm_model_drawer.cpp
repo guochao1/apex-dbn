@@ -52,6 +52,7 @@ inline void norm_minmax2( CTensor3D &m ){
             }
     }
 }
+
 inline void draw_mat( CTensor3D &m, const char *fname, int method, int scale, float bs = 0.0f ){
     switch( method ){
     case 0: norm_minmax( m );  break;     
