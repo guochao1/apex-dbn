@@ -267,6 +267,8 @@ namespace apex_rbm{
         }
     public:
         CRBMSimple( const CDBNModel &model, const CRBMTrainParam &param ){
+            // intialize the tensor engine
+            init_tensor_engine( 0 );
             init( model, param.input_y_max, param.input_x_max );
             this->param = param;
 
@@ -275,8 +277,6 @@ namespace apex_rbm{
                 layers[ layers.size()-2 ].forward_bias( layers.back().v_bias );
             }
 
-            // intialize the tensor engine
-            init_tensor_engine( 0 );
             init_async();
             
             printf("CRBM initialized, h_size=%d, v_size=%d\n", h_size, v_size );
