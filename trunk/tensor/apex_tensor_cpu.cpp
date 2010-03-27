@@ -713,7 +713,7 @@ namespace apex_tensor{
                         for( int x = 0 ; x < dst.x_max ; x ++ )
                             if( y < edge_y_len || y >= dst.y_max - edge_y_len ||
                                 x < edge_x_len || x >= dst.x_max - edge_x_len ){
-                                    dst[y][x] = src[y][x];
+                                    dst[i][y][x] = src[i][y][x];
                                 }                            
             }
             
