@@ -98,9 +98,10 @@ inline CTensor4D infer_down( CTensor4D m, CTensor4D W ){
     tensor::alloc_space( bs );
     bs = 0.0f;
   
-    for( int i = 0 ; i < m.h_max ; i ++ )
-		tensor::crbm::conv2_full( mm[i], m[i], W, bs );
-    
+    for( int i = 0 ; i < m.h_max ; i ++ ){
+        CTensor3D mx = mm[i];
+		tensor::crbm::conv2_full( mx, m[i], W, bs );
+    }
     tensor::free_space( m  );
     tensor::free_space( bs );
     return mm;
@@ -116,7 +117,7 @@ int main( int argc, char *argv[] ){
     model.load_from_file( fi );
     fclose( fi );	
     if( model.layers.size() == 1 ){
-        CTensor3D &m = model.layers[0].W[0];
+        CTensor3D m = model.layers[0].W[0];
         draw_mat( m, argv[2], atoi( argv[3]), 2, model.layers[0].v_bias[0] );
     }else{
         CTensor4D &mw = model.layers.back().W;

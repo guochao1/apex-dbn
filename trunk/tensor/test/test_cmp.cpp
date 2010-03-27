@@ -11,12 +11,12 @@ using namespace apex_tensor;
 const int NUM_ITER = 20;
 
 const int POOL_SIZE = 2;
-const int V_MAX   = 1;
-const int H_MAX   = 2;
+const int V_MAX   = 14;
+const int H_MAX   = 20;
 const int V_Y_MAX = 127;
 const int V_X_MAX = 287;
-const int F_Y_MAX = 2;
-const int F_X_MAX = 2;
+const int F_Y_MAX = 10;
+const int F_X_MAX = 10;
 const int H_Y_MAX = V_Y_MAX - F_Y_MAX + 1; 
 const int H_X_MAX = V_X_MAX - F_X_MAX + 1; 
 const int P_Y_MAX = H_Y_MAX / POOL_SIZE;
@@ -28,8 +28,9 @@ const TENSOR_FLOAT sd = 1.0f;
 
 int main( void ){
     init_tensor_engine_cpu(0);
-    init_tensor_engine_gpu();
+    init_tensor_engine(0);
 
+    test_refill_edge_area( NUM_ITER );
     test_sadd__scale( NUM_ITER );
     test_sum_2D( NUM_ITER );
     test_sum_2DX( NUM_ITER );
@@ -45,7 +46,7 @@ int main( void ){
     test_conv2_r_valid( NUM_ITER );
 	test_conv2_full( NUM_ITER );
     
-    system("pause");
+    destroy_tensor_engine();
     return 0;
 } 
 

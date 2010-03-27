@@ -7,6 +7,14 @@
 
 #include "apex_tensor_config.h"
 
+#ifndef __APEX_TENSOR_USE_GPU__
+
+#ifdef  __APEX_TENSOR_USE_GPU_IMPL__    
+#define __APEX_TENSOR_USE_GPU__    1
+#endif
+
+#endif
+
 namespace apex_tensor{
     struct CTensor1D;
     struct CTensor2D;
@@ -27,7 +35,7 @@ namespace apex_tensor{
     
     // this choose macro is defined for convinience 
     // for choosing between CPU and GPU implementation
-#ifdef __APEX_TENSOR_USE_GPU__
+#if __APEX_TENSOR_USE_GPU__
     typedef GTensor1D TTensor1D;
     typedef GTensor2D TTensor2D;
     typedef GTensor3D TTensor3D;
