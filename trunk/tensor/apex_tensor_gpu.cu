@@ -6,7 +6,7 @@
 
 // GPU implementation of tensor functions
 namespace apex_tensor{    
-
+    int __init_counter = 0;
     inline void choose_device( int dev ){
         cudaDeviceProp device_prop;
         cudaGetDeviceProperties( &device_prop, dev );
@@ -17,15 +17,18 @@ namespace apex_tensor{
     }
 
     void init_tensor_engine_gpu( void ){
-        int device_count = 0;
-        if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
-            cuda_tensor::error("can't get device information about cuda\n");
-        }else{
-            if( device_count == 0 ){
-                cuda_tensor::error("There is no device supporting CUDA.\n");
+        if( __init_counter == 0 ){
+            int device_count = 0;
+            if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
+                cuda_tensor::error("can't get device information about cuda\n");
             }else{
-                choose_device( 0 );
-            }            
+                if( device_count == 0 ){
+                    cuda_tensor::error("There is no device supporting CUDA.\n");
+                }else{
+                    choose_device( 0 );
+                }            
+            }
+            __init_counter ++;
         }
         cuda_rand::rand_init();
     }
