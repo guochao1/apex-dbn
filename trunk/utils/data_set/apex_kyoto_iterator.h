@@ -33,6 +33,9 @@ namespace apex_utils{
         int trunk_size;
         int width, height;
         int silent, normalize;
+        int sample_gen_method, do_shuffle;
+        int num_extract_per_image;
+
         apex_tensor::CTensor3D data;
     private:
         char name_image_set[ 256 ];
@@ -51,7 +54,9 @@ namespace apex_utils{
         KyotoIterator(){
             data.elem = NULL;
             max_idx   = 1 << 30;
-            silent = 0; normalize = 0;
+            silent = 0; normalize = 0; 
+            sample_gen_method = 0; do_shuffle = 0;
+            num_extract_per_image = 10;
         }
         virtual ~KyotoIterator(){
             if( data.elem != NULL )
@@ -65,15 +70,18 @@ namespace apex_utils{
             if( !strcmp( name, "region_height")) height= atoi( val ); 
             if( !strcmp( name, "silent"))        silent= atoi( val ); 
             if( !strcmp( name, "normalize"))     normalize = atoi( val );
+            if( !strcmp( name, "sample_gen_method")) sample_gen_method = atoi( val );
+            if( !strcmp( name, "do_shuffle"))    do_shuffle = atoi( val );
+            if( !strcmp( name, "num_extract_per_image")) num_extract_per_image = atoi( val );
+            
+        }
+        
+        inline void shuffle(){
+            apex_tensor::cpu_only::shuffle( data);
         }
 
-        // initialize the model
-        virtual void init( void ){
-            apex_tensor::CTensor3D tdata;
-            FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
-            apex_tensor::tensor::load_from_file( tdata , fi );
-            fclose( fi );
-            
+        inline void gen_region_extract(){
+            apex_tensor::CTensor3D tdata = data;
             // segmentation 
             int yy_max = tdata.y_max / height;
             int xx_max = tdata.x_max / width;
@@ -89,17 +97,59 @@ namespace apex_utils{
                         for( int dy = 0 ; dy < height ; dy ++ )
                             for( int dx = 0 ; dx < width ; dx ++ )
                                 dd[dy][dx] = tdata[i][yy+dy][xx+dx];
-                        if( normalize != 0 ) {
-                            dd += -apex_tensor::cpu_only::avg( dd );
-                        }
                     }                        
             }                
 
-            apex_tensor::tensor::free_space( tdata );
+            apex_tensor::tensor::free_space( tdata );                            
+            if( silent == 0 ) printf("region extract, ");
+        }
+        
+        inline void gen_random_extract(){
+            apex_tensor::CTensor3D tdata = data;        
+            data.set_param( tdata.z_max*num_extract_per_image , height, width );
+            apex_tensor::tensor::alloc_space( data );
 
-            if( max_idx > data.z_max ) max_idx = data.z_max;
+            for( int i = 0 ; i < tdata.z_max ; i ++ ){
+                for( int j = 0 ; j < num_extract_per_image ; j ++ ){
+                    apex_tensor::CTensor2D dd = data[ i*num_extract_per_image+j ];
+                    apex_tensor::cpu_only::rand_extract( dd, data[i] );
+                }                        
+            }                
+
+            apex_tensor::tensor::free_space( tdata );    
+            if( silent == 0 ) printf("random extract, ");
+        }
+        
+        // initialize the model
+        virtual void init( void ){
+            FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
+            apex_tensor::tensor::load_from_file( data , fi );
+            fclose( fi );
+        
             if( silent == 0 )
-                printf("Kyoto Dataset, %d images loaded, %d sample generated\n", tdata.z_max, data.z_max );            
+                printf("Kyoto Dataset, %d images loaded,", data.z_max ); 
+                       
+            switch( sample_gen_method ){
+            case 0: gen_region_extract(); break;
+            case 1: gen_random_extract(); break;    
+            default:apex_utils::error("unknown sample generate method\n");
+            }
+
+            if( normalize != 0 ) {
+                if( silent == 0 ) printf("normalize, ");
+                for( int i = 0 ; i < data.z_max ; i ++ )
+                    data[i] += -apex_tensor::cpu_only::avg( data[i] );
+            }
+          
+            if( do_shuffle != 0 ){
+                if( silent == 0 ) printf("shuffle, ");
+                shuffle();
+            }
+            
+            if( silent == 0 ){
+                printf( "%d sample generated\n", data.z_max ); 
+            }    
+            if( max_idx > data.z_max ) max_idx = data.z_max;                                   
         }
         
         // move to next mat
