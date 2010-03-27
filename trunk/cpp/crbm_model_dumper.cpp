@@ -1,5 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_DEPRECATED
+#define _CRT_SECURE_NO_DEPRECATE
 
 #include "../utils/apex_utils.h"
 #include "../tensor/apex_tensor.h"

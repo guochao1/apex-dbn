@@ -1,5 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_DEPRECATED
+#define _CRT_SECURE_NO_DEPRECATE
 
 #include "../tensor/apex_tensor.h"
 #include "../utils/data_set/apex_kyoto_iterator.h"
