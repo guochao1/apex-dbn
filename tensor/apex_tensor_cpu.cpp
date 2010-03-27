@@ -177,6 +177,35 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_A_CPU_ONLY( std_var )        
     };
     
+    namespace cpu_only{
+        void shuffle( CTensor3D &data ){
+            for( int i = 0 ; i < data.z_max ; i ++ ){
+                int j = (int)apex_random::next_uint32( data.z_max );
+                for( int y = 0 ; y < data.y_max ; y ++ )
+                    for( int x = 0 ; x < data.x_max ; x ++ ){
+                        TENSOR_FLOAT a = data[i][y][x];
+                        data[i][y][x] = data[j][y][x];
+                        data[j][y][x] = a;
+                    }                        
+            }                
+        }
+        
+        void rand_extract( CTensor2D &dst, const CTensor2D &src ){
+            int yy, xx;
+            if( src.y_max == dst.y_max ) 
+                yy = 0;
+            else 
+                yy = (int)apex_random::next_uint32( src.y_max - dst.y_max );
+            if( src.x_max == dst.x_max ) 
+                xx = 0;
+            else 
+                xx = (int)apex_random::next_uint32( src.x_max - dst.x_max );
+            
+            for( int y = 0 ; y < dst.y_max ; y ++ )
+                memcpy( dst[y].elem, src[yy+y].elem + xx, dst.x_max * sizeof(TENSOR_FLOAT) );  
+        }
+    };
+
     // template functions
     namespace tensor{
         // allocate space

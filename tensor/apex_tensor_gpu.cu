@@ -6,30 +6,26 @@
 
 // GPU implementation of tensor functions
 namespace apex_tensor{    
-    int __init_counter = 0;
-    inline void choose_device( int dev ){
-        cudaDeviceProp device_prop;
-        cudaGetDeviceProperties( &device_prop, dev );
-        if( device_prop.major == 9999 && device_prop.minor == 9999 )
-            cuda_tensor::error("There is no device supporting CUDA.\n");
-        if( cudaSetDevice( dev ) != cudaSuccess )
-            cuda_tensor::error("can't set device of CUDA\n");
-    }
 
     void init_tensor_engine_gpu( void ){
-        if( __init_counter == 0 ){
-            int device_count = 0;
-            if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
-                cuda_tensor::error("can't get device information about cuda\n");
-            }else{
-                if( device_count == 0 ){
-                    cuda_tensor::error("There is no device supporting CUDA.\n");
-                }else{
-                    choose_device( 0 );
-                }            
-            }
-            __init_counter ++;
+        int device_count = 0;
+        if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
+            cuda_tensor::error("can't get device information about cuda\n");
+        }else{
+            if( device_count == 0 ){
+                cuda_tensor::error("There is no device supporting CUDA.\n");
+            }else{                
+                int dev;                    
+                if( cudaGetDevice( &dev ) != cudaSuccess )
+                    cuda_tensor::error("can't get device to run CUDA\n");                    
+
+                cudaDeviceProp device_prop;
+                cudaGetDeviceProperties( &device_prop, dev );
+                if( device_prop.major == 9999 && device_prop.minor == 9999 )
+                    cuda_tensor::error("There is no device availiable supporting CUDA.\n");
+            }            
         }
+        
         cuda_rand::rand_init();
     }
     
@@ -67,14 +63,16 @@ namespace apex_tensor{
     namespace cuda_tensor{
         template<typename T>
         inline void alloc_space_template( T &ts ){
-            if( cudaMallocPitch( (void**)&ts.elem, &ts.pitch, ts.x_max*sizeof(TENSOR_FLOAT), num_line(ts) ) != cudaSuccess ){
-                error("gpu:error allocate space");
+            cudaError_t err = cudaMallocPitch( (void**)&ts.elem, &ts.pitch, ts.x_max*sizeof(TENSOR_FLOAT), num_line(ts) );
+            if( err != cudaSuccess ){
+                error( cudaGetErrorString(err) );
             } 
         }     
 
         template<typename T>
         inline void free_space_template( T &ts ){
-            if( cudaFree( ts.elem ) != cudaSuccess ){
+            cudaError_t err = cudaFree( ts.elem );
+            if( err != cudaSuccess ){
                 error("gpu:error free space");
             }
         }    
