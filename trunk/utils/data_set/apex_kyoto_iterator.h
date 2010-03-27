@@ -112,7 +112,7 @@ namespace apex_utils{
             for( int i = 0 ; i < tdata.z_max ; i ++ ){
                 for( int j = 0 ; j < num_extract_per_image ; j ++ ){
                     apex_tensor::CTensor2D dd = data[ i*num_extract_per_image+j ];
-                    apex_tensor::cpu_only::rand_extract( dd, data[i] );
+                    apex_tensor::cpu_only::rand_extract( dd, tdata[i] );
                 }                        
             }                
 
