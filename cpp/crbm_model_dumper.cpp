@@ -1,4 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_DEPRECATED
+
 #include "../utils/apex_utils.h"
 #include "../tensor/apex_tensor.h"
 #include "../crbm/apex_crbm_model.h"
