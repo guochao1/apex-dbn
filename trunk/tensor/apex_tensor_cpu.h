@@ -332,9 +332,12 @@ namespace apex_tensor{
             void copy_fit( CTensor2D &dst, const CTensor2D &src );
             void copy_fit( CTensor3D &dst, const CTensor3D &src );
             
+            // fill the edge of dest by values in src
+            void refill_edge_area( CTensor3D &dst, const CTensor3D &src, int edge_y_len, int edge_x_len );
+            
             // pool up
             void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ); 
-            
+                            
             // 2D convolution with bias
             // convolution, leaves the valid area
             // dst = (~a) (*)  filter + bias 

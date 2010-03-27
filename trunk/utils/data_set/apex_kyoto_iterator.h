@@ -73,7 +73,8 @@ namespace apex_utils{
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
             apex_tensor::tensor::load_from_file( tdata , fi );
             fclose( fi );
-
+            
+            // segmentation 
             int yy_max = tdata.y_max / height;
             int xx_max = tdata.x_max / width;
             data.set_param( tdata.z_max*yy_max*xx_max, height, width );
@@ -84,13 +85,10 @@ namespace apex_utils{
                     for( int x = 0 ; x < xx_max ; x ++ ){
 						const int yy = y * height;
 						const int xx = x * width;
-						apex_tensor::CTensor2D &dd = data[ i*yy_max*xx_max + y*xx_max + x ];
+						apex_tensor::CTensor2D dd = data[ i*yy_max*xx_max + y*xx_max + x ];
                         for( int dy = 0 ; dy < height ; dy ++ )
                             for( int dx = 0 ; dx < width ; dx ++ )
-                                dd[dy][dx] 
-                                    = tdata[i][yy+dy][xx+dx];
-
-                        // normalize to standard distribution
+                                dd[dy][dx] = tdata[i][yy+dy][xx+dx];
                         if( normalize != 0 ) {
                             dd += -apex_tensor::cpu_only::avg( dd );
                         }

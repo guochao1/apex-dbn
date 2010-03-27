@@ -280,7 +280,11 @@ namespace apex_tensor{
             void sadd__scale( GTensor4D &dst, const GTensor2D &src, TENSOR_FLOAT scale_src ){
                 cuda_tensor::map_E<store_method::ADD,map_method_B::MUL>( dst, src, scale_src );
             }
-                        
+             
+            void refill_edge_area( GTensor3D &dst, const GTensor3D &src, int edge_y_len, int edge_x_len ){
+                cuda_tensor::map_A_edge<store_method::SAVE,map_method_A::IDENTITY>( dst, src, edge_y_len, edge_x_len );
+            }
+
             void pool_up( GTensor3D &dst , const GTensor3D &src, int pool_size ){
                 cuda_tensor::pool_up<store_method::SAVE,map_method_A::IDENTITY>( dst, src, pool_size );
             }
