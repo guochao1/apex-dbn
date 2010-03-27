@@ -331,6 +331,9 @@ namespace apex_tensor{
             void copy_fit( GTensor2D &dst, const CTensor2D &src );
             void copy_fit( GTensor3D &dst, const CTensor3D &src );
             void copy_fit( GTensor3D &dst, const GTensor3D &src );
+            
+            // fill the edge of dest by values in src
+            void refill_edge_area( GTensor3D &dst, const GTensor3D &src, int edge_y_len, int edge_x_len );
 
             // normalize by maxpooling 2D
             void norm_maxpooling_2D( GTensor3D &mean, const GTensor3D &energy, int pool_size );

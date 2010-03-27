@@ -14,42 +14,42 @@ namespace apex_rbm{
     //node of SRBM
     class ICRBMNode{
     public:
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean ) = 0;
-        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy) = 0;
+        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const = 0;
+        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy)const = 0;
         // feed forward data needed   
-        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ) = 0;
+        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const = 0;
         // feed forward bias to next layer 
-        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ) = 0;
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr )const = 0;
         // reget the bound of data
-        virtual void reget_bound ( int &input_y_max, int &input_x_max  ) = 0;
+        virtual void reget_bound ( int &input_y_max, int &input_x_max  )const = 0;
         // reget the bound of hidden data 
-        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ) = 0;
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const = 0;
         // calculate sparse_regularization
-        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ) = 0;
+        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const = 0;
    };
 
     // bianry node
     class CRBMBinaryNode : public ICRBMNode{
     public:
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean ){
+        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
             state = sample_binary( mean );
         }
-        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy){
+        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy)const{
             mean = sigmoid( energy );
         }               
-        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
+        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
             tensor::crbm::copy_fit( v_next, h_curr );
         }
         
-        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr )const{
             tensor::copy( v_bias_next, h_bias_curr );
         }
         // reget the bound of data
-        virtual void reget_bound ( int &input_y_max, int &input_x_max  ){}
+        virtual void reget_bound ( int &input_y_max, int &input_x_max  )const{}
         
         // reget the bound of hidden data 
-        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ){ }
-        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ){
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const{ }
+        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const{
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , 1 );
         }
     };
@@ -62,25 +62,24 @@ namespace apex_rbm{
             this->sigma       = sigma;
             //            this->sigma_sqr   = sigma*sigma;
         }
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean ){
+        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
             tensor::sample_gaussian( state, mean, sigma );
         }
-        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
+        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
             mean =  energy; // * sigma_sqr;
         }               
-        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
+        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
             tensor::crbm::copy_fit( v_next, h_curr );
         }
         
-        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr )const{
             tensor::copy( v_bias_next, h_bias_curr );
         }
         // reget the bound of data
-        virtual void reget_bound ( int &input_y_max, int &input_x_max  ){}
-        
+        virtual void reget_bound ( int &input_y_max, int &input_x_max  )const{}        
         // reget the bound of hidden data 
-        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ){ }
-        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ){
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const{}
+        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const{
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , 1 );
         }
     };
@@ -97,10 +96,10 @@ namespace apex_rbm{
             pool_size = param.pool_size;
             this->energy_scale = energy_scale;
         }
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean ){
+        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
             tensor::crbm::sample_maxpooling_2D( state, mean, pool_size );
         }
-        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy ){
+        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
             if( !scale_energy ){ 
                 tensor::crbm::norm_maxpooling_2D( mean, energy, pool_size );
             }else{
@@ -109,24 +108,24 @@ namespace apex_rbm{
             }
         }   
         
-        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr ){
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr )const{
 			tensor::copy( v_bias_next, h_bias_curr);
 			v_bias_next += (float)( 2.0 * log((double)pool_size) );
         }
-        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr ){
+        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
             tensor::crbm::pool_up( v_next, h_curr, pool_size );
         }
         // reget the bound of data
-        virtual void reget_bound ( int &input_y_max, int &input_x_max  ){
+        virtual void reget_bound ( int &input_y_max, int &input_x_max  )const{
             input_x_max /= pool_size;
             input_y_max /= pool_size;
         }
         // reget the bound of hidden data 
-        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max ){
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const{
             h_y_max = (h_y_max / pool_size) * pool_size;
             h_x_max = (h_x_max / pool_size) * pool_size;
         }
-        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos ){
+        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const{
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , pool_size );
         }
     };
@@ -182,7 +181,7 @@ namespace apex_rbm{
             delete v_node; delete h_node;
         }
         
-        inline void forward_bias( TTensor1D &v_bias_next ){
+        inline void forward_bias( TTensor1D &v_bias_next )const{
             h_node->forward_bias( v_bias_next, h_bias );
         }
         
@@ -193,7 +192,7 @@ namespace apex_rbm{
             h_node->feed_forward( v_state_next, h_state );
         }        
         
-        inline void reget_bound( int &y_max, int &x_max ){
+        inline void reget_bound( int &y_max, int &x_max ) const{
             y_max = y_max - W.y_max + 1;  
             x_max = x_max - W.x_max + 1;  
             h_node->reget_bound( y_max, x_max );
@@ -208,9 +207,11 @@ namespace apex_rbm{
     // simple implementation of srbm
     class CRBMSimple:public ICRBM{
     private:
-        int  cd_step, sample_counter, h_size, v_size;
+        int  cd_step, h_size, v_size;
         CRBMTrainParam param;
-        bool persistent_ok;        
+        bool persistent_ok;  
+    private:
+        int sample_counter, state_counter;
     private:
         TTensor1D d_h_bias, d_v_bias;
         TTensor1D h_sum_mf, h_sum_mf_grad;
@@ -241,7 +242,7 @@ namespace apex_rbm{
             wd_sum.set_param( d_W.h_max, d_W.z_max );
             tensor::alloc_space( wd_sum );
             
-            sample_counter = 0; persistent_ok = false;            
+            sample_counter = 0; state_counter = 0; persistent_ok = false;            
             
             h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;            
             h_size   = layers.back().h_state.y_max * layers.back().h_state.x_max;
@@ -283,7 +284,6 @@ namespace apex_rbm{
         
         // deallocate the space
         virtual ~CRBMSimple(){
-            destroy_tensor_engine();
             for( size_t i = 0 ; i < layers.size() ; i ++ )
                 layers[i].free_space();
             layers.clear();
@@ -291,6 +291,8 @@ namespace apex_rbm{
             tensor::free_space( d_v_bias );
             tensor::free_space( d_W );
             tensor::free_space( wd_sum );
+            tensor::free_space( h_sum_mf );
+            tensor::free_space( h_sum_mf_grad );
             tensor::free_space( v_neg );
             tensor::free_space( h_neg );
             // destroy the tensor engine
@@ -305,8 +307,8 @@ namespace apex_rbm{
             TTensor1D & h_bias = layers.back().h_bias;
             TTensor1D & v_bias = layers.back().v_bias;
             TTensor4D & W      = layers.back().W;            
-            ICRBMNode *h_node  = layers.back().h_node;
-            ICRBMNode *v_node  = layers.back().v_node;
+            const ICRBMNode *h_node  = layers.back().h_node;
+            const ICRBMNode *v_node  = layers.back().v_node;
             // go up
             tensor::crbm::conv2_r_valid( h_pos, v_pos, W, h_bias );
             h_node->cal_mean( h_pos, h_pos );
@@ -322,9 +324,14 @@ namespace apex_rbm{
                 v_node->cal_mean( v_neg, v_neg );
 
                 if( param.sample_v_neg != 0 ){
-                    v_node->sample  ( v_neg, v_neg );
+                    v_node->sample( v_neg, v_neg );
                 }
 
+                // refill edge area with v_pos inorder to avoid edge effect
+                if( param.refill_edge_area ){
+                    tensor::crbm::refill_edge_area( v_neg, v_pos, W.y_max-1, W.x_max-1 );
+                }
+                
                 // go up
                 tensor::crbm::conv2_r_valid( h_neg, v_neg, W, h_bias );
                 h_node->cal_mean( h_neg, h_neg );
@@ -337,7 +344,7 @@ namespace apex_rbm{
             h_sum_mf  += -param.sparse_level;                
             if( param.sparse_reg_method == 0  ){
                 h_sum_mf   = h_sum_mf * h_sum_mf_grad;
-                // leave out a h_size
+                // leave out h_size
                 h_sum_mf  *= param.sparse_lambda;
             }else{
                 h_sum_mf  *= param.sparse_lambda*param.batch_size*h_size;
@@ -373,15 +380,13 @@ namespace apex_rbm{
                 d_v_bias *= param.momentum;
             }
             // use group regularization
-            if( param.use_group_reg != 0 ){
-                tensor::crbm::sum_2D( wd_sum , W );
-            }
+            if( param.use_group_reg != 0 )
+                tensor::crbm::sum_2D( wd_sum , W );            
             
             W  = W * ( 1-eta*param.wd_W ) + d_W * eta;            
             
-            if( param.use_group_reg != 0 ){
+            if( param.use_group_reg != 0 )
                 tensor::crbm::sadd__scale( W, wd_sum, -param.wd_Wsum*eta );
-            }
             
             d_W *= param.momentum;
         }
@@ -396,20 +401,36 @@ namespace apex_rbm{
             cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
             persistent_ok = ( param.persistent_cd !=0 );
 
-            if( param.chg_hidden_bias ){
-                d_h_bias += sum_2D( h_pos );
-                d_h_bias -= sum_2D( h_neg );         
-                layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
-            }
-            if( param.chg_visible_bias ){
-                d_v_bias += sum_2D( v_pos );
-                d_v_bias -= sum_2D( v_neg );
+            // this is not necessary, we add it anyway 
+            if( state_counter ){
+                if( param.chg_hidden_bias ){
+                    d_h_bias += sum_2D( h_pos );
+                    d_h_bias -= sum_2D( h_neg );         
+                    layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
+                }
+                if( param.chg_visible_bias ){
+                    d_v_bias += sum_2D( v_pos );
+                    d_v_bias -= sum_2D( v_neg );
+                }                
+                // calculate the gradient            
+                tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
+                tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
+            }else{
+                if( param.chg_hidden_bias ){
+                    d_h_bias -= sum_2D( h_neg );         
+                    d_h_bias += sum_2D( h_pos );
+                    layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
+                }
+                if( param.chg_visible_bias ){
+                    d_v_bias -= sum_2D( v_neg );
+                    d_v_bias += sum_2D( v_pos );
+                }                
+                // calculate the gradient            
+                tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
+                tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
             }
             
-            // calculate the gradient
-            tensor::crbm::ssub__conv2_r_big_filter( d_W, v_neg, h_neg );
-            tensor::crbm::sadd__conv2_r_big_filter( d_W, v_pos, h_pos );
-            
+            state_counter = !state_counter;
             if( ++sample_counter == param.batch_size ){
                 update_weight();
                 sample_counter = 0;
@@ -431,7 +452,6 @@ namespace apex_rbm{
             for( int i = 0 ; i < data.h_max ; i ++ )
                 train_update( data[i] );
         }
-
         
         // do validation, return the statistics
         virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor4D &data ){
@@ -527,4 +547,3 @@ namespace apex_rbm{
 };
 
 #endif
-

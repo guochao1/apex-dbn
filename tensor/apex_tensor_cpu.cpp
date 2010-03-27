@@ -699,13 +699,22 @@ namespace apex_tensor{
                     for( int j = 0 ; j < dst.x_max ; j ++ )
                         dst[i][j] = cpu_only::sum_template( src[i][j] );
             }            
-            
-            
+                        
             void sadd__scale( CTensor4D &dst, const CTensor2D &src, TENSOR_FLOAT scale_src ){
                 for( int i = 0 ; i < src.y_max ; i ++ )
                     for( int j = 0 ; j < src.x_max ; j ++ ){
                         dst[i][j] += src[i][j] * scale_src;
                     }
+            }
+            
+            void refill_edge_area( CTensor3D &dst, const CTensor3D &src, int edge_y_len, int edge_x_len ){
+                for( int i = 0 ; i < dst.z_max ; i ++ )
+                    for( int y = 0 ; y < dst.y_max ; y ++ )
+                        for( int x = 0 ; x < dst.x_max ; x ++ )
+                            if( y < edge_y_len || y >= dst.y_max - edge_y_len ||
+                                x < edge_x_len || x >= dst.x_max - edge_x_len ){
+                                    dst[y][x] = src[y][x];
+                                }                            
             }
             
             // calculate information of sparse regularization

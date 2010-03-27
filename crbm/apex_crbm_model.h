@@ -40,6 +40,9 @@ namespace apex_rbm{
         // use group regularization
         int use_group_reg;
         
+        // fill the edge area by positive example to enhance training
+        int refill_edge_area;
+
         // whether to use persistent CD
         int persistent_cd;
 
@@ -66,6 +69,7 @@ namespace apex_rbm{
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
             persistent_cd = 0; v_average = 0; forward_bias = 1;
             sample_v_neg = 1; sparse_reg_method = 0; use_group_reg = 0;
+            refill_edge_area = 0;
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
@@ -87,7 +91,8 @@ namespace apex_rbm{
             if( !strcmp("v_average", name ) )        v_average     = atoi( val );
             if( !strcmp("forward_bias", name ) )     forward_bias  = atoi( val );
             if( !strcmp("sample_v_neg", name ) )     sample_v_neg  = atoi( val );
-            if( !strcmp("use_group_reg", name ) )     use_group_reg = atoi( val );
+            if( !strcmp("use_group_reg", name ) )    use_group_reg = atoi( val );
+            if( !strcmp("refill_edge_area", name ) ) refill_edge_area = atoi( val );
         }
     };
     
