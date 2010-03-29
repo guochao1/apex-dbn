@@ -2,6 +2,7 @@
 #define _APEX_CRBM_MODEL_H_
 
 #include "../tensor/apex_tensor.h"
+#include "../utils/apex_utils.h"
 #include <vector>
 #include <cstdlib>
 #include <cstring>
