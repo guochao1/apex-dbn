@@ -1,6 +1,9 @@
 #ifndef _APEX_CRBM_CPP_
 #define _APEX_CRBM_CPP_
 
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_DEPRECATE
+
 #include "apex_crbm.h"
 #include "apex_crbm_model.h"
 #include "apex_crbm_model_stats.h"
