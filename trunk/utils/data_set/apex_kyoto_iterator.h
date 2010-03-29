@@ -132,6 +132,7 @@ namespace apex_utils{
             switch( sample_gen_method ){
             case 0: gen_region_extract(); break;
             case 1: gen_random_extract(); break;    
+            case 2: break;
             default:apex_utils::error("unknown sample generate method\n");
             }
 

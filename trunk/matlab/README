@@ -1,0 +1,5 @@
+this folder is used to store matlab code related to this projected
+
+folders
+
+   kyoto_data: this folder contains the script to convert the images in current directory to binary format that can be accepted by kyoto iterator
