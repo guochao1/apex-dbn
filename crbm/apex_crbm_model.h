@@ -245,7 +245,7 @@ namespace apex_rbm{
 
             s = fread( &count, sizeof(size_t),  1 , fi );
             if( s <=0 ){
-                fprintf(stderr,"error loading SDBN model\n"); exit( -1 );
+                fprintf(stderr,"error loading CDBN model\n"); exit( -1 );
             }
 
             layers.resize( count );
@@ -271,6 +271,11 @@ namespace apex_rbm{
         }
         // add a layer to the dbn model
         inline void add_layer( const CRBMModelParam  &p ){
+            if( layers.size() > 0 ){
+                if( p.v_max != layers.back().param.h_max ){
+                    apex_utils::error("layer configuration unmatched with last layer\n" );
+                }
+            } 
             layers.resize( layers.size() + 1 );
             layers.back().param = p;
             layers.back().alloc_space();
