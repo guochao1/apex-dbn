@@ -73,14 +73,15 @@ namespace apex_tensor{
         inline void free_space_template( T &ts ){
             cudaError_t err = cudaFree( ts.elem );
             if( err != cudaSuccess ){
-                error("gpu:error free space");
+                error( cudaGetErrorString(err) );
             }
         }    
         
         template<typename TA,typename TB,enum cudaMemcpyKind kind>
         inline void copy_template( TA dst, const TB src ){
-            if( cudaMemcpy2D( dst.elem, dst.pitch, src.elem, src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind ) != cudaSuccess ){
-                error("gpu:error memcpy\n");
+            cudaError_t err = cudaMemcpy2D( dst.elem, dst.pitch, src.elem, src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind );
+            if( err != cudaSuccess ){
+                error( cudaGetErrorString(err) );
             }   
         }                 
     };
