@@ -59,17 +59,17 @@ namespace apex_rbm{
     
     class CRBMGaussianNode : public ICRBMNode{
     private:
-        float sigma;
+        float sigma, sigma_sqr;
     public:
         CRBMGaussianNode( float sigma ){
             this->sigma       = sigma;
-            //            this->sigma_sqr   = sigma*sigma;
+            this->sigma_sqr   = sigma*sigma;
         }
         virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
             tensor::sample_gaussian( state, mean, sigma );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
-            mean =  energy; // * sigma_sqr;
+            mean =  energy * sigma_sqr;
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
             tensor::crbm::copy_fit( v_next, h_curr );
@@ -144,7 +144,7 @@ namespace apex_rbm{
     inline ICRBMNode *create_hidden_node( const CRBMModelParam &param ){
         switch( param.model_type ){
         case 0: return new CRBMMaxpoolNode<false>( param );
-        case 1: return new CRBMMaxpoolNode<true> ( param, 1.0f/(param.v_sigma*param.v_sigma) );
+        case 1: return new CRBMMaxpoolNode<false>( param );
         default: return NULL;
         }
     }
@@ -550,3 +550,4 @@ namespace apex_rbm{
 };
 
 #endif
+
