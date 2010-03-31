@@ -10,19 +10,19 @@
 
 namespace apex_utils{
     template<typename T>
-    inline void __minist_set_param( T & m, int z_max, int y_max, int x_max  );
+    inline void __minist_set_param( T & m, int z_max, int y_max, int x_max, size_t pitch );
     
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max  ){
-        m.y_max = z_max; m.x_max = y_max * x_max; 
+    inline void __minist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, size_t pitch ){
+        m.y_max = z_max; m.x_max = y_max * x_max; m.pitch = pitch * y_max;
     }
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max  ){
-        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; 
+    inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, size_t pitch ){
+        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max  ){
-        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; 
+    inline void __minist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max, size_t pitch ){
+        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
     }
 
     /* iterator that  iterates over the MINIST data set */
@@ -42,9 +42,8 @@ namespace apex_utils{
             int y_max = max_idx - start_idx;
             if( y_max > trunk_size ) y_max = trunk_size;            
             T m; 
-            m.pitch = data.pitch;
             m.elem  = data[ start_idx ].elem;
-            __minist_set_param<T>( m , y_max, data.y_max, data.x_max ); 
+            __minist_set_param<T>( m , y_max, data.y_max, data.x_max, data.pitch ); 
             return m;
         } 
         
@@ -109,14 +108,14 @@ namespace apex_utils{
             
             fclose( fi );
             
-            data.set_param( num_image, width , height );
+            data.set_param( num_image, height , width );
 			data.pitch = height * sizeof(apex_tensor::TENSOR_FLOAT);
-            data.elem  = new apex_tensor::TENSOR_FLOAT[ num_image*width*height ];
+            data.elem  = new apex_tensor::TENSOR_FLOAT[ num_image*height*width ];
             
             for( int i = 0 ; i < num_image ; i ++ )
                 for( int y = 0; y < height ; y ++ )
                     for( int x = 0; x < width ; x ++ ){
-						data[i][ y ][ x ] = (apex_tensor::TENSOR_FLOAT)(t_data[ i*pitch + y*width + x ] != 0 );
+						data[ i ][ y ][ x ] = (apex_tensor::TENSOR_FLOAT)(t_data[ i*pitch + y*width + x ] != 0 );
                     }        
             delete[] t_data;        
             idx = - trunk_size;  

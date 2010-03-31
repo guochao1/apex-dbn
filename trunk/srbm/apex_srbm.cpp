@@ -28,19 +28,39 @@ namespace apex_rbm{
             mean = sigmoid( energy );
         }        
     };
+
+    // gaussian node
+    class SRBMGaussianNode : public ISRBMNode{
+    private:
+        float sigma, sigma_sqr;
+    public:
+        SRBMGaussianNode( float sigma ){
+            this->sigma     = sigma;
+            this->sigma_sqr = sigma * sigma;
+        } 
+        virtual void sample  ( TTensor1D &state, const TTensor1D &mean ){
+            tensor::sample_gaussian( state, mean, sigma );
+        }
+        virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy){
+            mean = energy * sigma_sqr; 
+        }        
+    };
+
     inline ISRBMNode *create_visible_node( const SRBMModelParam &param ){
         switch( param.model_type ){
         case 0: return new SRBMBinaryNode();
+        case 1: return new SRBMGaussianNode( param.v_sigma );
         default: return NULL;
         }
     }
     inline ISRBMNode *create_hidden_node( const SRBMModelParam &param ){
         switch( param.model_type ){
-        case 0: return new SRBMBinaryNode();
+        case 0:
+        case 1: return new SRBMBinaryNode();
         default: return NULL;
         }
     }
-    
+
     
     // one layer of SRBM
     struct SRBMLayer{
