@@ -11,7 +11,7 @@
 #include "../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
-	class SRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor2D> {
+	class SRBMTrainer : public apex_utils::ITensorLabeledUpdater<apex_tensor::CTensor2D> {
     private:
         // model parameter
         /* parameter for new layer */
@@ -128,12 +128,31 @@ namespace apex_rbm{
         }
 
         virtual void validate_trunk    ( const apex_tensor::CTensor2D &data ){
-            SRBMModelParam &param = model.layers.back().param;            
+			SRBMModelParam &param = model.layers.back().param;            
             SRBMModelStats stats( param.v_max, param.h_max );
             srbm->validate_stats( stats, data );
             stats.save_summary( fo_summary_log );
             stats.save_detail ( fo_detail_log  );
         }
+
+		// gavinhu
+		virtual void train_update(const apex_tensor::CTensor1D &label, const apex_tensor::CTensor1D &data) {
+			srbm->train_update(label, data);
+		}
+
+		// gavinhu
+		virtual void train_update_trunk(const apex_tensor::CTensor2D &label, const apex_tensor::CTensor2D &data) {
+			srbm->train_update_trunk(label, data);
+		}
+
+		// gavinhu
+		virtual void validate_trunk(const apex_tensor::CTensor2D &label, const apex_tensor::CTensor2D &data) {
+			SRBMModelParam &param = model.layers.back().param;
+			SRBMModelStats stats(param.v_max, param.h_max, param.l_max);
+			srbm->validate_stats(stats, label, data);
+			stats.save_summary(fo_summary_log);
+			stats.save_detail(fo_detail_log);
+		}
 
         /* we end a round of training */
         virtual void round_end(){
