@@ -68,6 +68,9 @@ namespace apex_rbm{
         /* number of visible and hidden unit */
         int v_max , h_max;
 
+		// gavinhu: number of label unit, 0 means unlabeled
+		int l_max;
+
         /* the gaussian variance in gaussian unit */
         float v_sigma, h_sigma;
         
@@ -87,7 +90,10 @@ namespace apex_rbm{
             if( !strcmp("w_init_sigma", name ) )  w_init_sigma = (float)atof( val );
             if( !strcmp("init_sigma", name ) )    v_init_sigma = h_init_sigma = w_init_sigma = (float)atof( val );
             if( !strcmp("h_bias_prior_mean", name ) ) h_bias_prior_mean = (float)atof( val );
-            if( !strcmp("v_bias_prior_mean", name ) ) v_bias_prior_mean = (float)atof( val );            
+            if( !strcmp("v_bias_prior_mean", name ) ) v_bias_prior_mean = (float)atof( val );
+
+			// gavinhu: add support for labeled rbm.
+			if (!strcmp("l_max", name)) l_max = atoi(val);
         }
     };
 
@@ -98,9 +104,16 @@ namespace apex_rbm{
         apex_tensor::CTensor1D h_bias, v_bias;
         apex_tensor::CTensor2D Wvh;
 
+		// gavinhu
+		apex_tensor::CTensor1D l_bias;	// biases for label units.
+		apex_tensor::CTensor2D Wlh;		// connection between labels and hidden units.
+
         // change of weight
-        apex_tensor::CTensor1D d_h_bias, d_v_bias;
+        apex_tensor::CTensor1D d_h_bias, d_v_bias, d_l_bias;		// gavinhu: added d_l_bias
         apex_tensor::CTensor2D d_Wvh;
+
+		// gavinhu
+		apex_tensor::CTensor2D d_Wlh;
         
         inline void alloc_space(){
             h_bias.set_param( param.h_max );
@@ -109,6 +122,18 @@ namespace apex_rbm{
 			d_v_bias.set_param( param.v_max );
             Wvh.set_param  ( param.v_max, param.h_max );
             d_Wvh.set_param( param.v_max, param.h_max );
+
+			// gavinhu
+			l_bias.set_param(param.l_max);
+			d_l_bias.set_param(param.l_max);
+			Wlh.set_param(param.l_max, param.h_max);
+			d_Wlh.set_param(param.l_max, param.h_max);
+			if (param.l_max > 0) {
+				apex_tensor::tensor::alloc_space(l_bias);
+				apex_tensor::tensor::alloc_space(d_l_bias);
+				apex_tensor::tensor::alloc_space(Wlh);
+				apex_tensor::tensor::alloc_space(d_Wlh);
+			}
 
             apex_tensor::tensor::alloc_space( h_bias );
             apex_tensor::tensor::alloc_space( v_bias );
@@ -125,6 +150,14 @@ namespace apex_rbm{
             apex_tensor::tensor::free_space( d_v_bias );
             apex_tensor::tensor::free_space( Wvh );
             apex_tensor::tensor::free_space( d_Wvh );
+
+			// gavinhu
+			if (param.l_max > 0) {
+				apex_tensor::tensor::free_space(l_bias);
+				apex_tensor::tensor::free_space(d_l_bias);
+				apex_tensor::tensor::free_space(Wlh);
+				apex_tensor::tensor::free_space(d_Wlh);
+			}
         }
 
         inline void load_from_file( FILE *fi ){            
@@ -138,6 +171,14 @@ namespace apex_rbm{
             apex_tensor::tensor::load_from_file( d_h_bias, fi );
             apex_tensor::tensor::load_from_file( d_v_bias, fi );
             apex_tensor::tensor::load_from_file( d_Wvh, fi );
+
+			// gavinhu
+			if (param.l_max > 0) {
+				apex_tensor::tensor::load_from_file(l_bias, fi);
+				apex_tensor::tensor::load_from_file(d_l_bias, fi);
+				apex_tensor::tensor::load_from_file(Wlh, fi);
+				apex_tensor::tensor::load_from_file(d_Wlh, fi);
+			}
         }
         
         inline void save_to_file( FILE *fo ) const{
@@ -148,6 +189,14 @@ namespace apex_rbm{
             apex_tensor::tensor::save_to_file( d_h_bias, fo );
             apex_tensor::tensor::save_to_file( d_v_bias, fo );
             apex_tensor::tensor::save_to_file( d_Wvh, fo );
+
+			// gavinhu
+			if (param.l_max > 0) {
+				apex_tensor::tensor::save_to_file(l_bias, fo);
+				apex_tensor::tensor::save_to_file(d_l_bias, fo);
+				apex_tensor::tensor::save_to_file(Wlh, fo);
+				apex_tensor::tensor::save_to_file(d_Wlh, fo);
+			}
         }
                         
         inline void rand_init(){
@@ -160,10 +209,19 @@ namespace apex_rbm{
             d_Wvh    = 0.0f;
             d_h_bias = 0.0f;
             d_v_bias = 0.0f;
+
+			// gavinhu
+			if (param.l_max > 0) {
+				apex_tensor::tensor::sample_gaussian(l_bias, param.v_init_sigma);
+				apex_tensor::tensor::sample_gaussian(Wlh, param.w_init_sigma);
+				d_Wlh = 0.0f;
+				d_l_bias = 0.0f;
+			}
         }       
 
         inline void save_to_text( FILE *fo )const{
-            fprintf( fo , "v_max=%d,h_max=%d\n", param.v_max, param.h_max );
+			// gavinhu: added param.l_max
+			fprintf( fo , "v_max=%d,h_max=%d,l_max=%d\n", param.v_max, param.h_max, param.l_max );
 
             fprintf( fo , "v_bias:\n" );
             for( int v = 0 ; v < param.v_max ; v ++ )
@@ -173,12 +231,28 @@ namespace apex_rbm{
             for( int h = 0 ; h < param.h_max ; h ++ )
                 fprintf( fo, "%f\t", (float)h_bias[h] );
 
+			fprintf(fo, "\nWvh:\n");
             for( int v = 0 ; v < param.v_max ; v ++ ){
                 for( int h = 0 ; h < param.h_max ; h ++ ){                    
                     fprintf(fo,"%f\t", (float)Wvh[v][h] );                     
                 }
                 fprintf( fo, "\n" );
             }
+
+			// gavinhu: added label output.
+			if (param.l_max > 0) {
+				fprintf(fo, "\nl_bias:\n");
+				for (int l = 0; l < param.l_max; l++)
+					fprintf(fo, "%f\t", (float)l_bias[l]);
+
+				fprintf(fo, "\nWlh:\n");
+				for (int l = 0; l < param.l_max; l++) {
+					for (int h = 0; h < param.h_max; h++) {
+						fprintf(fo, "%f\t", (float)Wlh[l][h]);
+					}
+					fprintf(fo, "\n");
+				}
+			}
         }
     };
     
