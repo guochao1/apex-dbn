@@ -309,6 +309,8 @@ namespace apex_tensor{
         template<typename T>
         APEX_ELEMENTWISE_UNARY_OP ( mul_template  , TENSOR_FLOAT val ,d[j] = a[j] * val  );
         template<typename T>
+        APEX_ELEMENTWISE_UNARY_OP ( sadd__mul_template  , TENSOR_FLOAT val ,d[j] += a[j] * val  );
+        template<typename T>
         APEX_ELEMENTWISE_UNARY_OP ( sample_gaussian_template , TENSOR_FLOAT sd ,d[j] = (TENSOR_FLOAT)apex_random::sample_normal( a[j], sd ));
         template<typename T>
         APEX_ELEMENTWISE_MAP_OP   ( sigmoid_template      , d[j] = (TENSOR_FLOAT)(1.0/(1+exp(-a[j]))) );
@@ -435,8 +437,10 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_C( add )
         APEX_USE_TEMPLATE_C( sub )
         APEX_USE_TEMPLATE_C( mul )
+        
         APEX_USE_TEMPLATE_D( add, TENSOR_FLOAT val, val )
         APEX_USE_TEMPLATE_D( mul, TENSOR_FLOAT val, val )
+        APEX_USE_TEMPLATE_D( sadd__mul, TENSOR_FLOAT val, val )
         APEX_USE_TEMPLATE_D( sample_gaussian, TENSOR_FLOAT sd, sd )
         APEX_USE_TEMPLATE_E( sigmoid )
         APEX_USE_TEMPLATE_E( sample_binary )
