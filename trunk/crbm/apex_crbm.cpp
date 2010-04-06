@@ -66,7 +66,7 @@ namespace apex_rbm{
             this->sigma_sqr   = sigma*sigma;
         }
         virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
-            tensor::sample_gaussian( state, mean, sigma );
+            state = sample_gaussian( mean, sigma );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
             mean =  energy * sigma_sqr;
@@ -365,28 +365,30 @@ namespace apex_rbm{
             if( param.chg_hidden_bias ){
                 // calculate sparse grad
                 cal_sparse();
-                h_bias    = h_bias * ( 1-eta*param.wd_h ) + d_h_bias * eta;
+                h_bias   += ( d_h_bias -= h_bias * param.wd_h ) * eta;
                 // add sparse regularization
-                h_bias    = h_bias * 1.0f + h_sum_mf *(-eta); 
-                d_h_bias  *= param.momentum;
+                h_bias   += h_sum_mf *(-eta); 
+                d_h_bias *= param.momentum;
                 
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
             }
+
             if( param.chg_visible_bias ){
 				if( param.v_average ){
                     // use average method to update visible bias
                     float eta_v = param.learning_rate /(param.batch_size*v_size);
-                    v_bias    = v_bias * ( 1-eta_v*param.wd_v ) + d_v_bias * eta_v;
+                    v_bias += ( d_v_bias-= v_bias*param.wd_v ) * eta_v;
                 }else{
-                    v_bias    = v_bias * ( 1-eta*param.wd_v ) + d_v_bias * eta;
+                    v_bias += ( d_v_bias-= v_bias*param.wd_v ) * eta;
                 }
                 d_v_bias *= param.momentum;
             }
+ 
             // use group regularization
             if( param.use_group_reg != 0 )
                 tensor::crbm::sum_2D( wd_sum , W );            
             
-            W  = W * ( 1-eta*param.wd_W ) + d_W * eta;            
+            W   += ( d_W -= W * param.wd_W ) * eta;            
             
             if( param.use_group_reg != 0 )
                 tensor::crbm::sadd__scale( W, wd_sum, -param.wd_Wsum*eta );

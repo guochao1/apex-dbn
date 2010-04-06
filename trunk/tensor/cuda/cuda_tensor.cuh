@@ -387,10 +387,14 @@ namespace apex_tensor{
         };
 
         namespace map_method_B{
-            const int B_MASK  = 2<<5; 
-            const int ADD     = 0 | B_MASK;
-            const int SUB     = 1 | B_MASK;
-            const int MUL     = 2 | B_MASK;
+            const int B_MASK       = 2<<5; 
+            const int ADD          = 0 | B_MASK;
+            const int SUB          = 1 | B_MASK;
+            const int MUL          = 2 | B_MASK;
+            const int ABS_ERR      = 3 | B_MASK;
+            const int ABS_ERR_REL  = 4 | B_MASK;
+            const int ABS_ERR_RELT = 5 | B_MASK;
+            
             
             template<int mm>
             __device__ float __map( float a, float b );
@@ -406,6 +410,18 @@ namespace apex_tensor{
             __device__ float __map<MUL>( float a, float b ){
                 return a * b;
             }
+            template<>
+            __device__ float __map<ABS_ERR>( float a, float b ){
+                return fabsf( a - b );
+            }
+            template<>
+            __device__ float __map<ABS_ERR_REL>( float a, float b ){
+                return fabsf( 1 - b/a );
+            }
+            template<>
+            __device__ float __map<ABS_ERR_RELT>( float a, float b ){
+                return fabsf(a) > 1e-5f ? fabsf( 1 - b/a ): fabsf (a-b)/1e-5f ;
+            }            
         };
 
         namespace map_method_D{

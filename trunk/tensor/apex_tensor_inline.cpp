@@ -146,7 +146,13 @@ namespace apex_tensor{
     }                                                                   \
     
 #define APEX_EVAL_SIGMOID_PLAN(T) APEX_TEMPLATE_EVAL_MAP_PLAN(T,SigmoidPlan,sigmoid) 
-#define APEX_EVAL_SAMPLE_BINARY_PLAN(T) APEX_TEMPLATE_EVAL_MAP_PLAN(T,SampleBinaryPlan,sample_binary) 
+#define APEX_EVAL_SAMPLE_BINARY_PLAN(T) APEX_TEMPLATE_EVAL_MAP_PLAN(T,SampleBinaryPlan,sample_binary)
+
+#define APEX_EVAL_SAMPLE_GAUSSIAN_PLAN(T)                                     \
+    inline T& T::operator= ( const apex_op_plan::SampleGaussianPlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::sample_gaussian( *this, *(val.a), val.val );            \
+        return *this;                                                   \
+    }                                                                   \
 
 #define APEX_EVAL_SCALE_ADD_PLAN(T)                                     \
     inline T& T::operator= ( const apex_op_plan::ScaleAddPlan<T,TENSOR_FLOAT> &val ){ \
@@ -158,6 +164,14 @@ namespace apex_tensor{
 #define APEX_EVAL_SCALE_PLAN(T)                                         \
     inline T& T::operator= ( const apex_op_plan::ScalePlan<T,TENSOR_FLOAT> &val ){ \
         tensor::mul( *this, *(val.a), val.scale );                      \
+        return *this;                                                   \
+    }                                                                   \
+    inline T& T::operator+= ( const apex_op_plan::ScalePlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::sadd__mul( *this, *(val.a), val.scale );                \
+        return *this;                                                   \
+    }                                                                   \
+    inline T& T::operator-= ( const apex_op_plan::ScalePlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::sadd__mul( *this, *(val.a), -val.scale );               \
         return *this;                                                   \
     }                                                                   \
 
@@ -209,6 +223,7 @@ namespace apex_tensor{
     
     APEX_EXPAND(  APEX_EVAL_SIGMOID_PLAN )
     APEX_EXPAND(  APEX_EVAL_SAMPLE_BINARY_PLAN )
+    APEX_EXPAND(  APEX_EVAL_SAMPLE_GAUSSIAN_PLAN )
     APEX_EXPAND(  APEX_EVAL_ADD_PLAN )
     APEX_EXPAND(  APEX_EVAL_MUL_PLAN )
     APEX_EXPAND ( APEX_EVAL_SCALE_PLAN )
@@ -277,6 +292,7 @@ namespace apex_tensor{
     APEX_EXPAND ( APEX_ADD_SUPPORT_MUL_OP )              
     APEX_EXPAND ( APEX_ADD_SUPPORT_TRANSPOSE_OP )
     APEX_EXPAND2( APEX_ADD_SUPPORT_SCALE_OP )           
+    APEX_EXPAND2( APEX_ADD_SUPPORT_SAMPLE_GAUSSIAN_OP )           
     // support for dot and dot.T
     APEX_ADD_SUPPORT_DOT_OP   ( TT1D, TT2D )
     APEX_ADD_SUPPORT_DOT_OP   ( TT2D, TT2D )

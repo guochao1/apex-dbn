@@ -33,6 +33,31 @@ namespace apex_op_plan{
     APEX_TEMPLATE_MAP_PLAN( Sum2DPlan )
 #define APEX_ADD_SUPPORT_SUM_2D_OP(T) APEX_TEMPLATE_ADD_SUPPORT_OP(T,Sum2DPlan,sum_2D)  
 
+};
+
+namespace apex_op_plan{
+
+#define APEX_TEMPLATE_MAP_PLAN_B(plan_name)     \
+    struct plan_name{                           \
+        const T *a;                             \
+        TV val;                                 \
+        plan_name( const T *a, TV val ){        \
+            this->a = a; this->val = val;       \
+        }                                       \
+    };                                          \
+
+#define APEX_TEMPLATE_ADD_SUPPORT_OP_B(T,TV,plan_name,map_name)         \
+    inline apex_op_plan::plan_name<T,TV> map_name( const T & a, TV b ){ \
+        return apex_op_plan::plan_name<T,TV>( &a, b );                  \
+    }                                                                   \
+
+    template<typename T,typename TV>
+    APEX_TEMPLATE_MAP_PLAN_B( SampleGaussianPlan )
+#define APEX_ADD_SUPPORT_SAMPLE_GAUSSIAN_OP(T,TV) APEX_TEMPLATE_ADD_SUPPORT_OP_B(T,TV,SampleGaussianPlan,sample_gaussian)  
+
+};
+
+namespace apex_op_plan{
     template<typename T>
     struct AddPlan{
         const T *a, *b;

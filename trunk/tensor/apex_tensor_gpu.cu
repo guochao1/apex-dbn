@@ -238,6 +238,7 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_MAP_B( add    , store_method::SAVE, map_method_B::ADD     )
         APEX_USE_TEMPLATE_MAP_B( sub    , store_method::SAVE, map_method_B::SUB     )
         APEX_USE_TEMPLATE_MAP_B( mul    , store_method::SAVE, map_method_B::MUL     )
+        APEX_USE_TEMPLATE_MAP_B( sadd__mul, store_method::ADD, map_method_B::MUL    )
         APEX_USE_TEMPLATE_MAP_C( add    , store_method::SAVE, map_method_B::ADD     )
         APEX_USE_TEMPLATE_MAP_C( sub    , store_method::SAVE, map_method_B::SUB     )
         APEX_USE_TEMPLATE_MAP_C( mul    , store_method::SAVE, map_method_B::MUL     )
@@ -246,7 +247,14 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_MAP_S ( sample_binary  , sample_binary  , store_method::SAVE )
         APEX_USE_TEMPLATE_MAP_SS( sample_gaussian, sample_gaussian, store_method::SAVE )
     };
-
+    
+    namespace tensor{
+        using namespace cuda_tensor;
+        APEX_USE_TEMPLATE_MAP_C( sadd__abs_err       , store_method::ADD, map_method_B::ABS_ERR )
+        APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_rel   , store_method::ADD, map_method_B::ABS_ERR_REL   )
+        APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_relT  , store_method::ADD, map_method_B::ABS_ERR_RELT  )
+    };
+    
     // support for CRBM
     namespace tensor{
         namespace crbm{
