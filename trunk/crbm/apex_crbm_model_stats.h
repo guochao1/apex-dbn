@@ -84,7 +84,16 @@ namespace apex_rbm{
         }                        
         
         inline void save_detail( FILE *fo ) { 
-            // temporary nothing to output, can be modified 
+            float ss = ((float)sample_counter) * h_size;
+            for( int i = 0 ; i < pos_grad_h.x_max ; i ++ ){
+                fprintf( fo,"%d:%.4f,%f,%f=%f,%f\t", i, 
+                         (float) pos_grad_h[i]/ss, 
+                         (float) (pos_grad_h[i]+neg_grad_h[i])/ss, 
+                         (float) grad_sparse[i]  / ss ,
+                         (float) apex_tensor::cpu_only::avg( grad_W[0][i] ) / ss,
+                         (float) apex_tensor::cpu_only::std_var( grad_W[0][i])/ss );                
+            }
+            fprintf( fo, "\n" );
             fflush( fo );
         }               
     };
