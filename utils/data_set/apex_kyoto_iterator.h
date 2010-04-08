@@ -121,7 +121,7 @@ namespace apex_utils{
                        
             gen_random_extract( v_data ); 
             
-            for( size_t i = 0 ; i < num ; i ++ )
+            for( int i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::free_space( v_data[i] );            
             
             if( normalize != 0 ) {
