@@ -210,7 +210,7 @@ namespace apex_rbm{
     // simple implementation of srbm
     class CRBMSimple:public ICRBM{
     private:
-        int  cd_step, h_size, v_size;
+        int  cd_step, h_size, v_size, vv_size;
         CRBMTrainParam param;
         bool persistent_ok;  
     private:
@@ -250,6 +250,12 @@ namespace apex_rbm{
             h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;            
             h_size   = layers.back().h_state.y_max * layers.back().h_state.x_max;
             v_size   = layers.back().v_state.y_max * layers.back().v_state.x_max;
+
+            if( param.refill_edge_area ){
+                vv_size = (layers.back().h_state.y_max-d_W.y_max+1) * (layers.back().h_state.x_max-d_W.x_max+1);
+            }else{
+                vv_size = v_size;
+            }
         }
 
         inline void init_async(){
@@ -376,7 +382,7 @@ namespace apex_rbm{
             if( param.chg_visible_bias ){
 				if( param.v_average ){
                     // use average method to update visible bias
-                    float eta_v = param.learning_rate /(param.batch_size*v_size);
+                    float eta_v = param.learning_rate /(param.batch_size*vv_size);
                     v_bias += ( d_v_bias-= v_bias*param.wd_v ) * eta_v;
                 }else{
                     v_bias += ( d_v_bias-= v_bias*param.wd_v ) * eta;

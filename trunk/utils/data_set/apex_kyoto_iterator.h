@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
+#include <vector>
 #include "../apex_utils.h"
 #include "../apex_tensor_iterator.h"
 
@@ -25,7 +25,10 @@ namespace apex_utils{
         m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
 
-    /* iterator that  iterates over the MINIST data set */
+    /* 
+       iterator that  iterates over the image data set
+       we extract regions from the datas to generate dataset.
+     */
     template<typename T>
     class KyotoIterator: public ITensorIterator<T>{
     private:
@@ -78,63 +81,52 @@ namespace apex_utils{
         inline void shuffle(){
             apex_tensor::cpu_only::shuffle( data );
         }
-
-        inline void gen_region_extract(){
-            apex_tensor::CTensor3D tdata = data;
-            // segmentation 
-            int yy_max = tdata.y_max / height;
-            int xx_max = tdata.x_max / width;
-            data.set_param( tdata.z_max*yy_max*xx_max, height, width );
-            apex_tensor::tensor::alloc_space( data );
-
-            for( int i = 0 ; i < tdata.z_max ; i ++ ){
-                for( int y = 0 ; y < yy_max ; y ++ )
-                    for( int x = 0 ; x < xx_max ; x ++ ){
-						const int yy = y * height;
-						const int xx = x * width;
-						apex_tensor::CTensor2D dd = data[ i*yy_max*xx_max + y*xx_max + x ];
-                        for( int dy = 0 ; dy < height ; dy ++ )
-                            for( int dx = 0 ; dx < width ; dx ++ )
-                                dd[dy][dx] = tdata[i][yy+dy][xx+dx];
-                    }                        
-            }                
-
-            apex_tensor::tensor::free_space( tdata );                            
-            if( silent == 0 ) printf("region extract, ");
-        }
         
-        inline void gen_random_extract(){
-            apex_tensor::CTensor3D tdata = data;        
-            data.set_param( tdata.z_max*num_extract_per_image , height, width );
+        inline void gen_random_extract( const std::vector<apex_tensor::CTensor2D> &v_data ){
+            data.set_param( (int)v_data.size()*num_extract_per_image , height, width );
             apex_tensor::tensor::alloc_space( data );
-
-            for( int i = 0 ; i < tdata.z_max ; i ++ ){
+            
+            int num_unused = 0;
+            for( size_t i = 0 ; i < v_data.size() ; i ++ ){
+                if( v_data[i].x_max < data.x_max || v_data[i].y_max < data.y_max ){
+                    num_unused ++; continue;
+                }
                 for( int j = 0 ; j < num_extract_per_image ; j ++ ){
-                    apex_tensor::CTensor2D dd = data[ i*num_extract_per_image+j ];
-                    apex_tensor::cpu_only::rand_extract( dd, tdata[i] );
+                    apex_tensor::CTensor2D dd = data[ (int)i*num_extract_per_image+j ];
+                    apex_tensor::cpu_only::rand_extract( dd, v_data[i] );
                 }                        
             }                
-
-            apex_tensor::tensor::free_space( tdata );    
+            
+            if( num_unused > 0 ){
+                data.z_max -= num_unused * num_extract_per_image;
+                if( silent == 0 ) printf("%d images unused, ", num_unused );
+            }
             if( silent == 0 ) printf("random extract, ");
         }
         
         // initialize the model
         virtual void init( void ){
+            size_t num;
+            std::vector<apex_tensor::CTensor2D> v_data;
+            
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
-            apex_tensor::tensor::load_from_file( data , fi );
+            if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
+            v_data.resize( num );
+            for( size_t i = 0 ; i < num ; i ++ )
+                apex_tensor::tensor::load_from_file( v_data[i] , fi );
             fclose( fi );
         
             if( silent == 0 )
-                printf("Kyoto Dataset, %d images loaded,", data.z_max ); 
+                printf("Kyoto Dataset, %d images loaded,", v_data.size() ); 
                        
             switch( sample_gen_method ){
-            case 0: gen_region_extract(); break;
-            case 1: gen_random_extract(); break;    
-            case 2: break;
+            case 1: gen_random_extract( v_data ); break;    
             default:apex_utils::error("unknown sample generate method\n");
             }
-
+            
+            for( size_t i = 0 ; i < num ; i ++ )
+                apex_tensor::tensor::free_space( v_data[i] );            
+            
             if( normalize != 0 ) {
                 if( silent == 0 ) printf("normalize, ");
                 for( int i = 0 ; i < data.z_max ; i ++ )
