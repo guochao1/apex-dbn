@@ -6,6 +6,7 @@
 
 #include "../external/CImg.h"
 #include "../tensor/apex_tensor.h"
+#include "../utils/apex_config.h"
 #include "../utils/data_set/apex_kyoto_iterator.h"
 
 using namespace apex_utils;
@@ -37,17 +38,16 @@ inline void draw_mat( const CTensor3D &m, const char *fname, int scale = 1 ){
 }
 
 int main( int argc, char *argv[] ){
+    if( argc < 2 ) {
+        printf("usage:<config name>"); return 0;
+    }
     apex_tensor::init_tensor_engine_cpu( 10 );
     KyotoIterator<apex_tensor::CTensor3D> itr;        
-    itr.set_param("image_set","D:\\Users\\tqchen\\dataset\\kyoto.OL.bin");
-    itr.set_param("image_amount","40");
-    itr.set_param("trunk_size","1");
-    itr.set_param("normalize","0");
-    itr.set_param("region_width","640");
-    itr.set_param("region_height","500");
-    itr.set_param("sample_gen_method","1");
-    itr.set_param("num_extract_per_image","1");
-    itr.set_param("do_shuffle","0");
+    ConfigIterator cfg( argv[1] );
+    while( cfg.next() ){
+        itr.set_param( cfg.name(), cfg.val() );
+    }
+
     itr.init();
     
     itr.before_first();

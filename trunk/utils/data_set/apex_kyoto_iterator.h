@@ -72,7 +72,6 @@ namespace apex_utils{
             if( !strcmp( name, "region_height")) height= atoi( val ); 
             if( !strcmp( name, "silent"))        silent= atoi( val ); 
             if( !strcmp( name, "normalize"))     normalize = atoi( val );
-            if( !strcmp( name, "sample_gen_method")) sample_gen_method = atoi( val );
             if( !strcmp( name, "do_shuffle"))    do_shuffle = atoi( val );
             if( !strcmp( name, "num_extract_per_image")) num_extract_per_image = atoi( val );
             
@@ -86,20 +85,19 @@ namespace apex_utils{
             data.set_param( (int)v_data.size()*num_extract_per_image , height, width );
             apex_tensor::tensor::alloc_space( data );
             
-            int num_unused = 0;
+            int num_used = 0;
             for( size_t i = 0 ; i < v_data.size() ; i ++ ){
-                if( v_data[i].x_max < data.x_max || v_data[i].y_max < data.y_max ){
-                    num_unused ++; continue;
-                }
+                if( v_data[i].y_max < data.y_max || v_data[i].x_max < data.x_max ) continue;
                 for( int j = 0 ; j < num_extract_per_image ; j ++ ){
-                    apex_tensor::CTensor2D dd = data[ (int)i*num_extract_per_image+j ];
+                    apex_tensor::CTensor2D dd = data[ num_used* num_extract_per_image + j ];
                     apex_tensor::cpu_only::rand_extract( dd, v_data[i] );
                 }                        
+                num_used ++;
             }                
-            
-            if( num_unused > 0 ){
-                data.z_max -= num_unused * num_extract_per_image;
-                if( silent == 0 ) printf("%d images unused, ", num_unused );
+
+            if( num_used < (int)v_data.size() ){
+                data.z_max = num_used * num_extract_per_image;
+                if( silent == 0 ) printf("%d images unused, ", (int)v_data.size()- num_used );
             }
             if( silent == 0 ) printf("random extract, ");
         }
@@ -111,6 +109,7 @@ namespace apex_utils{
             
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
             if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
+
             v_data.resize( num );
             for( size_t i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::load_from_file( v_data[i] , fi );
@@ -119,11 +118,9 @@ namespace apex_utils{
             if( silent == 0 )
                 printf("Kyoto Dataset, %d images loaded,", v_data.size() ); 
                        
-            switch( sample_gen_method ){
-            case 1: gen_random_extract( v_data ); break;    
-            default:apex_utils::error("unknown sample generate method\n");
-            }
+            gen_random_extract( v_data ); 
             
+            printf("free\n");
             for( size_t i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::free_space( v_data[i] );            
             

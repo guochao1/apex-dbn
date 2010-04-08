@@ -5,7 +5,8 @@ num = fread( fi, 1, 'int32' )
 
 for i = [1:num-1]
   clear OL
-  [x_max, y_max] = fread( fi, 2, 'int32' );
+  x_max = fread( fi, 1, 'int32' );
+  y_max = fread( fi, 1, 'int32' );
   OL = fread( fi, [ x_max, y_max ] , 'float32' );
   OL = OL';
   if( length(OL) > 1 )

@@ -1,8 +1,8 @@
 %example code to convert all the jpg files in current directory to
 %binary file
 
-fname = 'INDRIA.train_pos.kyoto.bin'
-lst   = dir('*.jpg')
+fname = 'INDRIA.train_pos.kyoto.select.bin'
+lst   = dir('*.png')
 
 mk_kyoto_from_rgb( fname, lst )  
 
