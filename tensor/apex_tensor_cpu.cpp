@@ -192,6 +192,9 @@ namespace apex_tensor{
         
         void rand_extract( CTensor2D &dst, const CTensor2D &src ){
             int yy, xx;
+
+            tensor::check_true( src.y_max >= dst.y_max && src.x_max >= dst.x_max ,"extract region bigger than orignal image"); 
+
             if( src.y_max == dst.y_max ) 
                 yy = 0;
             else 
@@ -201,8 +204,9 @@ namespace apex_tensor{
             else 
                 xx = (int)apex_random::next_uint32( src.x_max - dst.x_max );
             
-            for( int y = 0 ; y < dst.y_max ; y ++ )
+            for( int y = 0 ; y < dst.y_max ; y ++ ){
                 memcpy( dst[y].elem, src[yy+y].elem + xx, dst.x_max * sizeof(TENSOR_FLOAT) );  
+            }
         }
     };
 
