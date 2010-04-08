@@ -39,14 +39,14 @@ inline void draw_mat( const CTensor3D &m, const char *fname, int scale = 1 ){
 int main( int argc, char *argv[] ){
     apex_tensor::init_tensor_engine_cpu( 10 );
     KyotoIterator<apex_tensor::CTensor3D> itr;        
-    itr.set_param("image_set","/home/crow/ML_exp/DataSet/kyoto.OL.bin");
+    itr.set_param("image_set","D:\\Users\\tqchen\\dataset\\kyoto.OL.bin");
     itr.set_param("image_amount","40");
     itr.set_param("trunk_size","1");
     itr.set_param("normalize","0");
     itr.set_param("region_width","640");
     itr.set_param("region_height","500");
-    itr.set_param("sample_gen_method","2");
-    itr.set_param("num_extract_per_image","100");
+    itr.set_param("sample_gen_method","1");
+    itr.set_param("num_extract_per_image","1");
     itr.set_param("do_shuffle","0");
     itr.init();
     

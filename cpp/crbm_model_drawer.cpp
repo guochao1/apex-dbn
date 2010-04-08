@@ -108,6 +108,14 @@ inline CTensor4D infer_down( CTensor4D m, CTensor4D W ){
     return mm;
 }
 
+inline void refit( CTensor4D m ){
+    for( int v = 0 ; v < m.h_max ; v ++ )
+        for( int h = 0 ; h < m.z_max ; h ++ )
+            for( int y = 0; y < m.y_max ; y ++ )
+                for( int x = 0 ; x < m.x_max ; x ++ )
+                    if( m[v][h][y][x] < 0.0f )  m[v][h][y][x] = 0.0f;
+}
+
 int main( int argc, char *argv[] ){
     if( argc < 4 ){
         printf("Usage: <model in> <image_out> <method>");        
@@ -120,7 +128,10 @@ int main( int argc, char *argv[] ){
     if( model.layers.size() == 1 ){
         CTensor3D m = model.layers[0].W[0];
         draw_mat( m, argv[2], atoi( argv[3]), 2, model.layers[0].v_bias[0] );
-    }else{
+   }else{
+        int dm = 0;
+        if( argc > 4 ) dm = atoi( argv[4] );
+
         CTensor4D &mw = model.layers.back().W;
 
         CTensor4D m( mw.z_max, mw.h_max, mw.y_max, mw.x_max  ); 
@@ -130,12 +141,10 @@ int main( int argc, char *argv[] ){
             for( int v = 0 ; v < mw.h_max ; v ++ )
                 for( int y = 0; y < mw.y_max ; y ++ )
                     for( int x = 0 ; x < mw.x_max ; x ++ )
-                        if( mw[v][h][y][x] > 0.0f ) 
                             m[h][v][y][x] = mw[v][h][y][x];
-                        else 
-                            m[h][v][y][x] = 0.0f;
          
         for( int i = (int)model.layers.size()-2 ; i >=0 ; i -- ){
+            if( dm == 0 ) refit( m );
             m = pool_down ( m, model.layers[i].param.pool_size );
             m = infer_down( m, model.layers[i].W );
         }   
