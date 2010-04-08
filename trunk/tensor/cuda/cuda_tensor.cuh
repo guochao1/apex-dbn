@@ -92,7 +92,7 @@ namespace apex_tensor{
         };
         struct __GT2D{
             int    x_max, y_max;
-            size_t pitch;
+            unsigned int pitch;
             float *elem;  
             inline __GT1D operator[]( int idx ){
                 __GT1D a;
@@ -109,7 +109,7 @@ namespace apex_tensor{
         };
         struct __GT3D{
             int    x_max, y_max, z_max;
-            size_t pitch;
+            unsigned int pitch;
             float *elem;
             inline __GT2D operator[]( int idx ){
                 __GT2D a;
@@ -130,7 +130,7 @@ namespace apex_tensor{
         };       
         struct __GT4D{
             int    x_max, y_max, z_max, h_max;
-            size_t pitch;
+            unsigned int pitch;
             float *elem;
             inline __GT3D operator[]( int idx ){
                 __GT3D a;
@@ -233,7 +233,7 @@ namespace apex_tensor{
         }
         
         inline size_t num_bytes( GTensor1D ts ){
-            return ts.pitch;
+            return (size_t)ts.pitch;
         }
         
         inline int num_line( GTensor1D ts ){
@@ -253,7 +253,7 @@ namespace apex_tensor{
         }
                 
         inline size_t num_bytes( GTensor2D ts ){
-            return ts.pitch*ts.y_max;
+            return (size_t)ts.pitch*ts.y_max;
         }
         
         inline int num_line( GTensor2D ts ){
@@ -273,7 +273,7 @@ namespace apex_tensor{
         }
         
         inline size_t num_bytes( GTensor3D ts ){
-            return ts.pitch*ts.y_max*ts.z_max;
+            return (size_t)ts.pitch*ts.y_max*ts.z_max;
         }
         
         inline int num_line( GTensor3D ts ){
@@ -311,12 +311,12 @@ namespace apex_tensor{
         }       
 
         template<typename T>
-        inline TENSOR_FLOAT *get_line( T &ts, size_t idx ){
+        inline TENSOR_FLOAT *get_line( T &ts, unsigned int idx ){
             return (TENSOR_FLOAT*)((char*)ts.elem + idx*ts.pitch);
         }
         
         template<typename T> 
-        inline const TENSOR_FLOAT *get_line_const( const T &ts, size_t idx ){
+        inline const TENSOR_FLOAT *get_line_const( const T &ts, unsigned int idx ){
             return (const TENSOR_FLOAT*)((const char*)ts.elem + idx*ts.pitch);
         }       
     };
@@ -331,10 +331,10 @@ namespace apex_tensor{
             return ((x_max + ALIGN_WIDTH-1) >> ALIGN_BITS) <<ALIGN_BITS;
         }
         
-        __device__ float *get_line( float *elem, int idx, size_t pitch ){           
+        __device__ float *get_line( float *elem, int idx, unsigned int pitch ){           
             return (float*)((char*)elem + idx*pitch);
         }
-        __device__ const float *get_line_const( const float *elem, int idx, size_t pitch ){           
+        __device__ const float *get_line_const( const float *elem, int idx, unsigned int pitch ){           
             return (const float*)((const char*)elem + idx*pitch);
         }
 

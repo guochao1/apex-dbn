@@ -10,18 +10,18 @@
 
 namespace apex_utils{
     template<typename T>
-    inline void __minist_set_param( T & m, int z_max, int y_max, int x_max, size_t pitch );
+    inline void __minist_set_param( T & m, int z_max, int y_max, int x_max, unsigned int pitch );
     
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, size_t pitch ){
+    inline void __minist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.y_max = z_max; m.x_max = y_max * x_max; m.pitch = pitch * y_max;
     }
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, size_t pitch ){
+    inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max, size_t pitch ){
+    inline void __minist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
     }
 

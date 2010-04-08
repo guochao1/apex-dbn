@@ -63,7 +63,9 @@ namespace apex_tensor{
     namespace cuda_tensor{
         template<typename T>
         inline void alloc_space_template( T &ts ){
-            cudaError_t err = cudaMallocPitch( (void**)&ts.elem, &ts.pitch, ts.x_max*sizeof(TENSOR_FLOAT), num_line(ts) );
+            size_t pitch;
+            cudaError_t err = cudaMallocPitch( (void**)&ts.elem, &pitch, ts.x_max*sizeof(TENSOR_FLOAT), num_line(ts) );
+            ts.pitch = (unsigned int)pitch;
             if( err != cudaSuccess ){
                 error( cudaGetErrorString(err) );
             } 
@@ -79,7 +81,7 @@ namespace apex_tensor{
         
         template<typename TA,typename TB,enum cudaMemcpyKind kind>
         inline void copy_template( TA dst, const TB src ){
-            cudaError_t err = cudaMemcpy2D( dst.elem, dst.pitch, src.elem, src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind );
+            cudaError_t err = cudaMemcpy2D( dst.elem, (size_t)dst.pitch, src.elem, (size_t)src.pitch, dst.x_max*sizeof(TENSOR_FLOAT), num_line(dst), kind );
             if( err != cudaSuccess ){
                 error( cudaGetErrorString(err) );
             }   

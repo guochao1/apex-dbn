@@ -9,7 +9,7 @@ namespace apex_tensor{
         // sample binary using prob
         template<int st_m,int block_dim_bits>
         __global__ void sample_binary_kernel( float *elem_dst , const float *elem_src, 
-                                              size_t pitch_dst, size_t pitch_src,
+                                              unsigned int pitch_dst, unsigned int pitch_src,
                                               int y_max       , int x_max,
                                               const float *rnd  ){
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;            
@@ -45,7 +45,7 @@ namespace apex_tensor{
         // sample gaussian with given mean and sd
         template<int st_m,int block_dim_bits>
         __global__ void sample_gaussian_kernel( float *elem_dst , const float *elem_src, 
-                                                size_t pitch_dst, size_t pitch_src,
+                                                unsigned int pitch_dst, unsigned int pitch_src,
                                                 int y_max       , int x_max,
                                                 const float *rnd, float sd  ){
             __shared__ float s_rnd[ 1<<block_dim_bits ];
@@ -82,7 +82,7 @@ namespace apex_tensor{
         // sample gaussian
         template<int st_m,int block_dim_bits>
         __global__ void sample_gaussian_kernel( float *elem_dst ,
-                                                size_t pitch_dst,
+                                                unsigned int pitch_dst,
                                                 int y_max       , int x_max,
                                                 const float *rnd, float sd  ){
             __shared__ float s_rnd[ 1<<block_dim_bits ];

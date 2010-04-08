@@ -8,7 +8,7 @@
 namespace apex_tensor{
     struct GTensor1D{
         int           x_max;        
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
         // stream dependecy, this variable is private
         int           __stream_dep;
@@ -50,7 +50,7 @@ namespace apex_tensor{
 
     struct GTensor2D{
         int           x_max, y_max;        
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
         // stream dependecy, this variable is private
         int           __stream_dep;
@@ -96,7 +96,7 @@ namespace apex_tensor{
 
     struct GTensor3D{
         int           x_max, y_max, z_max;                
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
         // stream dependecy, this variable is private
         int           __stream_dep;
@@ -136,7 +136,7 @@ namespace apex_tensor{
     
     struct GTensor4D{
         int           x_max, y_max, z_max, h_max;        
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
         // stream dependecy, this variable is private
         int           __stream_dep;

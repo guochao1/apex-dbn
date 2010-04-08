@@ -6,7 +6,7 @@ namespace apex_tensor{
     namespace cuda_tensor{
         template<int st_m,int block_dim_bits>
         __global__ void store_kernel( float *elem , 
-                                      size_t pitch,
+                                      unsigned int pitch,
                                       int    y_max, int x_max,
                                       float  src ){
             const int tid     = (blockIdx.x << block_dim_bits) + threadIdx.x;            
@@ -40,7 +40,7 @@ namespace apex_tensor{
         // test pass
         template<int st_m,int mapm_A,int block_dim_bits>
         __global__ void map_A_kernel( float *elem_dst , const float *elem_src, 
-                                      size_t pitch_dst, size_t pitch_src,
+                                      unsigned int pitch_dst, unsigned int pitch_src,
                                       int y_max       , int x_max ){
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;
             const int x_mm= get_align_width( x_max );
@@ -75,7 +75,7 @@ namespace apex_tensor{
         // takes a source and a float 
         template<int st_m,int mapm_B,int block_dim_bits>
         __global__ void map_B_kernel( float *elem_dst , const float *elem_src, 
-                                      size_t pitch_dst, size_t pitch_src,
+                                      unsigned int pitch_dst, unsigned int pitch_src,
                                       int y_max       , int x_max, float src_b ){
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;
             const int x_mm= get_align_width( x_max );
@@ -111,7 +111,7 @@ namespace apex_tensor{
         template<int st_m,int mapm_B,int block_dim_bits>
         __global__ void map_C_kernel( float *elem_dst , 
                                       const float *elem_srca, const float *elem_srcb, 
-                                      size_t pitch_dst, size_t pitch_srca, size_t pitch_srcb,
+                                      unsigned int pitch_dst, unsigned int pitch_srca, unsigned int pitch_srcb,
                                       int y_max       , int x_max ){
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;
             const int x_mm= get_align_width( x_max );
@@ -148,7 +148,7 @@ namespace apex_tensor{
         template<int st_m,int mapm_D,int block_dim_bits>
         __global__ void map_D_kernel( float *elem_dst , 
                                       const float *elem_srca, const float *elem_srcb, 
-                                      size_t pitch_dst, size_t pitch_srca, size_t pitch_srcb,
+                                      unsigned int pitch_dst, unsigned int pitch_srca, unsigned int pitch_srcb,
                                       int y_max       , int x_max,
                                       float sa        , float sb   ){
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;

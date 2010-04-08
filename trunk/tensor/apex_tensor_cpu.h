@@ -8,7 +8,7 @@
 namespace apex_tensor{
     struct CTensor1D{
         int           x_max;        
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
         
         CTensor1D(){}
@@ -56,7 +56,7 @@ namespace apex_tensor{
 
     struct CTensor2D{
         int           x_max, y_max;        
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
 
         CTensor2D(){}       
@@ -101,7 +101,7 @@ namespace apex_tensor{
 
     struct CTensor3D{
         int           x_max, y_max, z_max;                
-        size_t        pitch;
+        unsigned int  pitch;
         TENSOR_FLOAT *elem;
         CTensor3D(){}
         CTensor3D( int z_max, int y_max, int x_max ){
@@ -139,7 +139,7 @@ namespace apex_tensor{
     
     struct CTensor4D{
         int           x_max, y_max, z_max, h_max;        
-        size_t        pitch;
+        unsigned int  pitch;
 
         TENSOR_FLOAT *elem;
         CTensor4D(){}

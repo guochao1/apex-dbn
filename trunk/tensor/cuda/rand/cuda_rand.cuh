@@ -8,7 +8,7 @@ namespace cuda_rand{
     inline void rand_init();
 
     /* generate single array with size num random float uniform in [1,2) */
-    inline const float *rand_singles( size_t num );
+    inline const float *rand_singles( unsigned int num );
 
     /* 
        get random number from rnd, this method contains the routine to check conflict
