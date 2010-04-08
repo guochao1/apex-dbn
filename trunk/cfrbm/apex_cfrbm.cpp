@@ -5,70 +5,106 @@
 #include "apex_cfrbm_model.h"
 #include "apex_cfrbm_model_stats.h"
 #include "../tensor/apex_tensor.h"
+#include "../tensor/apex_tensor_sparse.h"
 
 #include <vector>
 
-namespace apex_rbm{
+namespace apex_cfrbm{
     using namespace std;
     using namespace apex_tensor;
 
     //node of SRBM
-    class ISRBMNode{
+    class CFSRBMNode{
     public:
+        virtual void sample  ( STTensor1D &state, const STTensor1D &mean ) = 0;
         virtual void sample  ( TTensor1D &state, const TTensor1D &mean ) = 0;
-        virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy) = 0;
+        virtual void sample  ( STTensor2D &state, const STTensor2D &mean ) = 0;
+        virtual void cal_mean( STTensor1D &mean , const STTensor1D &energy) = 0;
+        virtual void cal_mean( STTensor2D &mean , const STTensor2D &energy) = 0;
     };
     // bianry node
-    class SRBMBinaryNode : public ISRBMNode{
+    class CFSRBMBinaryNode : public CFSRBMNode{
     public:
-        virtual void sample  ( TTensor1D &state, const TTensor1D &mean ){
+        virtual void sample  ( STTensor1D &state, const STTensor1D &mean ){
             state = sample_binary( mean );
         }
-        virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy){
+		virtual void sample ( TTensor1D &state, const TTensor1D mean ){
+			state = sample_binary( mean );
+		}
+		virtual void sample  ( STTensor2D &state, const STTensor2D &mean ){
+			for( int i = 0; i < mean.y_max; ++ i ){
+					STTensor1D line_state = state[ i ];
+					STTensor1D line_mean = mean[ i ]; 
+					sample ( line_state, line_mean );
+			}
+		}
+        virtual void cal_mean( STTensor1D &mean, const STTensor1D &energy){
             mean = sigmoid( energy );
         }        
+		virtual void cal_mean( STTensor2D &mean, const STTensor2D &energy ){
+			for( int i = 0; i < mean.y_max; ++ i ){
+					STTensor1D line_mean = mean[ i ];
+					STTensor1D line_energy = energy[ i ]; 
+					cal_mean ( line_mean, line_energy );
+			}
+		}
     };
 
     // gaussian node
-    class SRBMGaussianNode : public ISRBMNode{
+    class CFSRBMGaussianNode : public CFSRBMNode{
     private:
         float sigma, sigma_sqr;
     public:
-        SRBMGaussianNode( float sigma ){
+        CFSRBMGaussianNode( float sigma ){
             this->sigma     = sigma;
             this->sigma_sqr = sigma * sigma;
-        } 
-        virtual void sample  ( TTensor1D &state, const TTensor1D &mean ){
+        }
+        virtual void sample  ( STTensor1D &state, const STTensor1D &mean ){
             tensor::sample_gaussian( state, mean, sigma );
         }
-        virtual void cal_mean( TTensor1D &mean , const TTensor1D &energy){
+		virtual void sample  ( STTensor2D &state, const STTensor2D &mean ){
+			for( int i = 0; i < mean.y_max; ++ i ){
+					STTensor1D line_state = state[ i ];
+					STTensor1D line_mean = mean[ i ]; 
+					sample ( line_state, line_mean );
+			}
+		}
+        virtual void cal_mean( STTensor1D &mean , const STTensor1D &energy){
             mean = energy * sigma_sqr; 
-        }        
+        } 
+		virtual void cal_mean( STTensor2D &mean, const STTensor2D &energy ){
+			for( int i = 0; i < mean.y_max; ++ i ){
+					STTensor1D line_mean = mean[ i ];
+					STTensor1D line_energy = energy[ i ]; 
+					cal_mean ( line_mean, line_energy );
+			}
+		}
     };
 
-    inline ISRBMNode *create_visible_node( const SRBMModelParam &param ){
+    inline CFSRBMNode *create_visible_node( const CFSRBMModelParam &param ){
         switch( param.model_type ){
-        case 0: return new SRBMBinaryNode();
-        case 1: return new SRBMGaussianNode( param.v_sigma );
+        case 0: return new CFSRBMBinaryNode();
+        case 1: return new CFSRBMGaussianNode( param.v_sigma );
         default: return NULL;
         }
     }
-    inline ISRBMNode *create_hidden_node( const SRBMModelParam &param ){
+    inline CFSRBMNode *create_hidden_node( const CFSRBMModelParam &param ){
         switch( param.model_type ){
         case 0:
-        case 1: return new SRBMBinaryNode();
+        case 1: return new CFSRBMBinaryNode();
         default: return NULL;
         }
     }
 
     // one layer of SRBM
-    struct SRBMLayer{
-        TTensor1D h_bias  , v_bias;
-        TTensor2D W;
-        ISRBMNode *v_node, *h_node;
-        TTensor1D v_state;
-        SRBMLayer(){}
-        SRBMLayer( const SRBMModel &model ){
+    struct CFSRBMLayer{
+        TTensor1D	h_bias;
+		STTensor2D	v_bias;
+        TTensor3D	W;
+        CFSRBMNode *v_node, *h_node;
+        STTensor2D	v_state;
+        CFSRBMLayer(){}
+        CFSRBMLayer( const CFSRBMModel &model ){
             W      = clone( model.Wvh );
             h_bias = clone( model.h_bias );
             v_bias = clone( model.v_bias );
@@ -89,17 +125,18 @@ namespace apex_rbm{
         
         // feed forward from v to h 
         inline void feed_forward( TTensor1D &h_state ){
-            h_state = dot( v_state , W );
+			for( int i = 0; i < v_state.y_max; ++ i)
+            	h_state += dot( v_state[ i ] , W[ i ] );
             h_state+= h_bias;
             h_node->cal_mean( h_state, h_state );
         }        
     };    
 
     // simple implementation of srbm
-    class SRBMSimple:public ISRBM{
+    class CFSRBMSimple:public CFSRBM{
     private:
         int  cd_step, sample_counter;
-        SRBMTrainParam param;
+        CFSRBMTrainParam param;
         bool persistent_ok;
     private:
         TTensor1D 	d_h_bias;
@@ -108,12 +145,13 @@ namespace apex_rbm{
     private:
         // nodes of each layer
         vector<SRBMLayer> layers;
-        TTensor1D v_neg,  h_neg, h_pos;		// gavinhu: added l_neg.
+        TTensor1D 	h_neg, h_pos;		// gavinhu: added l_neg.
+		STTensor2D	v_neg;
     private:
         // initalize the space
-        inline void init( const SDBNModel &model ){
+        inline void init( const CFDBNModel &model ){
             for( size_t i = 0 ; i < model.layers.size() ; i ++ )
-                layers.push_back( SRBMLayer(model.layers[i]) );
+                layers.push_back( CFRBMLayer(model.layers[i]) );
 
             d_h_bias = clone( model.layers.back().d_h_bias );
             d_v_bias = clone( model.layers.back().d_v_bias );
@@ -124,7 +162,7 @@ namespace apex_rbm{
             sample_counter = 0; persistent_ok = false;            
         }
     public:
-        SRBMSimple( const SDBNModel &model, const SRBMTrainParam &param ){
+        CFRBMSimple( const CFDBNModel &model, const CFRBMTrainParam &param ){
             init( model );
             this->param = param;
             // intialize the tensor engine
@@ -238,13 +276,16 @@ namespace apex_rbm{
             TTensor1D &hp = persistent_ok ? h_neg : h_pos;
 
 			// gavinhu: added l_pos, l_neg
-            cal_cd_steps( l_pos, l_neg, v_pos, v_neg,  h_pos, h_neg, hp );
+            cal_cd_steps( v_pos, v_neg,  h_pos, h_neg, hp );
 
             persistent_ok = ( param.persistent_cd !=0 );
 
             // calculate the gradient
-            d_W += dot( v_pos.T(), h_pos );
-            d_W -= dot( v_neg.T(), h_neg );
+			for( int i = 0; i < d_W.z_max; ++ i ){
+				TTensor2D line = d_W[ i ];
+            	line += dot( v_pos.T(), h_pos );
+            	line -= dot( v_neg.T(), h_neg );
+			}
 
             if( param.chg_hidden_bias ){
                 d_h_bias += h_pos;
@@ -261,7 +302,7 @@ namespace apex_rbm{
             }
         }
         
-        inline void setup_input( const apex_tensor::CTensor1D &data ){
+        inline void setup_input( const apex_tensor::CSTensor2D &data ){
             tensor::copy( layers[0].v_state , data );
             for( size_t i = 1 ; i < layers.size() ; i ++ ){
                 layers[i-1].feed_forward( layers[i].v_state );
@@ -269,19 +310,20 @@ namespace apex_rbm{
         }
 
     public:
-        virtual void train_update( const apex_tensor::CTensor1D &data ){
+        virtual void train_update( const apex_tensor::CSTensor2D &data ){
             setup_input( data );
             train_update();
         }
-        virtual void train_update_trunk( const apex_tensor::CTensor2D &data ){
+        virtual void train_update_trunk( const apex_tensor::CSTensor3D &data ){
             for( int i = 0 ; i < data.y_max ; i ++ )
                 train_update( data[i] );
         }
 
         // do validation, return the statistics
-        virtual void validate_stats( SRBMModelStats &stats, const apex_tensor::CTensor2D &data ){
-            TTensor2D grad_W;
-            TTensor1D pos_grad_h, neg_grad_h, pos_grad_v, neg_grad_v, loss;
+        virtual void validate_stats( CFRBMModelStats &stats, const apex_tensor::CSTensor3D &data ){
+            TTensor3D	grad_W;
+            TTensor1D	pos_grad_h, neg_grad_h, loss;
+		   	STTensor2D	pos_grad_v, neg_grad_v;
             grad_W = clone( stats.grad_W );
             pos_grad_h = clone( stats.pos_grad_h );
             neg_grad_h = clone( stats.neg_grad_h );
@@ -292,13 +334,16 @@ namespace apex_rbm{
             for( int i = 0 ; i < data.y_max ; i ++ ){
                 setup_input( data[i] );
 
-                TTensor1D &v_pos = layers.back().v_state;
+                STTensor2D &v_pos = layers.back().v_state;
                 // whether can be use persistent chain
                 TTensor1D &hp = persistent_ok ? h_neg : h_pos;
                 persistent_ok = ( param.persistent_cd !=0 );
-                
-                grad_W += dot( v_pos.T() , h_pos );
-                grad_W -= dot( v_neg.T() , h_neg );
+				
+               	for( int i = 0; i < grad_W.z_max; ++ i ){
+					TTensor2D line = grad_W[ i ];
+            		line += dot( v_pos.T(), h_pos );
+            		line -= dot( v_neg.T(), h_neg );
+				}
                 
                 pos_grad_h += h_pos;
                 neg_grad_h -= h_neg;                                 
@@ -325,13 +370,13 @@ namespace apex_rbm{
         }
 
         /* clone model trainied to model */
-        virtual void clone_model( SDBNModel &model )const{
+        virtual void clone_model( CFDBNModel &model )const{
             if( model.layers.size() != layers.size() ){
                 printf("error model size\n"); exit( -1 );
             } 
 
-            SRBMModel &md = model.layers.back();
-            const SRBMLayer &mm = layers.back();
+            CFRBMModel &md = model.layers.back();
+            const CFRBMLayer &mm = layers.back();
             
             apex_tensor::tensor::copy( md.Wvh , mm.W );
             apex_tensor::tensor::copy( md.h_bias , mm.h_bias );
@@ -350,8 +395,8 @@ namespace apex_rbm{
     
     namespace factory{
         // create a stacked rbm
-        ISRBM *create_srbm( const SDBNModel &model, const SRBMTrainParam &param ){
-            return new SRBMSimple( model, param );
+        CFRBM *create_cfrbm( const CFDBNModel &model, const CFRBMTrainParam &param ){
+            return new CFSRBMSimple( model, param );
         }
     };
 };
