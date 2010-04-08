@@ -104,15 +104,16 @@ namespace apex_utils{
         
         // initialize the model
         virtual void init( void ){
-            size_t num;
+            int num;
             std::vector<apex_tensor::CTensor2D> v_data;
             
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
             if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
-
+	
             v_data.resize( num );
-            for( size_t i = 0 ; i < num ; i ++ )
+			for( int i = 0 ; i < num ; i ++ ){
                 apex_tensor::tensor::load_from_file( v_data[i] , fi );
+			}
             fclose( fi );
         
             if( silent == 0 )
@@ -120,7 +121,6 @@ namespace apex_utils{
                        
             gen_random_extract( v_data ); 
             
-            printf("free\n");
             for( size_t i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::free_space( v_data[i] );            
             
