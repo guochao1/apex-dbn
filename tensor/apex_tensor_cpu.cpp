@@ -39,7 +39,7 @@ namespace apex_tensor{
             }
         }
 
-        inline size_t num_bytes( CTensor1D ts ){
+        inline unsigned int num_bytes( CTensor1D ts ){
             return ts.pitch;
         }
         
@@ -47,7 +47,7 @@ namespace apex_tensor{
             return 1;
         }
         
-        inline size_t num_header_bytes( CTensor1D ts ){
+        inline unsigned int num_header_bytes( CTensor1D ts ){
             return sizeof(int)*1;
         }
        
@@ -55,7 +55,7 @@ namespace apex_tensor{
             return ts.x_max;
         }
         
-        inline size_t num_bytes( CTensor2D ts ){
+        inline unsigned int num_bytes( CTensor2D ts ){
             return ts.pitch*ts.y_max;
         }
         
@@ -63,7 +63,7 @@ namespace apex_tensor{
             return ts.y_max;
         }
         
-        inline size_t num_header_bytes( CTensor2D ts ){
+        inline unsigned int num_header_bytes( CTensor2D ts ){
             return sizeof(int)*2;
         }
         
@@ -71,7 +71,7 @@ namespace apex_tensor{
             return ts.x_max * ts.y_max;
         }
         
-        inline size_t num_bytes( CTensor3D ts ){
+        inline unsigned int num_bytes( CTensor3D ts ){
             return ts.pitch*ts.y_max*ts.z_max;
         }
         
@@ -79,7 +79,7 @@ namespace apex_tensor{
             return ts.y_max*ts.z_max;
         }
         
-        inline size_t num_header_bytes( CTensor3D ts ){
+        inline unsigned int num_header_bytes( CTensor3D ts ){
             return sizeof(int)*3;
         }
         
@@ -87,7 +87,7 @@ namespace apex_tensor{
             return ts.x_max * ts.y_max * ts.z_max;
         }
 
-        inline size_t num_bytes( CTensor4D ts ){
+        inline unsigned int num_bytes( CTensor4D ts ){
             return ts.pitch*ts.y_max*ts.z_max*ts.h_max;
         }
         
@@ -95,7 +95,7 @@ namespace apex_tensor{
             return ts.y_max*ts.z_max*ts.h_max;
         }
         
-        inline size_t num_header_bytes( CTensor4D ts ){
+        inline unsigned int num_header_bytes( CTensor4D ts ){
             return sizeof(int)*4;
         }
         
@@ -103,17 +103,17 @@ namespace apex_tensor{
             return ts.x_max * ts.y_max *ts.z_max * ts.h_max;
         }
 
-        inline TENSOR_FLOAT *get_line( TENSOR_FLOAT *elem, size_t pitch, size_t idx ){
+        inline TENSOR_FLOAT *get_line( TENSOR_FLOAT *elem, unsigned int pitch, unsigned int idx ){
             return (TENSOR_FLOAT*)((char*)elem + idx*pitch);
         }
         
         template<typename T> 
-        inline TENSOR_FLOAT *get_line( T &ts, size_t idx ){
+        inline TENSOR_FLOAT *get_line( T &ts, unsigned int idx ){
             return get_line( ts.elem, ts.pitch, idx );
         }
                         
         template<typename T> 
-        inline const TENSOR_FLOAT *get_line_const( const T &ts, size_t idx ){
+        inline const TENSOR_FLOAT *get_line_const( const T &ts, unsigned int idx ){
             return (const TENSOR_FLOAT*)((const char*)ts.elem + idx*ts.pitch);
         }
     };

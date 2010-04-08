@@ -23,7 +23,7 @@ namespace cuda_rand{
     // counting number of init called 
     static int   __init_counter = 0;
     // pointer to unused random numbers  
-    static size_t __rand_counter = __BUF_LEN;
+    static unsigned int __rand_counter = __BUF_LEN;
     // buffer of random numbers 
     static float *__d_rand_buf;
 
@@ -129,7 +129,7 @@ namespace cuda_rand{
 		__rand_counter = 0;	
 	}
     
-    inline const float *rand_singles( size_t num ){
+    inline const float *rand_singles( unsigned int num ){
 		// align to memory unit 
         num = ( (num + (1<<__ALIGN_BITS)-1) >> __ALIGN_BITS) << __ALIGN_BITS; 
         
@@ -138,7 +138,7 @@ namespace cuda_rand{
             exit( -1 );
         }	
 		
-        if( __rand_counter + num > (size_t)__BUF_LEN ){
+        if( __rand_counter + num > (unsigned int)__BUF_LEN ){
             __refresh_buffer();
         }
         __rand_counter += num;
