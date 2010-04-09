@@ -252,7 +252,7 @@ namespace apex_rbm{
             v_size   = layers.back().v_state.y_max * layers.back().v_state.x_max;
 
             if( param.refill_edge_area ){
-                vv_size = (layers.back().h_state.y_max-d_W.y_max+1) * (layers.back().h_state.x_max-d_W.x_max+1);
+                vv_size = (layers.back().h_state.y_max-d_W.y_max+1) * (layers.back().h_state.x_max-d_W.x_max+1);	
             }else{
                 vv_size = v_size;
             }
@@ -278,8 +278,9 @@ namespace apex_rbm{
         CRBMSimple( const CDBNModel &model, const CRBMTrainParam &param ){
             // intialize the tensor engine
             init_tensor_engine( 0 );
+			
+			this->param = param;
             init( model, param.input_y_max, param.input_x_max );
-            this->param = param;
 
             // forward_bias
             if( param.forward_bias!=0 && layers.size() > 1 ){
@@ -288,7 +289,7 @@ namespace apex_rbm{
 
             init_async();
             
-            printf("CRBM initialized, h_size=%d, v_size=%d\n", h_size, v_size );
+            printf("CRBM initialized, h_size=%d, v_size=%d, vv_size=%d\n", h_size, v_size, vv_size );
         }
         
         // deallocate the space
