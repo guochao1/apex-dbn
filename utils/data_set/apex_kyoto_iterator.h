@@ -37,7 +37,8 @@ namespace apex_utils{
         int width, height;
         int silent, normalize;
         int sample_gen_method, do_shuffle;
-        int num_extract_per_image;
+        int num_extract_per_image;        
+        int repeat_round, remain_round;
 
         apex_tensor::CTensor3D data;
     private:
@@ -59,6 +60,7 @@ namespace apex_utils{
             silent = 0; normalize = 0; 
             sample_gen_method = 0; do_shuffle = 0;
             num_extract_per_image = 10;
+            remain_round = 0; repeat_round = 1;
         }
         virtual ~KyotoIterator(){
             if( data.elem != NULL )
@@ -73,6 +75,7 @@ namespace apex_utils{
             if( !strcmp( name, "silent"))        silent= atoi( val ); 
             if( !strcmp( name, "normalize"))     normalize = atoi( val );
             if( !strcmp( name, "do_shuffle"))    do_shuffle = atoi( val );
+            if( !strcmp( name, "repeat_round"))    repeat_round = atoi( val );
             if( !strcmp( name, "num_extract_per_image")) num_extract_per_image = atoi( val );
             
         }
@@ -139,12 +142,20 @@ namespace apex_utils{
                 printf( "%d sample generated\n", data.z_max ); 
             }    
             if( max_idx > data.z_max ) max_idx = data.z_max;                                   
+            remain_round = repeat_round;  
         }
         
         // move to next mat
         virtual bool next_trunk(){
             idx += trunk_size;
-            if( idx >= max_idx ) return false;        
+            if( idx >= max_idx ) {
+                if( -- remain_round  > 0 ){
+                    idx = 0; return true;
+                }
+                else{
+                    return false;        
+                }
+            }
             return true;
         }
         
@@ -156,7 +167,7 @@ namespace apex_utils{
 
         // set before first of the item
         virtual void before_first(){
-            idx = -trunk_size;
+            idx = -trunk_size; remain_round = repeat_round;
         }
         
         // trunk used for validation
