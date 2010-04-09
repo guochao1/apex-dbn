@@ -19,7 +19,7 @@ ifeq ($(cpu), 1)
 	TENSOR_LIB:=apex_tensor_cpu.o	
 else
 	NVCC :=nvcc
-	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)" 			
+	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)"
 	TENSOR_LIB:=apex_tensor_cpu.o apex_tensor_gpu.o			
 endif
 
@@ -32,7 +32,7 @@ apex_srbm.o: $(SRBM_DIR)/apex_srbm.cpp
 	g++ $(OPT) -c -o apex_srbm.o  $(SRBM_DIR)/apex_srbm.cpp
 
 apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp 
-	g++ $(OPT) -c -o apex_crbm.o  $(CRBM_DIR)/apex_crbm.cp
+	g++ $(OPT) -c -o apex_crbm.o  $(CRBM_DIR)/apex_crbm.cpp
 
 apex_cfrbm.o: $(CRBM_DIR)/apex_cfrbm.cpp 
 	g++ $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp

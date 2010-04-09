@@ -354,9 +354,16 @@ namespace apex_rbm{
             if( param.sparse_reg_method == 0  ){
                 h_sum_mf   = h_sum_mf * h_sum_mf_grad;
                 // leave out h_size
-                h_sum_mf  *= param.sparse_lambda;
+                h_sum_mf  *= param.sparse_lambda;                                
             }else{
                 h_sum_mf  *= param.sparse_lambda*param.batch_size*h_size;
+            }
+
+            // reset regularization of non sparse node to 0
+            if( param.num_non_sparse_node > 0 ){                
+                h_sum_mf.x_max = param.num_non_sparse_node;
+                h_sum_mf = 0.0f;
+                h_sum_mf.x_max = h_sum_mf_grad.x_max;
             }
         }
 
