@@ -57,7 +57,7 @@ namespace apex_rbm{
         int sample_v_neg;
         
         // how many number of node not being sparse regularized
-        int num_non_sparse_node;
+        int num_non_sparse_node, num_light_node;
 
         CRBMTrainParam(){
             reset_default();
@@ -73,7 +73,7 @@ namespace apex_rbm{
             sparse_lambda = 5.0f; sparse_level = 0.005f; 
             persistent_cd = 0; v_average = 0; forward_bias = 1;
             sample_v_neg = 1; sparse_reg_method = 0; use_group_reg = 0;
-            refill_edge_area = 0; num_non_sparse_node = 0;
+            refill_edge_area = 0; num_non_sparse_node = 0; num_light_node = 0;
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
@@ -98,6 +98,7 @@ namespace apex_rbm{
             if( !strcmp("use_group_reg", name ) )    use_group_reg = atoi( val );
             if( !strcmp("refill_edge_area", name ) ) refill_edge_area = atoi( val );
             if( !strcmp("num_non_sparse_node", name ) ) num_non_sparse_node = atoi( val );
+            if( !strcmp("num_light_node", name ) )   num_light_node = atoi( val );
         }
     };
     
