@@ -256,6 +256,13 @@ namespace apex_rbm{
             }else{
                 vv_size = v_size;
             }
+            
+            if( param.num_non_sparse_node > 0 ){
+                TTensor4D & W      = layers.back().W;            
+                W.z_max =  param.num_non_sparse_node;
+                W = 0.0f;
+                W.z_max = d_W.z_max;
+            }
         }
 
         inline void init_async(){
