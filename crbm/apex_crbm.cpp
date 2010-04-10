@@ -357,7 +357,7 @@ namespace apex_rbm{
                 // leave out h_size
                 h_sum_mf  *= param.sparse_lambda;                                
             }else{
-                h_sum_mf  *= param.sparse_lambda*param.batch_size*h_size;
+                h_sum_mf  *= param.sparse_lambda* param.sparse_level * param.batch_size * h_size;
             }
 
             // reset regularization of non sparse node to 0
