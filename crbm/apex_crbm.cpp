@@ -399,13 +399,20 @@ namespace apex_rbm{
             }
  
             // use group regularization
-            if( param.use_group_reg != 0 )
+            if( param.use_group_reg ){
                 tensor::crbm::sum_2D( wd_sum , W );            
-            
+                // reset light node to 0 regularization
+                if( param.num_light_node > 0 ){
+                    wd_sum.y_max = param.num_light_node;
+                    wd_sum = 0.0f;
+                    wd_sum.y_max = d_W.h_max; 
+                }
+            }            
             W   += ( d_W -= W * param.wd_W ) * eta;            
             
-            if( param.use_group_reg != 0 )
+            if( param.use_group_reg ){
                 tensor::crbm::sadd__scale( W, wd_sum, -param.wd_Wsum*eta );
+            }
             
             d_W *= param.momentum;
         }
@@ -513,8 +520,9 @@ namespace apex_rbm{
 					h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
 				}
             }                 
-            stats.h_size = h_size;
-            stats.v_size = v_size;
+            stats.h_size  = h_size;
+            stats.v_size  = v_size;
+            stats.vv_size = vv_size;
             stats.sample_counter += data.h_max;
                         
             tensor::copy( stats.grad_W, grad_W );
