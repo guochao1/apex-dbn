@@ -32,7 +32,7 @@ namespace apex_utils{
     template<typename T>
     class KyotoIterator: public ITensorIterator<T>{
     private:
-        int idx, max_idx;
+        int idx, max_idx, num_amount_used;
         int trunk_size;
         int width, height;
         int silent, normalize;
@@ -56,7 +56,7 @@ namespace apex_utils{
     public:    
         KyotoIterator(){
             data.elem = NULL;
-            max_idx   = 1 << 30;
+            max_idx = num_amount_used = 1 << 30;  
             silent = 0; normalize = 0; 
             sample_gen_method = 0; do_shuffle = 0;
             num_extract_per_image = 10;
@@ -69,6 +69,7 @@ namespace apex_utils{
         virtual void set_param( const char *name, const char *val ){
             if( !strcmp( name, "image_set"   ) ) strcpy( name_image_set, val );        
             if( !strcmp( name, "image_amount") ) max_idx = atoi( val );
+            if( !strcmp( name, "num_amount_used") ) num_amount_used = atoi( val );
             if( !strcmp( name, "trunk_size"  ) ) trunk_size = atoi( val );
             if( !strcmp( name, "region_width") ) width = atoi( val ); 
             if( !strcmp( name, "region_height")) height= atoi( val ); 
@@ -112,7 +113,9 @@ namespace apex_utils{
             
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
             if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
-	
+            
+            if( num >= num_amount_used ) num = num_amount_used;
+            
             v_data.resize( num );
 			for( int i = 0 ; i < num ; i ++ ){
                 apex_tensor::tensor::load_from_file( v_data[i] , fi );
