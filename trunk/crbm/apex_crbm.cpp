@@ -410,9 +410,9 @@ namespace apex_rbm{
                 tensor::crbm::sum_2D( wd_sum , W );            
                 // reset light node to 0 regularization
                 if( param.num_light_node > 0 ){
-                    wd_sum.y_max = param.num_light_node;
+                    wd_sum.x_max = param.num_light_node;
                     wd_sum = 0.0f;
-                    wd_sum.y_max = d_W.h_max; 
+                    wd_sum.x_max = d_W.z_max; 
                 }
             }            
             W   += ( d_W -= W * param.wd_W ) * eta;            
