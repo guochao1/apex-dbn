@@ -260,15 +260,11 @@ void test_norm_maxpooling_2D( int num_iter ){
 
         double c_start = clock();
         tensor::crbm::norm_maxpooling_2D( tc_hp, tc_h, POOL_SIZE );
-        tc_hp += 1.0f;
-        tc_hp = tc_hp * 3.1f + tc_h * 0.001f; 
-        tc_hp = tc_hp*tc_h;
+
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         double g_start = clock();
         tensor::crbm::norm_maxpooling_2D( tg_hp, tg_h, POOL_SIZE );
-        tg_hp += 1.0f;
-        tg_hp  = tg_hp * 3.1f + tg_h * 0.001f; 
-        tg_hp  = tg_hp*tg_h;
+
         sync_gpu_threads();
         stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
         tensor::copy( tc_hp_g, tg_hp );

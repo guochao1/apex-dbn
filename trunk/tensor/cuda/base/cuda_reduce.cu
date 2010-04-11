@@ -111,7 +111,7 @@ namespace cuda_reduce{
 
     template<int rm,int y_size, int x_size>
     __device__ void reduce_2D_non_align( float buf[y_size][x_size] ){
-        __reduce_x_non_align< rm , x_size*y_size > ( buf[0] , threadIdx.y *x_size + threadIdx.x );
+        __reduce_x_non_align< rm , x_size*y_size > ( buf[0] , threadIdx.y*x_size + threadIdx.x );
     }   
 
     /* block reduction optimized for <16,16> thread block */
