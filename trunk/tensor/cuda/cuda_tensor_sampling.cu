@@ -177,16 +177,11 @@ namespace apex_tensor{
                 (  block_y, block_x, s_mm, dst[block_z], prob[block_z], rnd + block_z*(gridDim.x<<8) + (blockIdx.x<<8) );        
         }
         
-        /* pooling data up */
-        template<int st_m>
-        inline void sample_maxpooling( GTensor3D &dst, const GTensor3D &prob, int pool_size ){        
-            if( pool_size == 1 ){
-                sample_binary<st_m>( dst, prob ); return;
-            }
-            
+        template<int st_m, int pool_bits>
+        inline void __sample_maxpooling_1616( GTensor3D &dst, const GTensor3D &prob ){
             dim3 dimBlock( 16 , 16 );       
-            const int d_y_max = (prob.y_max + pool_size-1) / pool_size;  
-            const int d_x_max = (prob.x_max + pool_size-1) / pool_size;
+            const int d_y_max = (prob.y_max + (1<<pool_bits) - 1) >> pool_bits;  
+            const int d_x_max = (prob.x_max + (1<<pool_bits) - 1) >> pool_bits;
 
             int  grid_height= (d_y_max+15) >> 4 ;        
             int  grid_width = (d_x_max+15) >> 4;
@@ -195,10 +190,98 @@ namespace apex_tensor{
         
             const float *rnd  = cuda_rand::rand_singles( (dimGrid.y*dimGrid.x)<<8 );
             
+            __sample_maxpooling_1616_kernel_3DGrid<st_m,pool_bits><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd );
+        }        
+                
+        /* 
+           sample maxpooling with pool_size 
+           with block shape < pool_size , 16*pool_size >
+        */
+        template<int st_m,int pool_size>
+        __device__ void __sample_maxpooling_procedure_ord( int block_y,
+                                                           int block_x,    
+                                                           float s_mm[pool_size][16*pool_size],
+                                                           __GT2D dst,
+                                                           const __GT2D prob,
+                                                           const float *rnd ){
+            float r = cuda_rand::get_rand( rnd, (threadIdx.y*pool_size*16) + threadIdx.x ) - 1.0f;
+            
+            // load from src 
+            for( int y = 0 ; y < pool_size ; y ++ )
+                for( int x = 0 ; x < pool_size ; x ++ ){                                
+                    int y_idx = block_y*pool_size*pool_size    + y*pool_size    + threadIdx.y;
+                    int x_idx = block_x*pool_size*pool_size*16 + x*pool_size*16 + threadIdx.x;
+                    
+                    // we don't need to sync here since each thread always use the same position 
+                    //__syncthreads();
+                    
+                    // load data into memory 
+                    if( y_idx < prob.y_max && x_idx < prob.x_max ) {
+                        s_mm[ threadIdx.y ][ threadIdx.x ] = prob[ y_idx ][ x_idx ];
+                    }else{
+                        s_mm[ threadIdx.y ][ threadIdx.x ] = 0.0f; 
+                    }
+                    __syncthreads();
+                    
+                    // if the thread is in this range 
+                    if( y == threadIdx.y && x == (threadIdx.x>>4) ){
+                        // no bank conflict in the same pool, since we only access bank in the same row 
+                        cuda_rand::sample_maxpooling_ord<pool_size>( 0, 
+                                                                     (threadIdx.x & 15) * pool_size,
+                                                                     s_mm, r );                                                 
+                    }
+                    __syncthreads();
+                    
+                    if( y_idx < dst.y_max && x_idx < dst.x_max ) {
+                        float s = s_mm[ threadIdx.y ][ threadIdx.x ];
+                        store_method::__store<st_m>( dst[y_idx][x_idx], s );
+                    }
+                }
+        }
+        
+        template<int st_m, int pool_size>
+        __global__ void __sample_maxpooling_ord_kernel_3DGrid( int grid_width, 
+                                                               __GT3D dst, 
+                                                               const __GT3D prob, 
+                                                               const float *rnd ){
+            const int block_z = blockIdx.y;
+            const int block_y = blockIdx.x / grid_width;
+            const int block_x = blockIdx.x % grid_width;
+            
+            __shared__ float s_mm[ pool_size ][ pool_size*16 ];
+            
+            __sample_maxpooling_procedure_ord<st_m,pool_size>
+                (  block_y, block_x, s_mm, dst[block_z], prob[block_z], 
+                   rnd + block_z*(gridDim.x*pool_size*pool_size*16) + (blockIdx.x*pool_size*pool_size*16) );        
+        }
+        
+        template<int st_m, int pool_size>
+        inline void __sample_maxpooling_ord( GTensor3D &dst, const GTensor3D &prob ){
+            dim3 dimBlock( pool_size*16, pool_size );       
+
+            const int d_y_max = (prob.y_max + pool_size-1) / pool_size;  
+            const int d_x_max = (prob.x_max + pool_size-1) / pool_size;
+
+            int  grid_height= (d_y_max+pool_size   -1) / pool_size;        
+            int  grid_width = (d_x_max+pool_size*16-1) / (pool_size*16);
+
+            dim3 dimGrid( grid_width*grid_height, prob.z_max );
+        
+            const float *rnd  = cuda_rand::rand_singles( (dimGrid.y*dimGrid.x)*(pool_size*pool_size*16) );
+            
+            __sample_maxpooling_ord_kernel_3DGrid<st_m,pool_size><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd );
+        }        
+        
+        /* pooling data up */
+        template<int st_m>
+        inline void sample_maxpooling( GTensor3D &dst, const GTensor3D &prob, int pool_size ){        
             switch( pool_size ){
-            case 2: __sample_maxpooling_1616_kernel_3DGrid<st_m,1><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd ); break;
-            case 4: __sample_maxpooling_1616_kernel_3DGrid<st_m,2><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd ); break;   
-            case 8: __sample_maxpooling_1616_kernel_3DGrid<st_m,3><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(prob), rnd ); break;   
+            case 1: sample_binary<st_m>( dst, prob );              break;
+            case 2: __sample_maxpooling_1616<st_m,1>( dst, prob ); break;   
+            case 3: __sample_maxpooling_ord <st_m,3>( dst, prob ); break;   
+            case 4: __sample_maxpooling_1616<st_m,2>( dst, prob ); break;   
+            case 5: __sample_maxpooling_ord <st_m,5>( dst, prob ); break;   
+            case 8: __sample_maxpooling_1616<st_m,3>( dst, prob ); break;   
             default: error("pooling size not supported");
             }
         }                        

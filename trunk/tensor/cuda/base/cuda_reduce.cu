@@ -75,14 +75,43 @@ namespace cuda_reduce{
 #endif        
     }
    
+#define __RD_NON_ALIGN(els,x_bits)                                      \
+    els                                                                 \
+    if( x_size >= (1 << x_bits) ){                                      \
+        if( tid < (1 << x_bits) && tid + (1<<x_bits) < x_size ){        \
+            reduce_method::__reduce<rm>( buf[tid] , buf[tid + (1<<x_bits)] ); \
+        }                                                               \
+        __syncthreads();                                                \
+        __reduce_x<rm, x_bits>( buf, tid );                             \
+    }                                                                   \
+
+
+    template<int rm,int x_size>
+    __device__ void __reduce_x_non_align( float buf[], int tid ){
+        __RD_NON_ALIGN(, 8) 
+        __RD_NON_ALIGN(else, 7) 
+        __RD_NON_ALIGN(else, 6) 
+        __RD_NON_ALIGN(else, 5) 
+        __RD_NON_ALIGN(else, 4) 
+        __RD_NON_ALIGN(else, 3) 
+        __RD_NON_ALIGN(else, 2) 
+        __RD_NON_ALIGN(else, 1)                     
+    }
+
     template<int rm,int x_bits>
     __device__ void reduce_1D( float buf[1<<x_bits] ){
         __reduce_x< rm, x_bits >( buf , threadIdx.x );
     }    
 
+
     template<int rm,int y_bits, int x_bits>
     __device__ void reduce_2D( float buf[1<<y_bits][1<<x_bits] ){
         __reduce_x< rm , x_bits+y_bits > ( buf[0] , (threadIdx.y << x_bits) + threadIdx.x );
+    }   
+
+    template<int rm,int y_size, int x_size>
+    __device__ void reduce_2D_non_align( float buf[y_size][x_size] ){
+        __reduce_x_non_align< rm , x_size*y_size > ( buf[0] , threadIdx.y *x_size + threadIdx.x );
     }   
 
     /* block reduction optimized for <16,16> thread block */
