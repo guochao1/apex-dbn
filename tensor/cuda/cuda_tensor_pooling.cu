@@ -190,7 +190,7 @@ namespace apex_tensor{
         inline __device__ float __sum_block_ord( int y_start, int x_start, float s_mm[pool_size][pool_size*16] ){
             float sum = 0.0f;
             for( int y = y_start ; y < y_start + pool_size ; y ++ )
-                for( int x = x_start ; x < x_start + pool_size*16 ; x ++ ){
+                for( int x = x_start ; x < x_start + pool_size ; x ++ ){
                     sum += s_mm[y][x];
                 }
             return sum;
