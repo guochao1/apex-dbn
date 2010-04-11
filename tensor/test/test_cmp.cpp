@@ -10,7 +10,7 @@ using namespace apex_tensor;
 
 const int NUM_ITER = 20;
 
-const int POOL_SIZE = 2;
+const int POOL_SIZE = 3;
 const int V_MAX   = 14;
 const int H_MAX   = 20;
 const int V_Y_MAX = 127;
@@ -30,18 +30,16 @@ int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine(0);
 
-    test_refill_edge_area( NUM_ITER );
-    test_sadd__scale( NUM_ITER );
-    test_sum_2D( NUM_ITER );
-    test_sum_2DX( NUM_ITER );
-    
-    
-    test_gaussian( NUM_ITER );
-    
     test_norm_maxpooling_2D( NUM_ITER );
     test_add_sparse_info( NUM_ITER );
 	test_pool_up( NUM_ITER );
 
+
+    test_refill_edge_area( NUM_ITER );
+    test_sadd__scale( NUM_ITER );
+    test_sum_2D( NUM_ITER );
+    test_sum_2DX( NUM_ITER );        
+    test_gaussian( NUM_ITER );   
 	test_conv2_r_big_filter( NUM_ITER );
     test_conv2_r_valid( NUM_ITER );
 	test_conv2_full( NUM_ITER );

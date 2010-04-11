@@ -20,6 +20,14 @@ namespace cuda_reduce{
      */
     template<int reduce_m,int y_bits, int x_bits>
     __device__ void reduce_2D( float buf[1<<y_bits][1<<x_bits] );
+
+    /* 
+       reduce over 2 dimensions 
+       the size of matrix is y_size, x_size
+       the data is not aligned by 16 16
+     */
+    template<int rm,int y_size, int x_size>
+    __device__ void reduce_2D_non_align( float buf[y_size][x_size] );
     
     /* block reduce function optimized for <16,16> thread block */
     template<int reduce_m,int y_block_bits,int x_block_bits>
