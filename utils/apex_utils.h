@@ -9,6 +9,10 @@ namespace apex_utils{
         printf("assert error:%s\n",msg );
         exit( -1 );
     }
+
+    inline void warning( const char *msg ){
+        printf("warning:%s\n",msg );
+    }
     
     inline FILE *fopen_check( const char *fname , const char *flag ){
 		FILE *fp = fopen( fname , flag );

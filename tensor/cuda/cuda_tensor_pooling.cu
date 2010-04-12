@@ -181,7 +181,7 @@ namespace apex_tensor{
             int  grid_width = (dst.x_max+15) >> 4;
 
             dim3 dimBlock( 16 , 16 );
-            dim3 dimGrid( grid_width*grid_height, src.z_max );           
+            dim3 dimGrid( grid_width*grid_height, dst.z_max );           
             __pool_kernel_1616<st_m,map_m,pool_bits><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(src) );
         }
 
@@ -258,7 +258,7 @@ namespace apex_tensor{
             int  grid_width = (dst.x_max+pool_size*16-1) / (pool_size*16);
 
             dim3 dimBlock( pool_size*16 , pool_size );
-            dim3 dimGrid( grid_width*grid_height, src.z_max );           
+            dim3 dimGrid( grid_width*grid_height, dst.z_max );           
             __pool_kernel_ord<st_m,map_m,pool_size><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(src) ); 
         }
 
