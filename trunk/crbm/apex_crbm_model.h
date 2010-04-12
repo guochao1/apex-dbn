@@ -293,9 +293,12 @@ namespace apex_rbm{
         // add a layer to the dbn model
         inline void add_layer( const CRBMModelParam  &p ){
             if( layers.size() > 0 ){
-                if( p.v_max != layers.back().param.h_max ){
+                if( p.v_max > layers.back().param.h_max ){
                     apex_utils::error("layer configuration unmatched with last layer\n" );
                 }
+                if( p.v_max < layers.back().param.h_max ){
+                    apex_utils::warning("layer configuration smaller than last layer\n" );
+                }                
             } 
             layers.resize( layers.size() + 1 );
             layers.back().param = p;
