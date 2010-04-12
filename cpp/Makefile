@@ -5,7 +5,7 @@ else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
 endif
 
-BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper kyoto_data_viewer
+BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -44,7 +44,7 @@ apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $
 	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
 srbm_minist: srbm_minist.cpp apex_srbm.o $(TENSOR_LIB) 
-	$(NVCC) $(OPTNVCC) -o srbm_minist srbm_minist.cpp apex_srbm.o $(TENS0R_LIB)
+	$(NVCC) $(OPTNVCC) -o srbm_minist srbm_minist.cpp apex_srbm.o $(TENSOR_LIB)
 
 crbm_minist: crbm_minist.cpp apex_crbm.o $(TENSOR_LIB) 
 	$(NVCC) $(OPTNVCC) -o crbm_minist crbm_minist.cpp  apex_crbm.o $(TENSOR_LIB) 
@@ -59,7 +59,10 @@ crbm_model_drawer: crbm_model_drawer.cpp apex_tensor_cpu.o
 	g++ $(OPT) -lpthread -lX11  -o crbm_model_drawer crbm_model_drawer.cpp apex_tensor_cpu.o
 
 crbm_model_dumper: crbm_model_dumper.cpp apex_tensor_cpu.o  
-	g++ $(OPT) -lpthread -lX11  -o crbm_model_dumper crbm_model_dumper.cpp apex_tensor_cpu.o
+	g++ $(OPT) -o crbm_model_dumper crbm_model_dumper.cpp apex_tensor_cpu.o
+
+crbm_model_swaper: crbm_model_swaper.cpp apex_tensor_cpu.o  
+	g++ $(OPT) -o crbm_model_swaper crbm_model_swaper.cpp apex_tensor_cpu.o
 
 kyoto_data_viewer: kyoto_data_viewer.cpp apex_tensor_cpu.o  
 	g++ $(OPT) -lpthread -lX11  -o kyoto_data_viewer kyoto_data_viewer.cpp apex_tensor_cpu.o

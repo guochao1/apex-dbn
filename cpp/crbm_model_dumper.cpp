@@ -7,7 +7,7 @@
 
 int main( int argc, char *argv[] ){
     if( argc < 3 ){
-        printf("Usage: <model in> <text_out>");        
+        printf("Usage: <model in> <text_out>\n");        
         return 0;
     }
 	apex_rbm::CDBNModel model;

@@ -44,7 +44,7 @@ inline void norm_sigmoid( CTensor3D &m, float v_bias ){
 }
 int main( int argc, char *argv[] ){
     if( argc < 4 ){
-        printf("Usage: <model in> <image_out> <method>");        
+        printf("Usage: <model in> <image_out> <method>\n");        
         return 0;
     }
     apex_rbm::SDBNModel model;	

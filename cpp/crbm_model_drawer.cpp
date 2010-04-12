@@ -118,13 +118,14 @@ inline void refit( CTensor4D m ){
 
 int main( int argc, char *argv[] ){
     if( argc < 4 ){
-        printf("Usage: <model in> <image_out> <method>");        
+        printf("Usage: <model in> <image_out> <method>\n");        
         return 0;
     }
     apex_rbm::CDBNModel model;	
     FILE *fi = apex_utils::fopen_check( argv[1] , "rb" );
     model.load_from_file( fi );
     fclose( fi );	
+
     if( model.layers.size() == 1 ){
         CTensor3D m = model.layers[0].W[0];
         draw_mat( m, argv[2], atoi( argv[3]), 2, model.layers[0].v_bias[0] );
