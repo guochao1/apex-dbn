@@ -247,9 +247,17 @@ namespace apex_rbm{
         
         inline void load_from_file( FILE *fi ){
             layers.clear();
-            size_t count, s;
+            unsigned int count;
+            size_t s;
 
-            s = fread( &count, sizeof(size_t),  1 , fi );
+            s = fread( &count, sizeof(unsigned int),  1 , fi );
+
+            // we reserve another 4 bytes
+            if( sizeof(unsigned int) == 4 ){
+                unsigned int cc;
+                s = fread( &cc, sizeof(unsigned int),  1 , fi );
+            }
+
             if( s <=0 ){
                 fprintf(stderr,"error loading CDBN model\n"); exit( -1 );
             }
@@ -261,8 +269,15 @@ namespace apex_rbm{
         }
 
         inline void save_to_file( FILE * fo )const{
-            size_t count = layers.size();
-            fwrite( &count, sizeof(size_t) , 1, fo );
+            unsigned int count = (unsigned int)layers.size();
+            fwrite( &count, sizeof(unsigned int) , 1, fo );
+
+            // we reserve another 4 bytes
+            if( sizeof(unsigned int) == 4 ){
+                unsigned int cc = 0;
+                fwrite( &cc, sizeof(unsigned int),  1 , fo );
+            }
+
             for( size_t i = 0 ; i < count ; i ++ ){
                 layers[ i ].save_to_file( fo );
             }            
