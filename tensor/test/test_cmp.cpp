@@ -8,8 +8,9 @@
 #include <ctime>
 using namespace apex_tensor;
 
-const int NUM_ITER = 20;
+const int NUM_ITER = 1;
 
+const int NUM_SAMPLE = 10000;
 const int POOL_SIZE = 3;
 const int V_MAX   = 14;
 const int H_MAX   = 20;
@@ -30,6 +31,8 @@ int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine(0);
 
+    test_sample_maxpooling_2D( NUM_ITER, NUM_SAMPLE );
+    /*
     test_norm_maxpooling_2D( NUM_ITER );
     test_add_sparse_info( NUM_ITER );
 	test_pool_up( NUM_ITER );
@@ -44,7 +47,7 @@ int main( void ){
     test_conv2_r_valid( NUM_ITER );
 	test_conv2_full( NUM_ITER );
     
-    destroy_tensor_engine();
+    destroy_tensor_engine();*/
     return 0;
 } 
 
