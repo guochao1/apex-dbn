@@ -280,7 +280,6 @@ namespace apex_tensor{
             case 2: __sample_maxpooling_1616<st_m,1>( dst, prob ); break;   
             case 3: __sample_maxpooling_ord <st_m,3>( dst, prob ); break;   
             case 4: __sample_maxpooling_1616<st_m,2>( dst, prob ); break;   
-            case 5: __sample_maxpooling_ord <st_m,5>( dst, prob ); break;   
             case 8: __sample_maxpooling_1616<st_m,3>( dst, prob ); break;   
             default: error("pooling size not supported");
             }

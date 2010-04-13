@@ -269,7 +269,6 @@ namespace apex_tensor{
             case 2 : __pool_up_1616<st_m,map_m,1>( dst, src ); break;
             case 3 : __pool_up_ord <st_m,map_m,3>( dst, src ); break;
             case 4 : __pool_up_1616<st_m,map_m,2>( dst, src ); break;
-            case 5 : __pool_up_ord <st_m,map_m,5>( dst, src ); break;
             case 8 : __pool_up_1616<st_m,map_m,3>( dst, src ); break;                
             default: error("pool_size not supported"); 
             }
@@ -420,7 +419,7 @@ namespace apex_tensor{
             dim3 dimGrid ( src.z_max ,1 );
 
             cudaStream_t s = cuda_async::get_stream( ra, rb, src );
-            __pool_sum_kernel_ord<st_m,mapm_A,mapm_B,pool_size,ceil_up><<<dimGrid,dimBlock,pool_size,s>>>( ra.elem, rb.elem, __GT(src) ); 
+            __pool_sum_kernel_ord<st_m,mapm_A,mapm_B,pool_size,ceil_up><<<dimGrid,dimBlock,0,s>>>( ra.elem, rb.elem, __GT(src) ); 
         }
         
         template<int st_m, int mapm_A, int mapm_B, bool ceil_up>
@@ -430,7 +429,6 @@ namespace apex_tensor{
             case 2: __pool_sum_1616<st_m,mapm_A,mapm_B,1,ceil_up>( ra, rb, src ); break;
             case 3: __pool_sum_ord <st_m,mapm_A,mapm_B,3,ceil_up>( ra, rb, src ); break;
             case 4: __pool_sum_1616<st_m,mapm_A,mapm_B,2,ceil_up>( ra, rb, src ); break;
-            case 5: __pool_sum_ord <st_m,mapm_A,mapm_B,5,ceil_up>( ra, rb, src ); break;
             case 8: __pool_sum_1616<st_m,mapm_A,mapm_B,3,ceil_up>( ra, rb, src ); break;
             default: error("pooling size not supported");
             }
@@ -646,7 +644,6 @@ namespace apex_tensor{
             case 2: __norm_maxpooling_1616<st_m,1>( dst, energy );    break;
             case 3: __norm_maxpooling_ord <st_m,3>( dst, energy );    break;
             case 4: __norm_maxpooling_1616<st_m,2>( dst, energy );    break;
-            case 5: __norm_maxpooling_ord <st_m,5>( dst, energy );    break;
             case 8: __norm_maxpooling_1616<st_m,3>( dst, energy );    break;
             default: error("pooling size not supported");
             }

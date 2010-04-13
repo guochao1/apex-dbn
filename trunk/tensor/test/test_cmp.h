@@ -125,11 +125,11 @@ void test_conv2_full( int num_iter ){
     printf("start test conv2_full\n");
     
 	TestStats<CTensor3D> stats( "conv2_full_CPU","conv2_full_GPU");
-    stats.abs_err.set_param( H_MAX, H_Y_MAX, H_X_MAX );
-    stats.abs_err_rel.set_param( H_MAX, H_Y_MAX, H_X_MAX );
-    stats.abs_err_relT.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    stats.abs_err.set_param( V_MAX, V_Y_MAX, V_X_MAX );
+    stats.abs_err_rel.set_param( V_MAX, V_Y_MAX, V_X_MAX );
+    stats.abs_err_relT.set_param( V_MAX, V_Y_MAX, V_X_MAX );
     stats.init();
-    
+
     for( int i = 0 ; i < num_iter ; i ++ ){
 		printf("\r                                  \r");
 		printf("round [%8d]", i);
@@ -162,7 +162,6 @@ void test_conv2_full( int num_iter ){
     tensor::free_space( tg_h );
     tensor::free_space( tg_f );
     tensor::free_space( tc_vb );
-    tensor::free_space( tc_h );
     tensor::free_space( tc_h );
     tensor::free_space( tc_v_g );
     tensor::free_space( tc_f );        
@@ -317,10 +316,11 @@ void test_sample_maxpooling_2D( int num_iter, int num_sample ){
         tc_hp = 0.0f; tg_hp = 0.0f;
         
         for( int j = 0; j < num_sample ; j ++ ){
-            printf("\r                                  \r");
-            printf("round [%8d,%08d]", i, j);
-            fflush( stdout );
-            	   
+			if( j%1000 == 0 ){
+				printf("\r                                  \r");
+				printf("round [%8d,%08d]", i, j);
+				fflush( stdout );
+			}   
             double c_start = clock();
             
             tensor::crbm::sample_maxpooling_2D( tc_hc, tc_h, POOL_SIZE );
