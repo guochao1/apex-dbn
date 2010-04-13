@@ -280,6 +280,79 @@ void test_norm_maxpooling_2D( int num_iter ){
     tensor::free_space( tc_hp_g );
 }
 
+void test_sample_maxpooling_2D( int num_iter, int num_sample ){
+    TTensor3D tg_hp ( H_MAX, H_Y_MAX, H_X_MAX );
+    TTensor3D tg_hc ( H_MAX, H_Y_MAX, H_X_MAX );
+    TTensor3D tg_h  ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_h     ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_hp    ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_hc    ( H_MAX, H_Y_MAX, H_X_MAX );
+    CTensor3D tc_hp_g  ( H_MAX, H_Y_MAX, H_X_MAX );
+
+	tensor::alloc_space( tg_hp );
+	tensor::alloc_space( tg_hc );
+    tensor::alloc_space( tg_h );
+    tensor::alloc_space( tc_hp );
+    tensor::alloc_space( tc_hc );
+    tensor::alloc_space( tc_h );
+    tensor::alloc_space( tc_hp_g );
+    printf("start test norm_maxpooling_2D\n");
+    
+	TestStats<CTensor3D> statsA( "maxpooling_prob","sample_maxpooling_2D_CPU");
+	TestStats<CTensor3D> statsB( "maxpooling_prob","sample_maxpooling_2D_GPU");
+    statsA.abs_err.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    statsA.abs_err_rel.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    statsA.abs_err_relT.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    statsB.abs_err.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    statsB.abs_err_rel.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    statsB.abs_err_relT.set_param( H_MAX, H_Y_MAX, H_X_MAX );
+    statsA.init(); statsB.init();
+    
+    
+    for( int i = 0 ; i < num_iter ; i ++ ){        
+        tensor::sample_gaussian( tc_h, sd );
+        tensor::crbm::norm_maxpooling_2D( tc_h, tc_h, POOL_SIZE );
+        tensor::copy( tg_h, tc_h );        
+        
+        tc_hp = 0.0f; tg_hp = 0.0f;
+        
+        for( int j = 0; j < num_sample ; j ++ ){
+            printf("\r                                  \r");
+            printf("round [%8d,%08d]", i, j);
+            fflush( stdout );
+            	   
+            double c_start = clock();
+            
+            tensor::crbm::sample_maxpooling_2D( tc_hc, tc_h, POOL_SIZE );
+            tc_hp += tc_hc;
+
+            statsA.time_B += (clock() - c_start) / CLOCKS_PER_SEC;
+            double g_start = clock();
+            tensor::crbm::sample_maxpooling_2D( tg_hc, tg_h, POOL_SIZE );
+            tg_hp += tg_hc;
+            
+            sync_gpu_threads();
+            statsB.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        }
+        tc_hp *= 1.0f/num_sample; 
+        tg_hp *= 1.0f/num_sample;
+        tensor::copy( tc_hp_g, tg_hp );
+
+        statsA.add_sample( tc_h, tc_hp );        
+        statsB.add_sample( tc_h, tc_hp_g );        
+    } 
+    printf("\n");
+    statsA.print(); statsB.print();
+
+    tensor::free_space( tg_hp );
+    tensor::free_space( tg_hc );
+    tensor::free_space( tg_h );
+    tensor::free_space( tc_hc );
+    tensor::free_space( tc_hp );
+    tensor::free_space( tc_h );
+    tensor::free_space( tc_hp_g );
+}
+
 void test_pool_up( int num_iter ){
     TTensor3D tg_hp ( H_MAX, P_Y_MAX, P_X_MAX );
     TTensor3D tg_h  ( H_MAX, H_Y_MAX, H_X_MAX );
