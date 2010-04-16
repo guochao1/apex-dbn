@@ -56,7 +56,8 @@ namespace apex_rbm{
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , 1 );
         }
     };
-    
+
+    template<bool use_type2>
     class CRBMGaussianNode : public ICRBMNode{
     private:
         float sigma, sigma_sqr;
@@ -69,7 +70,11 @@ namespace apex_rbm{
             state = sample_gaussian( mean, sigma );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
-            mean =  energy * sigma_sqr;
+            if( use_type2 ){
+                if( mean.elem != energy.elem ) tensor::copy( mean, energy );
+            }else{
+                mean =  energy * sigma_sqr;
+            }
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
             tensor::crbm::copy_fit( v_next, h_curr );
@@ -137,7 +142,8 @@ namespace apex_rbm{
     inline ICRBMNode *create_visible_node( const CRBMModelParam &param ){
         switch( param.model_type ){
         case 0: return new CRBMBinaryNode();
-        case 1: return new CRBMGaussianNode( param.v_sigma );
+        case 1: return new CRBMGaussianNode<false>( param.v_sigma );
+        case 2: return new CRBMGaussianNode<true> ( param.v_sigma );
         default: return NULL;
         }
     }
@@ -145,6 +151,7 @@ namespace apex_rbm{
         switch( param.model_type ){
         case 0: return new CRBMMaxpoolNode<false>( param );
         case 1: return new CRBMMaxpoolNode<false>( param );
+        case 2: return new CRBMMaxpoolNode<true> ( param, 1.0f/(param.v_sigma*param.v_sigma) );
         default: return NULL;
         }
     }
