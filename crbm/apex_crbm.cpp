@@ -389,7 +389,7 @@ namespace apex_rbm{
             TTensor4D & W      = layers.back().W;
 
             const float eta = param.learning_rate/(param.batch_size*h_size);
-            
+
             if( param.chg_hidden_bias ){
                 // calculate sparse grad
                 cal_sparse();
