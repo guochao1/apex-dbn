@@ -5,7 +5,7 @@ else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
 endif
 
-BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer
+BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -69,6 +69,9 @@ crbm_model_dumper: crbm_model_dumper.cpp apex_tensor_cpu.o
 
 crbm_model_swaper: crbm_model_swaper.cpp apex_tensor_cpu.o  
 	g++ $(OPT) -o crbm_model_swaper crbm_model_swaper.cpp apex_tensor_cpu.o
+
+crbm_model_modify: crbm_model_modify.cpp apex_tensor_cpu.o  
+	g++ $(OPT) -o crbm_model_modify crbm_model_modify.cpp apex_tensor_cpu.o
 
 kyoto_data_viewer: kyoto_data_viewer.cpp apex_tensor_cpu.o  
 	g++ $(OPT) -lpthread -lX11  -o kyoto_data_viewer kyoto_data_viewer.cpp apex_tensor_cpu.o

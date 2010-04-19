@@ -93,7 +93,7 @@ inline CTensor3D pool_up( CTensor3D &h, const apex_rbm::CRBMModel &model, int vv
     return p;    
 }
 
-inline void filter_draw( const CTensor2D &pic,  const apex_rbm::CDBNModel &model, int idx, int mm ){
+inline void filter_draw( const CTensor2D &pic,  const apex_rbm::CDBNModel &model, int idx, int mm, int s_max ){
     CTensor3D v_data( 1 , pic.y_max, pic.x_max );
 
     tensor::alloc_space( v_data );
@@ -114,10 +114,19 @@ inline void filter_draw( const CTensor2D &pic,  const apex_rbm::CDBNModel &model
     
     printf("infer end, start drawing\n");
     
+    
     for( int i = 0 ; i < v_data.z_max; i ++ ) { 
         char fname[256];
         sprintf( fname, "kyoto.filter.%03d.%02d.bmp", i, idx );
         draw_mat( v_data[i], fname , 1 );
+        if( i > 0 && i < s_max ) v_data[0] += v_data[i];
+    }
+    if( s_max > 0 ){
+        norm_minmax2( v_data );
+        
+        char fname[256];
+        sprintf( fname, "kyoto.filter.all.%02d.bmp",  idx );
+        draw_mat( v_data[0], fname , 1 );
     }
     tensor::free_space( v_data );
 }
@@ -127,6 +136,9 @@ int main( int argc, char *argv[] ){
         printf("Usage: <config> <model in> <method>\n");        
         return 0;
     }
+    int s_max = 0;
+    if( argc > 4 ) s_max = atoi( argv[4] );
+
     apex_rbm::CDBNModel model;	
     FILE *fi = apex_utils::fopen_check( argv[2] , "rb" );
     model.load_from_file( fi );
@@ -145,7 +157,7 @@ int main( int argc, char *argv[] ){
         draw_mat( itr.trunk(), "view_kyoto.bmp" , 1);
         const CTensor3D &tk = itr.trunk();
         for( int i = 0 ; i < tk.z_max ; i ++ ){            
-            filter_draw( tk[i] , model, i, atoi(argv[3]) ); 
+            filter_draw( tk[i] , model, i, atoi(argv[3]), s_max ); 
         }
     }                
 	return 0;

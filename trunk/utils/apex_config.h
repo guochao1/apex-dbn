@@ -17,7 +17,7 @@ namespace apex_utils{
         inline void skip_line(){           
             do{
                ch_buf = fgetc( fi );
-            }while( ch_buf != EOF && ch_buf != '\n' );
+            }while( ch_buf != EOF && ch_buf != '\n' && ch_buf != '\r' );
         }
         
         inline void parse_str( char tok[] ){
@@ -27,6 +27,7 @@ namespace apex_utils{
                 case '\\': tok[i++] = fgetc( fi ); break;
                 case '\"': tok[i++] = '\0'; 
 						return;
+                case '\r':
                 case '\n': apex_utils::error("unterminated string"); break;
                 default: tok[i++] = ch_buf;
                 }
@@ -51,16 +52,18 @@ namespace apex_utils{
 						ch_buf = fgetc( fi );     
                         tok[0] = '='; 
                         tok[1] = '\0'; 
-                     }else{
-                         tok[i] = '\0'; 
-                     }
+                    }else{
+                        tok[i] = '\0'; 
+                    }
 					return new_line;
+                case '\r':
                 case '\n':
 					if( i == 0 ) new_line = true;
                 case ' ' :
                     ch_buf = fgetc( fi );
                     if( i > 0 ){
-                        tok[i] = '\0'; return new_line;
+                        tok[i] = '\0'; 
+                        return new_line;
                     }               
 					break;
                 default: 
@@ -86,7 +89,7 @@ namespace apex_utils{
         inline const char *val() const{
             return s_val;
         }
-        inline bool next(){
+        inline bool next(){            
             while( !feof( fi ) ){
                 get_next_token( s_name );
 
