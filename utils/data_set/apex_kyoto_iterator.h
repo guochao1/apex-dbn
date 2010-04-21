@@ -39,6 +39,7 @@ namespace apex_utils{
         int sample_gen_method, do_shuffle;
         int num_extract_per_image;        
         int repeat_round, remain_round;
+        int validate_train;
 
         apex_tensor::CTensor3D data;
     private:
@@ -60,7 +61,7 @@ namespace apex_utils{
             silent = 0; normalize = 0; 
             sample_gen_method = 0; do_shuffle = 0;
             num_extract_per_image = 10;
-            remain_round = 0; repeat_round = 1;
+            remain_round = 0; repeat_round = 1; validate_train = 0; 
         }
         virtual ~KyotoIterator(){
             if( data.elem != NULL )
@@ -78,7 +79,7 @@ namespace apex_utils{
             if( !strcmp( name, "do_shuffle"))    do_shuffle = atoi( val );
             if( !strcmp( name, "repeat_round"))    repeat_round = atoi( val );
             if( !strcmp( name, "num_extract_per_image")) num_extract_per_image = atoi( val );
-            
+            if( !strcmp( name, "validate_train"))  validate_train = atoi( val );            
         }
         
         inline void shuffle(){
@@ -175,7 +176,13 @@ namespace apex_utils{
         
         // trunk used for validation
         virtual const T validation_trunk()const{
-            return get_trunk( (int)max_idx, data.z_max );
+            if( validate_train ){
+                // return training dataset 
+                return get_trunk( 0, data.z_max );
+            }else{
+                // return validation data
+                return get_trunk( (int)max_idx, data.z_max );
+            }
         }
     };
 };
