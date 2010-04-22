@@ -117,9 +117,13 @@ inline void refit( CTensor4D m ){
 }
 
 int main( int argc, char *argv[] ){
+    int num_used = -1;
     if( argc < 4 ){
-        printf("Usage: <model in> <image_out> <method>\n");        
+        printf("Usage: <model in> <image_out> <method> [num_used]\n");        
         return 0;
+    }
+    if( argc > 4 ){
+        num_used = atoi( argv[4] );
     }
     apex_rbm::CDBNModel model;	
     FILE *fi = apex_utils::fopen_check( argv[1] , "rb" );
@@ -141,9 +145,13 @@ int main( int argc, char *argv[] ){
         for( int h = 0 ; h < mw.z_max ; h ++ )
             for( int v = 0 ; v < mw.h_max ; v ++ )
                 for( int y = 0; y < mw.y_max ; y ++ )
-                    for( int x = 0 ; x < mw.x_max ; x ++ )
+                    for( int x = 0 ; x < mw.x_max ; x ++ ){
+                        if( num_used > 0 && v <  num_used ) 
+                            m[h][v][y][x] = 0.0f;
+                        else
                             m[h][v][y][x] = mw[v][h][y][x];
-         
+                    }
+            
         for( int i = (int)model.layers.size()-2 ; i >=0 ; i -- ){
             if( dm == 0 ) refit( m );
             m = pool_down ( m, model.layers[i].param.pool_size );
