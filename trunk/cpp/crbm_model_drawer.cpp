@@ -146,8 +146,9 @@ int main( int argc, char *argv[] ){
             for( int v = 0 ; v < mw.h_max ; v ++ )
                 for( int y = 0; y < mw.y_max ; y ++ )
                     for( int x = 0 ; x < mw.x_max ; x ++ ){
-                        if( num_used > 0 && v <  num_used ) 
-                            m[h][v][y][x] = 0.0f;
+						if( num_used >= 0 && v >= num_used ){       
+							m[h][v][y][x] = 0.0f;
+						}
                         else
                             m[h][v][y][x] = mw[v][h][y][x];
                     }
