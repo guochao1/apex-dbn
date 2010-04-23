@@ -328,6 +328,8 @@ namespace apex_tensor{
         APEX_ELEMENTWISE_BINARY_OP( sub_template, d[j] = a[j]-b[j]);
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j] );
+        template<typename T>
+        APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( sadd__scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] += sa*a[j]+sb*b[j] );
         
         // support for error estimation
         template<typename T>
@@ -450,6 +452,7 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_E( sample_binary )
         APEX_USE_TEMPLATE_E( copy )
         APEX_USE_TEMPLATE_F( scale_add )        
+        APEX_USE_TEMPLATE_F( sadd__scale_add )        
 
         APEX_USE_TEMPLATE_C( sadd__abs_err )
         APEX_USE_TEMPLATE_C( sadd__abs_err_rel )

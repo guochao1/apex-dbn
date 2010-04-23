@@ -46,6 +46,8 @@ namespace apex_tensor{
         inline GTensor1D& operator += ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator -= ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
+        inline GTensor1D& operator += ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );       
+        inline GTensor1D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor1D,TENSOR_FLOAT> &val );        
     };
 
     struct GTensor2D{
@@ -92,6 +94,8 @@ namespace apex_tensor{
         inline GTensor2D& operator += ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator -= ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
+        inline GTensor2D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
     };
 
     struct GTensor3D{
@@ -131,7 +135,9 @@ namespace apex_tensor{
         inline GTensor3D& operator =  ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator += ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator -= ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
-        inline GTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
+        inline GTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );       
+        inline GTensor3D& operator += ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
+        inline GTensor3D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor3D,TENSOR_FLOAT> &val );        
     };
     
     struct GTensor4D{
@@ -173,6 +179,8 @@ namespace apex_tensor{
         inline GTensor4D& operator += ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
         inline GTensor4D& operator -= ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
         inline GTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
+        inline GTensor4D& operator += ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
+        inline GTensor4D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
     };
     
     // inline functions for tensor
@@ -287,6 +295,13 @@ namespace apex_tensor{
         void scale_add( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
         void scale_add( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
         void scale_add( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+        
+        // dst += a*sa + b*sb
+        void sadd__scale_add( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void sadd__scale_add( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void sadd__scale_add( GTensor3D &dst, const GTensor3D &a, const GTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void sadd__scale_add( GTensor4D &dst, const GTensor4D &a, const GTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+
         // dst = a - b
         void sub      ( GTensor1D &dst, const GTensor1D &a, const GTensor1D &b );
         void sub      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );

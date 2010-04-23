@@ -52,6 +52,8 @@ namespace apex_tensor{
         inline CTensor1D& operator += ( const apex_op_plan::ScalePlan<CTensor1D,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator -= ( const apex_op_plan::ScalePlan<CTensor1D,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::ScaleAddPlan<CTensor1D,TENSOR_FLOAT> &val );        
+        inline CTensor1D& operator += ( const apex_op_plan::ScaleAddPlan<CTensor1D,TENSOR_FLOAT> &val );        
+        inline CTensor1D& operator -= ( const apex_op_plan::ScaleAddPlan<CTensor1D,TENSOR_FLOAT> &val );        
     };
 
     struct CTensor2D{
@@ -97,6 +99,8 @@ namespace apex_tensor{
         inline CTensor2D& operator += ( const apex_op_plan::ScalePlan<CTensor2D,TENSOR_FLOAT> &val );        
         inline CTensor2D& operator -= ( const apex_op_plan::ScalePlan<CTensor2D,TENSOR_FLOAT> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<CTensor2D,TENSOR_FLOAT> &val );        
+        inline CTensor2D& operator += ( const apex_op_plan::ScaleAddPlan<CTensor2D,TENSOR_FLOAT> &val );        
+        inline CTensor2D& operator -= ( const apex_op_plan::ScaleAddPlan<CTensor2D,TENSOR_FLOAT> &val );        
     };
 
     struct CTensor3D{
@@ -135,6 +139,8 @@ namespace apex_tensor{
         inline CTensor3D& operator += ( const apex_op_plan::ScalePlan<CTensor3D,TENSOR_FLOAT> &val );        
         inline CTensor3D& operator -= ( const apex_op_plan::ScalePlan<CTensor3D,TENSOR_FLOAT> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::ScaleAddPlan<CTensor3D,TENSOR_FLOAT> &val );        
+        inline CTensor3D& operator += ( const apex_op_plan::ScaleAddPlan<CTensor3D,TENSOR_FLOAT> &val );        
+        inline CTensor3D& operator -= ( const apex_op_plan::ScaleAddPlan<CTensor3D,TENSOR_FLOAT> &val );        
     };
     
     struct CTensor4D{
@@ -175,6 +181,8 @@ namespace apex_tensor{
         inline CTensor4D& operator += ( const apex_op_plan::ScalePlan<CTensor4D,TENSOR_FLOAT> &val );        
         inline CTensor4D& operator -= ( const apex_op_plan::ScalePlan<CTensor4D,TENSOR_FLOAT> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::ScaleAddPlan<CTensor4D,TENSOR_FLOAT> &val );        
+        inline CTensor4D& operator += ( const apex_op_plan::ScaleAddPlan<CTensor4D,TENSOR_FLOAT> &val );        
+        inline CTensor4D& operator -= ( const apex_op_plan::ScaleAddPlan<CTensor4D,TENSOR_FLOAT> &val );        
     };
     
     // inline functions for tensor
@@ -278,6 +286,13 @@ namespace apex_tensor{
         void scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
         void scale_add( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
         void scale_add( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+
+        // dst += a*sa + b*sb
+        void sadd__scale_add( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void sadd__scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void sadd__scale_add( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        void sadd__scale_add( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+
         // dst = a - b
         void sub      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
         void sub      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
