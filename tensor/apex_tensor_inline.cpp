@@ -159,6 +159,14 @@ namespace apex_tensor{
         tensor::scale_add( *this, *(val.a),*(val.b), val.sa,val.sb);    \
         return *this;                                                   \
     }                                                                   \
+    inline T& T::operator+= ( const apex_op_plan::ScaleAddPlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::sadd__scale_add( *this, *(val.a),*(val.b), val.sa,val.sb); \
+        return *this;                                                   \
+    }                                                                   \
+    inline T& T::operator-= ( const apex_op_plan::ScaleAddPlan<T,TENSOR_FLOAT> &val ){ \
+        tensor::sadd__scale_add( *this, *(val.a),*(val.b), -val.sa, -val.sb); \
+        return *this;                                                   \
+    }                                                                   \
 
 
 #define APEX_EVAL_SCALE_PLAN(T)                                         \

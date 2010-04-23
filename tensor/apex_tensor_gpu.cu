@@ -245,6 +245,7 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_MAP_C( sub    , store_method::SAVE, map_method_B::SUB     )
         APEX_USE_TEMPLATE_MAP_C( mul    , store_method::SAVE, map_method_B::MUL     )
         APEX_USE_TEMPLATE_MAP_D( scale_add, store_method::SAVE, map_method_D::SCALE_ADD )
+        APEX_USE_TEMPLATE_MAP_D( sadd__scale_add, store_method::ADD, map_method_D::SCALE_ADD )
 		
         APEX_USE_TEMPLATE_MAP_S ( sample_binary  , sample_binary  , store_method::SAVE )
         APEX_USE_TEMPLATE_MAP_SS( sample_gaussian, sample_gaussian, store_method::SAVE )
