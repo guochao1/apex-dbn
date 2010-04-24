@@ -509,10 +509,8 @@ namespace apex_rbm{
                         
             for( int i = 0 ; i < data.h_max ; i ++ ){
                 setup_input( data[i] );                
-                // whether can be use persistent chain
-                TTensor3D &hp = persistent_ok ? h_neg : h_pos;
-                cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
-                persistent_ok = ( param.persistent_cd !=0 );
+
+                cal_cd_steps( v_pos, v_neg, h_pos, h_neg, h_pos );
                 
                 layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
 
