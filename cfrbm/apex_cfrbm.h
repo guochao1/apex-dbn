@@ -1,44 +1,26 @@
-#ifndef _APEX_SRBM_H_
-#define _APEX_SRBM_H_
+#ifndef _APEX_CFRBM_H_
+#define _APEX_CFRBM_H_
 
-#include "apex_srbm_model.h"
-#include "apex_srbm_model_stats.h"
+#include "apex_cfrbm_model.h"
 #include "../tensor/apex_tensor.h"
+#include "../tensor/apex_tensor_sparse.h"
 
 namespace apex_rbm{
     //interface of stacked rbm
-    class ISRBM{
+    class CFSRBM{
     public:
-        /* update model using data */
-        virtual void train_update( const apex_tensor::CTensor1D &data ) = 0;
-
-		// gavinhu: update model using label and data
-		virtual void train_update(const apex_tensor::CTensor1D &label, const apex_tensor::CTensor1D &data) = 0;
 
         // update the model using trunk of data 
-        virtual void train_update_trunk( const apex_tensor::CTensor2D &data ) = 0;
+        virtual void train_update_trunk( const vector<apex_tensor::CSTensor2D> &data ) = 0;
 
-		// gavinhu: update model using trunk of label and data
-		virtual void train_update_trunk(const apex_tensor::CTensor2D &label, const apex_tensor::CTensor2D &data) = 0;
-         
-        /* clone model trainied to model */
-        virtual void clone_model( SDBNModel &model )const = 0;
+		virtual void generate_model(FILE *fo);
 
-        /* set steps of CD */
-        virtual void set_cd_step( int cd_step ) = 0;
-
-        // validate the model by statistics
-        virtual void validate_stats( SRBMModelStats &stats, const apex_tensor::CTensor2D &data ) = 0;
-
-		// gavinhu: valid the model by statistics (with labeled data)
-		virtual void validate_stats( SRBMModelStats &stats, const apex_tensor::CTensor2D &label, const apex_tensor::CTensor2D &data) = 0;
-
-        virtual ~ISRBM(){}              
+        virtual ~CFSRBM(){}              
     };
     
     namespace factory{
-        // create a stacked rbm
-        ISRBM *create_srbm( const SDBNModel &model, const SRBMTrainParam &param );
+        // create a cf rbm
+        CFSRBM *create_srbm( const CFSRBMModel &model, const CFSRBMTrainParam &param );
     };
 
 };
