@@ -3,11 +3,12 @@
 
 #include "apex_op_plan.h"
 #include "apex_tensor.h"
+#include "memory.h"
 
 namespace apex_tensor{
 	struct CSTensor1D{
 		int				x_max;
-		size_t			pitch;
+		unsigned int 	pitch;
 		int				*index;
 		TENSOR_FLOAT	*elem;
 		CSTensor1D(){}
@@ -25,7 +26,7 @@ namespace apex_tensor{
 	
 	struct CSTensor2D{
 		int				x_max, y_max;
-		size_t			pitch;
+		unsigned int	pitch;
 		int				*index;
 		TENSOR_FLOAT	*elem;
 		CSTensor2D(){}
@@ -37,11 +38,14 @@ namespace apex_tensor{
 			this->x_max = x_max;
 			this->y_max = y_max;
 		}
+		
+		inline void scale_set( TENSOR_FLOAT val ){
+			memset( this->elem, val, x_max * y_max );
+		}
 
         inline       CSTensor1D operator[]( int idx );
         inline const CSTensor1D operator[]( int idx )const;
 		inline CSTensor2D& operator =  ( const apex_op_plan::AllocLikePlan<CSTensor2D> &val );
-        inline CSTensor2D& operator =  ( const apex_op_plan::ClonePlan<CSTensor2D> &val );        
 	};
 
 	namespace tensor{
@@ -51,9 +55,11 @@ namespace apex_tensor{
 
 		void sub( CTensor2D &dst,  const CTensor2D &a,  const CSTensor2D &b );
 
-		void alloc_space( CSTensor2D );
+		void alloc_space( CSTensor2D &ts);
 
 		void free_space( CSTensor2D &ts );
+
+		void copy( CSTensor2D &dst, const CSTensor2D &src );
 
 		void sample_softmax( CSTensor2D &dst, const CSTensor2D &mean );
 
@@ -63,13 +69,22 @@ namespace apex_tensor{
 
         void dot        ( CTensor1D &dst, const CSTensor1D &a, const CTensor2D &b );    
 
+		void dot_rt		( CSTensor1D &des, const CTensor1D &a, const CTensor2D &b );
+
         void sadd__dot  ( CTensor1D &dst, const CSTensor1D &a, const CTensor2D &b );    
 
         void sadd__dot_lt( CTensor2D &dst, const CSTensor1D &a, const CTensor1D &b );    
 
         void ssub__dot_lt( CTensor2D &dst, const CSTensor1D &a, const CTensor1D &b );    
 	};
+
+	namespace cf_rbm{
+
+		void normalize( CSTensor2D &soft_max );
+
+	};
 };
 
 #include "apex_tensor_sparse_inline.cpp"
+#include "apex_tensor_sparse.cpp"
 #endif

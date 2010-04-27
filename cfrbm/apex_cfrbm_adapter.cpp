@@ -1,7 +1,6 @@
 #ifndef _APEX_CFRBM_APAPTER_CPP_
 #define _APEX_CFRBM_APAPTER_CPP_
 #include<vector>
-#include<memory>
 
 using namespace std;
 using namespace apex_tensor;
@@ -11,37 +10,44 @@ namespace apex_rbm{
 	const int user_num = 1000;
 
 	inline vector<CSTensor2D>	adapt( FILE *f ){
-			size_t user_id = -1, movie_id = -1;
+			int user_id = -1, movie_id = -1;
 			int rate = -1;
-			size_t old_user_id = -1;
+			int old_user_id = -1;
 			char other[20];
 			vector<CSTensor2D> v;
 			CSTensor2D* tmp_tensor;
-			size_t tmp_col = 0;
-			int max_rate = 0, tmp_user = 0, movie_count = 0;
-			int movie_rate[ user_num ];
-			memset(movie_rate, 0, user_num);
+			int tmp_col = 0;
+			int max_rate = 0, movie_count = 0;
+			vector<int> movie_rate;
+			//first scan get the max rate (maybe 5) and the number 
+			//of movies each user rates
 			while(fscanf(f, "%d\t%d\t%d\t%s\n", &user_id, &movie_id, &rate, other )){
 				if(rate < max_rate) max_rate = rate;
 				if(old_user_id != user_id){
-					movie_rate[ tmp_user ++ ] = movie_count;
+					old_user_id = user_id;
+					movie_rate.push_back( movie_count );
 					movie_count = 0;
 				}
 				movie_count ++;
 			}
+			movie_rate.push_back( movie_count );
 			rewind( f );
+			//second scan set up the sparce tensor
+			//and the vector of the rbm process
 			while(fscanf(f, "%d\t%d\t%d\t%s\n", &user_id, &movie_id, &rate, other )){
 				if(old_user_id != user_id){
+					old_user_id = user_id;
 					tmp_col = 0;
 					tmp_tensor = new CSTensor2D(); 
-					tmp_tensor->set_param( max_rate, movie_rate[ user_id - 1 ] );
+					tmp_tensor->set_param( max_rate, movie_rate[ user_id ] );
 					apex_tensor::tensor::alloc_space( *tmp_tensor );
 					v.push_back(*tmp_tensor);
 				}
-				tmp_tensor->index[tmp_col++] = movie_id;
+				tmp_tensor->index[tmp_col] = movie_id;
 				for(int i = 0; i < max_rate; ++ i){
-					tmp_tensor->elem[ i*tmp_tensor->x_max] = (i == rate)? 1:0;
+					tmp_tensor->elem[ i*tmp_tensor->x_max + tmp_col] = (i == rate)? 1:0;
 				}
+				tmp_col ++;
 			}
 			return v;
 	}

@@ -1,5 +1,5 @@
 #ifndef _APEX_CFSRBM_CPP_
-#define _APEX_CFRBM_CPP_
+#define _APEX_CFSRBM_CPP_
 
 #include "apex_cfrbm.h"
 #include "apex_cfrbm_model.h"
@@ -24,27 +24,13 @@ namespace apex_rbm{
 
 	class SoftMaxNode {
 	private :
-	inline void normalize( TSTensor2D &soft_max ){
-			TENSOR_FLOAT sumline[ soft_max.x_max ];
-			memset( sumline, 0, soft_max.x_max );
-			for( int i = 0; i < soft_max.y_max; ++ i){
-					TSTensor1D line = soft_max[ i ];
-					for( int j = 0; j < line.x_max; ++ j )
-							sumline[ j ] += line[ j ];
-			}
-			for( int i = 0; i < soft_max.y_max; ++ i){
-					TSTensor1D line = soft_max[ i ];
-					for( int j = 0; j < line.x_max; ++ j )
-							line[ j ] /= sumline[ j ];
-			}
-	}
 	public:
 		virtual void sample	( TSTensor2D &state, const TSTensor2D &mean ){
 			tensor::sample_softmax( state,  mean );
 		}
 		virtual void cal_mean(TSTensor2D &mean, const TSTensor2D &energy ){
 			mean =  energy ;
-			normalize( mean );
+			cf_rbm::normalize( mean );
 		}	
 	};	
     // simple implementation of srbm
@@ -77,6 +63,9 @@ namespace apex_rbm{
             d_W      = clone( model.d_W );
             h_neg    = alloc_like( model.d_h_bias );
             h_pos    = alloc_like( model.d_h_bias );
+			v_pos.set_param(model.param.softmax_size, model.param.v_max );
+			tensor::alloc_space( v_pos );
+			v_neg	 = alloc_like( v_pos );
         }
     public:
         CFSRBMSimple( const CFSRBMModel &model, const CFSRBMTrainParam &param ){
@@ -118,7 +107,7 @@ namespace apex_rbm{
 			for(int i = 0; i < soft_max.y_max; ++ i){
 					TSTensor1D line = soft_max[ i ];
 					line = dot( h_neg, W[ i ].T() );
-					tensor::add( line, line, v_bias[ i ] );
+					tensor::sadd( line, v_bias[ i ] );
 			}
 		}
 
@@ -191,8 +180,7 @@ namespace apex_rbm{
         }
 
 		inline void setup_input( const apex_tensor::CSTensor2D &data ){
-			this->v_pos = clone( data );	
-			this->v_neg = alloc_like( data );
+				tensor::copy( this->v_pos, data);	
 		}
 
     public:
@@ -201,7 +189,7 @@ namespace apex_rbm{
             train_update();
         }
         virtual void train_update_trunk( const vector<apex_tensor::CSTensor2D> &data ){
-            for( int i = 0 ; i < (int)data.size() ; i ++ )
+            for( int i = 0 ; i < (int)data.size() ; ++ i )
                 train_update( data[i] );
         }
 
