@@ -20,6 +20,8 @@ namespace apex_tensor{
     struct CTensor2D;
     struct CTensor3D;
     struct CTensor4D;
+	struct CSTensor1D;
+	struct CSTensor2D;
     struct GTensor1D;
     struct GTensor2D;
     struct GTensor3D;
@@ -57,7 +59,9 @@ namespace apex_tensor{
 #else
 
     typedef CTensor1D TTensor1D;
+	typedef CSTensor1D TSTensor1D;
     typedef CTensor2D TTensor2D;
+	typedef CSTensor2D TSTensor2D;
     typedef CTensor3D TTensor3D;
     typedef CTensor4D TTensor4D;
 
