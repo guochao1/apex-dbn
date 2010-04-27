@@ -37,8 +37,8 @@ apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp
 apex_cfrbm.o: $(CFRBM_DIR)/apex_cfrbm.cpp 
 	g++ $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp
 
-cfrbm_movielen.o: cfrbm_movielen.cpp
-	g++ $(OPT) -c -o cfrbm_movielen.o  cfrbm_movielen.cpp
+cfrbm_movielen: cfrbm_movielen.cpp $(TENSOR_LIB)
+	$(NVCC) $(OPTNVCC) -o cfrbm_movielen cfrbm_movielen.cpp $(TENSOR_LIB)
 
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
 	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp
