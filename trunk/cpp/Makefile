@@ -37,11 +37,11 @@ apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp
 apex_cfrbm.o: $(CFRBM_DIR)/apex_cfrbm.cpp 
 	g++ $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp
 
-cfrbm_movielen: cfrbm_movielen.cpp $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o cfrbm_movielen cfrbm_movielen.cpp $(TENSOR_LIB)
+cfrbm_movielen: cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
+	$(NVCC) $(OPTNVCC) -o cfrbm_movielen cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
 
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
-	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_sparse.cpp
+	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp 
 
 apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $(TENSOR_DIR)/apex_tensor_gpu.cu $(TENSOR_DIR)/apex_tensor_inline.cpp
 	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
