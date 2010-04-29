@@ -393,10 +393,16 @@ namespace apex_rbm{
             if( param.chg_hidden_bias ){
                 // calculate sparse grad
                 cal_sparse();
+
                 // add sparse regularization and weight decay, we remember both in momentum
-                h_bias   += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * eta;
-                d_h_bias *= param.momentum;
-                
+                if( param.use_sparse_momentum ){
+                    h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * eta;
+                }else{
+                    h_bias += ( d_h_bias -= h_bias * param.wd_h ) * eta;
+                    h_bias -= h_sum_mf;
+                }
+
+                d_h_bias *= param.momentum;                
                 h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
             }
 
