@@ -399,7 +399,7 @@ namespace apex_rbm{
                     h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * eta;
                 }else{
                     h_bias += ( d_h_bias -= h_bias * param.wd_h ) * eta;
-                    h_bias -= h_sum_mf;
+                    h_bias -= h_sum_mf * eta ;
                 }
 
                 d_h_bias *= param.momentum;                
