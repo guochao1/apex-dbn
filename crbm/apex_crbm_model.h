@@ -76,7 +76,7 @@ namespace apex_rbm{
             persistent_cd = 0; v_average = 0; forward_bias = 1;
             sample_v_neg = 1; sparse_reg_method = 0; use_group_reg = 0;
             refill_edge_area = 0; num_non_sparse_node = 0; num_light_node = 0;
-            use_sparse_momentum = 0;
+            use_sparse_momentum = 1;
         }
         inline void set_param( const char *name, const char *val ){
             if( !strcmp("input_y_max", name ) )   input_y_max = atoi( val );
