@@ -397,7 +397,7 @@ namespace apex_rbm{
                 // add sparse regularization and weight decay, we remember both in momentum
                 if( param.use_sparse_momentum ){
                     h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * eta;
-                }else{
+				}else{
                     h_bias += ( d_h_bias -= h_bias * param.wd_h ) * eta;
                     h_bias -= h_sum_mf * eta ;
                 }
