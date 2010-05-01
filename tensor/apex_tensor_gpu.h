@@ -96,6 +96,12 @@ namespace apex_tensor{
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator += ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
+        // support for sparse operation
+        inline GTensor2D& operator =  ( const apex_op_plan::DotPlan  <GTensor2DSparse,GTensor2D> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::DotPlan  <GTensor2DSparse,GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::DotLTPlan<GTensor2DSparse,GTensor2D> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::DotLTPlan<GTensor2DSparse,GTensor2D> &val );        
+        inline GTensor2D& operator -= ( const apex_op_plan::DotLTPlan<GTensor2DSparse,GTensor2D> &val );        
     };
 
     struct GTensor3D{
@@ -183,7 +189,53 @@ namespace apex_tensor{
         inline GTensor4D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor4D,TENSOR_FLOAT> &val );        
     };
     
-    // inline functions for tensor
+    /* sparse tensor support */
+    /** 
+        index structure for sparse tensor
+    */
+    struct GSparseIndex2D{
+        /** index for y and x dimension */
+        int *y, *x;
+        /** length of current index */
+        unsigned int length;
+        /** allocated length of current index, maximum number of element supported*/
+        unsigned int alloc_length;
+        GSparseIndex2D(){}        
+    };
+    /** 
+        sparse 2D tensor
+     */
+    struct GTensor2DSparse{
+        GSparseIndex2D index;
+        TENSOR_FLOAT  *elem;
+        GTensor2DSparse(){}
+
+        inline GTensor2DSparse & operator+= ( const GTensor2DSparse & b ); 
+        inline GTensor2DSparse & operator-= ( const GTensor2DSparse & b ); 
+        inline apex_op_plan::TransposePlan<GTensor2DSparse> T() const;
+        inline GTensor2DSparse & operator = ( const apex_op_plan::DotRTPlan  <GTensor2D,GTensor2D> &val );        
+        inline GTensor2DSparse & operator+= ( const apex_op_plan::DotRTPlan  <GTensor2D,GTensor2D> &val );        
+    };
+
+    // functions related to sparse tensor 
+    namespace tensor{
+        // dst = a + b;
+        void add   ( GTensor2DSparse &dst , const GTensor2DSparse &a, const GTensor2DSparse &b );
+        // dst = a - b;
+        void sub   ( GTensor2DSparse &dst , const GTensor2DSparse &a, const GTensor2DSparse &b );        
+        // dst = dot( a, b.T );
+        void dot_rt      ( GTensor2DSparse &dst , const GTensor2D &a      , const GTensor2D &b );
+        void sadd__dot_rt( GTensor2DSparse &dst , const GTensor2D &a      , const GTensor2D &b );
+        // dst = dot( W, P )
+        void dot       ( GTensor2D &dst , const GTensor2DSparse &W, const GTensor2D &P );
+        void sadd__dot ( GTensor2D &dst , const GTensor2DSparse &W, const GTensor2D &P );
+        // dst = dot( W.T,P )
+        void dot_lt      ( GTensor2D &dst , const GTensor2DSparse &W, const GTensor2D &P );        
+        void sadd__dot_lt( GTensor2D &dst , const GTensor2DSparse &W, const GTensor2D &P );        
+        void ssub__dot_lt( GTensor2D &dst , const GTensor2DSparse &W, const GTensor2D &P );        
+    };
+    /*-------------------------------------*/
+
     
     // functions defined for tensor
     // intialize the tensor engine for use, seed is 
