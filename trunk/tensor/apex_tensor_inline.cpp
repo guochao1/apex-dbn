@@ -242,6 +242,11 @@ namespace apex_tensor{
     APEX_EVAL_DOT_RT_PLAN( TT1D, TT1D, TT2D )
     APEX_EVAL_DOT_RT_PLAN( TT2D, TT2D, TT2D )
     
+    APEX_EVAL_DOT_PLAN   ( TT2D, TT2DS, TT2D  )
+    APEX_EVAL_DOT_RT_PLAN( TT2DS, TT2D, TT2D  )
+    APEX_EVAL_DOT_LT_PLAN( TT2D , TT2DS, TT2D )
+
+    
 #define APEX_EVAL_CLONE_PLAN_1D(T,plan,op)                              \
     inline TT1D& TT1D::operator= ( const apex_op_plan::plan<T> &val ){  \
         this->set_param( val.a->x_max );                                \
@@ -304,9 +309,12 @@ namespace apex_tensor{
     // support for dot and dot.T
     APEX_ADD_SUPPORT_DOT_OP   ( TT1D, TT2D )
     APEX_ADD_SUPPORT_DOT_OP   ( TT2D, TT2D )
+    APEX_ADD_SUPPORT_DOT_OP   ( TT2DS, TT2D ) 
     APEX_ADD_SUPPORT_DOT_LT_OP( TT1D, TT1D ) 
     APEX_ADD_SUPPORT_DOT_RT_OP( TT1D, TT2D ) 
     APEX_ADD_SUPPORT_DOT_RT_OP( TT2D, TT2D ) 
+    APEX_ADD_SUPPORT_DOT_LT_OP( TT2DS, TT2D ) 
+
     
 #undef APEX_EXPAND
 #undef APEX_EXPAND2

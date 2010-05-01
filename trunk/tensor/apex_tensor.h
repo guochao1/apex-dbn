@@ -23,10 +23,13 @@ namespace apex_tensor{
     struct CTensor4D;
 	struct CSTensor1D;
 	struct CSTensor2D;
+    struct CTensor2DSparse;
+
     struct GTensor1D;
     struct GTensor2D;
     struct GTensor3D;
     struct GTensor4D;
+    struct GTensor2DSparse;
 
     typedef float TENSOR_FLOAT;
     void init_tensor_engine_cpu( int seed ); 
@@ -43,6 +46,7 @@ namespace apex_tensor{
     typedef GTensor2D TTensor2D;
     typedef GTensor3D TTensor3D;
     typedef GTensor4D TTensor4D;
+    typedef GTensor2DSparse  TTensor2DSparse;
  
     inline void init_tensor_engine( int seed ){
         init_tensor_engine_gpu();
@@ -67,6 +71,8 @@ namespace apex_tensor{
     typedef CSTensor1D TSTensor1D;
     typedef CSTensor2D TSTensor2D;
 
+    typedef CTensor2DSparse  TTensor2DSparse;
+
     inline void init_tensor_engine( int seed ){
         init_tensor_engine_cpu( seed );
     }
@@ -80,30 +86,33 @@ namespace apex_tensor{
 
 #include "apex_tensor_cpu.h"
 #include "apex_tensor_gpu.h"
+#include "apex_tensor_sparse.h"
 
 // definitions for inline functions 
-#define TT1D CTensor1D
-#define TT2D CTensor2D
-#define TT3D CTensor3D
-#define TT4D CTensor4D
+#define TT1D  CTensor1D
+#define TT2D  CTensor2D
+#define TT3D  CTensor3D
+#define TT4D  CTensor4D
+#define TT2DS CTensor2DSparse
 #include "apex_tensor_inline.cpp"
 #undef TT1D 
 #undef TT2D 
 #undef TT3D 
 #undef TT4D 
-
+#undef TT2DS 
 
 // definitions for inline functions 
-#define TT1D GTensor1D
-#define TT2D GTensor2D
-#define TT3D GTensor3D
-#define TT4D GTensor4D
+#define TT1D  GTensor1D
+#define TT2D  GTensor2D
+#define TT3D  GTensor3D
+#define TT4D  GTensor4D
+#define TT2DS GTensor2DSparse
 #include "apex_tensor_inline.cpp"
 #undef TT1D 
 #undef TT2D 
 #undef TT3D 
 #undef TT4D 
-
+#undef TT2DS
 
 #endif
 

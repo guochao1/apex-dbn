@@ -298,11 +298,11 @@ namespace apex_tensor{
 
 #define APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM(func_name,param1,param2,op ) \
         inline void func_name( T &dst, const T &srca, const T &srcb, param1,param2 ){ \
-            for( int i = 0 ; i < num_line( dst ) ; i ++ ){           \
+            for( int i = 0 ; i < num_line( dst ) ; i ++ ){              \
                 TENSOR_FLOAT *d = get_line( dst ,i );                   \
                 const TENSOR_FLOAT *a = get_line_const( srca, i );      \
                 const TENSOR_FLOAT *b = get_line_const( srcb, i );      \
-                for( int j = 0 ; j < dst.x_max ; j ++ )              \
+                for( int j = 0 ; j < dst.x_max ; j ++ )                 \
                     op;                                                 \
             }                                                           \
 		}                                                               \
@@ -312,23 +312,23 @@ namespace apex_tensor{
         template<typename T>
         APEX_ELEMENTWISE_ASSIGN_OP ( sample_gaussian_template, TENSOR_FLOAT sd ,d[j] = (TENSOR_FLOAT)apex_random::sample_normal()*sd  );
         template<typename T>
-        APEX_ELEMENTWISE_UNARY_OP ( add_template  , TENSOR_FLOAT val ,d[j] = a[j] + val  );
+        APEX_ELEMENTWISE_UNARY_OP  ( add_template  , TENSOR_FLOAT val ,d[j] = a[j] + val  );
         template<typename T>
-        APEX_ELEMENTWISE_UNARY_OP ( mul_template  , TENSOR_FLOAT val ,d[j] = a[j] * val  );
+        APEX_ELEMENTWISE_UNARY_OP  ( mul_template  , TENSOR_FLOAT val ,d[j] = a[j] * val  );
         template<typename T>
-        APEX_ELEMENTWISE_UNARY_OP ( sadd__mul_template  , TENSOR_FLOAT val ,d[j] += a[j] * val  );
+        APEX_ELEMENTWISE_UNARY_OP  ( sadd__mul_template  , TENSOR_FLOAT val ,d[j] += a[j] * val  );
         template<typename T>
-        APEX_ELEMENTWISE_UNARY_OP ( sample_gaussian_template , TENSOR_FLOAT sd ,d[j] = (TENSOR_FLOAT)apex_random::sample_normal( a[j], sd ));
+        APEX_ELEMENTWISE_UNARY_OP  ( sample_gaussian_template , TENSOR_FLOAT sd ,d[j] = (TENSOR_FLOAT)apex_random::sample_normal( a[j], sd ));
         template<typename T>
-        APEX_ELEMENTWISE_MAP_OP   ( sigmoid_template      , d[j] = (TENSOR_FLOAT)(1.0/(1+exp(-a[j]))) );
+        APEX_ELEMENTWISE_MAP_OP    ( sigmoid_template      , d[j] = (TENSOR_FLOAT)(1.0/(1+exp(-a[j]))) );
         template<typename T>
-        APEX_ELEMENTWISE_MAP_OP   ( sample_binary_template, d[j] = (TENSOR_FLOAT)apex_random::sample_binary( a[j] ) );
+        APEX_ELEMENTWISE_MAP_OP    ( sample_binary_template, d[j] = (TENSOR_FLOAT)apex_random::sample_binary( a[j] ) );
         template<typename T>
-        APEX_ELEMENTWISE_BINARY_OP( add_template, d[j] = a[j]+b[j]);
+        APEX_ELEMENTWISE_BINARY_OP ( add_template, d[j] = a[j]+b[j]);
         template<typename T>
-        APEX_ELEMENTWISE_BINARY_OP( mul_template, d[j] = a[j]*b[j]);
+        APEX_ELEMENTWISE_BINARY_OP ( mul_template, d[j] = a[j]*b[j]);
         template<typename T>
-        APEX_ELEMENTWISE_BINARY_OP( sub_template, d[j] = a[j]-b[j]);
+        APEX_ELEMENTWISE_BINARY_OP ( sub_template, d[j] = a[j]-b[j]);
         template<typename T>
         APEX_ELEMENTWISE_BINARY_OP_WITH_PARAM( scale_add_template, TENSOR_FLOAT sa, TENSOR_FLOAT sb, d[j] = sa*a[j]+sb*b[j] );
         template<typename T>
