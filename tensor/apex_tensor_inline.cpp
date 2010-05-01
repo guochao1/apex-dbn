@@ -189,6 +189,12 @@ namespace apex_tensor{
         return *this;                                                   \
     }                                                                   \
 
+#define APEX_EVAL_SUB_PLAN(T)                                           \
+    inline T& T::operator= ( const apex_op_plan::SubPlan<T> &val ){     \
+        tensor::sub( *this, *(val.a), *(val.b) );                       \
+        return *this;                                                   \
+    }                                                                   \
+
 #define APEX_EVAL_MUL_PLAN(T)                                           \
     inline T& T::operator= ( const apex_op_plan::MulPlan<T> &val ){     \
         tensor::mul( *this, *(val.a), *(val.b) );                       \
@@ -306,14 +312,14 @@ namespace apex_tensor{
     APEX_EXPAND ( APEX_ADD_SUPPORT_TRANSPOSE_OP )
     APEX_EXPAND2( APEX_ADD_SUPPORT_SCALE_OP )           
     APEX_EXPAND2( APEX_ADD_SUPPORT_SAMPLE_GAUSSIAN_OP )           
+
     // support for dot and dot.T
     APEX_ADD_SUPPORT_DOT_OP   ( TT1D, TT2D )
-    APEX_ADD_SUPPORT_DOT_OP   ( TT2D, TT2D )
-    APEX_ADD_SUPPORT_DOT_OP   ( TT2DS, TT2D ) 
+    APEX_ADD_SUPPORT_DOT_OP   ( TT2D, TT2D )    
     APEX_ADD_SUPPORT_DOT_LT_OP( TT1D, TT1D ) 
     APEX_ADD_SUPPORT_DOT_RT_OP( TT1D, TT2D ) 
     APEX_ADD_SUPPORT_DOT_RT_OP( TT2D, TT2D ) 
-    APEX_ADD_SUPPORT_DOT_LT_OP( TT2DS, TT2D ) 
+
 
     
 #undef APEX_EXPAND
@@ -332,3 +338,23 @@ namespace apex_tensor{
     }                                                                   
 };
 
+namespace apex_tensor{
+    inline TSIDX2D& TSIDX2D::operator=( const apex_op_plan::ClonePlan<CSparseIndex2D> &val ){
+        this->length = (val.a)->length;
+        this->alloc_length = (val.a)->alloc_length;
+        tensor::alloc_space_index( *this );
+        tensor::copy_index( *this, *(val.a) );
+        return *this;
+    } 
+};
+
+// support for sparse operation
+namespace apex_tensor{    
+    APEX_ADD_SUPPORT_CLONE_OP( TSIDX2D )
+    APEX_ADD_SUPPORT_TRANSPOSE_OP( TT2DS )
+    APEX_ADD_SUPPORT_DOT_LT_OP   ( TT2DS, TT2D )
+    APEX_ADD_SUPPORT_DOT_OP      ( TT2DS, TT2D ) 
+
+    APEX_ADD_SUPPORT_SUB_OP  ( TT2DS )
+    APEX_EVAL_SUB_PLAN       ( TT2DS )    
+};
