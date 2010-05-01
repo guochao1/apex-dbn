@@ -201,6 +201,7 @@ namespace apex_tensor{
         /** allocated length of current index, maximum number of element supported*/
         unsigned int alloc_length;
         GSparseIndex2D(){}        
+        inline GSparseIndex2D & operator = ( const apex_op_plan::ClonePlan<CSparseIndex2D> &val );
     };
     /** 
         sparse 2D tensor
@@ -213,11 +214,29 @@ namespace apex_tensor{
         inline GTensor2DSparse & operator+= ( const GTensor2DSparse & b ); 
         inline GTensor2DSparse & operator-= ( const GTensor2DSparse & b ); 
         inline apex_op_plan::TransposePlan<GTensor2DSparse> T() const;
+        inline GTensor2DSparse & operator = ( const apex_op_plan::SubPlan<GTensor2DSparse> &val );      
         inline GTensor2DSparse & operator = ( const apex_op_plan::DotRTPlan  <GTensor2D,GTensor2D> &val );        
         inline GTensor2DSparse & operator+= ( const apex_op_plan::DotRTPlan  <GTensor2D,GTensor2D> &val );        
     };
 
     // functions related to sparse tensor 
+    namespace tensor{
+        // allocate space for index 
+        void alloc_space_index( GSparseIndex2D &index ); 
+        // allocate space using setting of index
+        GTensor2DSparse alloc_space_data( GSparseIndex2D index );                        
+        // free the index space 
+        void free_space_index( GSparseIndex2D  &index );
+        // free data space of tensor
+        void free_space_data ( GTensor2DSparse &ts );
+        // copy index from cpu to gpu
+        void copy_index ( GSparseIndex2D &dst , const CSparseIndex2D &a  );        
+        // copy from cpu to gpu
+        void copy_data  ( GTensor2DSparse &dst, const CTensor2DSparse &a ); 
+        // copy from gpu to cpu
+        void copy_data  ( CTensor2DSparse &dst, const GTensor2DSparse &a ); 
+    };
+
     namespace tensor{
         // dst = a + b;
         void add   ( GTensor2DSparse &dst , const GTensor2DSparse &a, const GTensor2DSparse &b );

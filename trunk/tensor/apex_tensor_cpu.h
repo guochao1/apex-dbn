@@ -202,7 +202,8 @@ namespace apex_tensor{
         unsigned int length;
         /** allocated length of current index, maximum number of element supported*/
         unsigned int alloc_length;
-        CSparseIndex2D(){}        
+        CSparseIndex2D(){}     
+        inline CSparseIndex2D & operator = ( const apex_op_plan::ClonePlan<CSparseIndex2D> &val );
     };
     /** 
         sparse 2D tensor
@@ -215,8 +216,24 @@ namespace apex_tensor{
         inline CTensor2DSparse & operator+= ( const CTensor2DSparse & b ); 
         inline CTensor2DSparse & operator-= ( const CTensor2DSparse & b ); 
         inline apex_op_plan::TransposePlan<CTensor2DSparse> T() const;
+        inline CTensor2DSparse & operator = ( const apex_op_plan::SubPlan<CTensor2DSparse> &val );      
         inline CTensor2DSparse & operator = ( const apex_op_plan::DotRTPlan  <CTensor2D,CTensor2D> &val );      
         inline CTensor2DSparse & operator+= ( const apex_op_plan::DotRTPlan  <CTensor2D,CTensor2D> &val );      
+    };
+    
+    namespace tensor{
+        // allocate space for index 
+        void alloc_space_index( CSparseIndex2D &index ); 
+        // allocate space using setting of index
+        CTensor2DSparse alloc_space_data( CSparseIndex2D index ); 
+        // free the index space 
+        void free_space_index( CSparseIndex2D  &index );
+        // free data space of tensor
+        void free_space_data ( CTensor2DSparse &ts );
+        // copy index from cpu to cpu
+        void copy_index ( CSparseIndex2D &dst , const CSparseIndex2D &a );
+        // copy from cpu to cpu
+        void copy_data  ( CTensor2DSparse &dst, const CTensor2DSparse &a ); 
     };
 
     // functions related to sparse tensor 

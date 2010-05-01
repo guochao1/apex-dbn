@@ -5,7 +5,7 @@ else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
 endif
 
-BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify
+BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify cf_mf
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -39,6 +39,9 @@ apex_cfrbm.o: $(CFRBM_DIR)/apex_cfrbm.cpp
 
 cfrbm_movielen: cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
 	$(NVCC) $(OPTNVCC) -o cfrbm_movielen cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
+
+cf_mf: cf_mf.cpp $(TENSOR_LIB)
+	$(NVCC) $(OPTNVCC) -o cf_mf cf_mf.cpp $(TENSOR_LIB)
 
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
 	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp 

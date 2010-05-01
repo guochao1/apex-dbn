@@ -73,6 +73,20 @@ namespace apex_op_plan{
     }                                                                   \
 
     template<typename T>
+    struct SubPlan{
+        const T *a, *b;
+        SubPlan( const T *a, const T *b ) {
+            this->a = a;
+            this->b = b;
+        } 
+    };
+    
+#define APEX_ADD_SUPPORT_SUB_OP(T)                                      \
+    inline apex_op_plan::SubPlan<T> operator-( const T &a, const T &b ){ \
+        return apex_op_plan::SubPlan<T>( &a, &b );                      \
+    }                                                                   \
+
+    template<typename T>
     struct MulPlan{
         const T *a, *b;
         MulPlan( const T *a, const T *b ) {
