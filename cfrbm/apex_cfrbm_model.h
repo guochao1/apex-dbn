@@ -52,7 +52,6 @@ namespace apex_rbm{
             if( !strcmp("wd_h", name ) )          wd_h = (float)atof( val );
             if( !strcmp("wd_v", name ) )          wd_v = (float)atof( val );
             if( !strcmp("wd_W", name ) )          wd_W = (float)atof( val );
-            if( !strcmp("wd_node", name ) )       wd_h = wd_v = (float)atof( val );
             if( !strcmp("chg_visible_bias", name ) ) chg_visible_bias = atoi( val );
             if( !strcmp("chg_hidden_bias", name ) )  chg_hidden_bias  = atoi( val );
             if( !strcmp("cd_step", name ) )    cd_step = atoi( val );

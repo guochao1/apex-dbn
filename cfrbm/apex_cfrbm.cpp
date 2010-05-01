@@ -23,7 +23,6 @@ namespace apex_rbm{
     };
 
 	class SoftMaxNode {
-	private :
 	public:
 		virtual void sample	( TSTensor2D &state, const TSTensor2D &mean ){
 			tensor::sample_softmax( state,  mean );
@@ -34,7 +33,7 @@ namespace apex_rbm{
 		}	
 	};	
     // simple implementation of srbm
-    class CFSRBMSimple:public CFSRBM{
+    class CFSRBMSimple: public CFSRBM{
     private:
         CFSRBMTrainParam param;
 		int sample_counter;
@@ -198,11 +197,12 @@ namespace apex_rbm{
     };
     
     namespace factory{
-        // create a stacked rbm
+
         CFSRBM *create_cfrbm( const CFSRBMModel &model, const CFSRBMTrainParam &param ){
             return new CFSRBMSimple( model, param );
         }
-    };
+
+   };
 };
 
 #endif

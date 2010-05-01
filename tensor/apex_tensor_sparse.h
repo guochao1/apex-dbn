@@ -3,7 +3,7 @@
 
 #include "apex_op_plan.h"
 #include "apex_tensor.h"
-#include "memory.h"
+#include <memory.h>
 
 namespace apex_tensor{
 	struct CSTensor1D{
@@ -50,7 +50,7 @@ namespace apex_tensor{
 
 	namespace tensor{
 
-		void add( CSTensor1D &dst, const CSTensor1D &a, const CTensor1D &b );
+		void sadd( CSTensor1D &dst, const CTensor1D &b );
 		void add( CTensor2D &dst,  const CTensor2D &a,  const CSTensor2D &b );
 
 		void sub( CTensor2D &dst,  const CTensor2D &a,  const CSTensor2D &b );
@@ -86,5 +86,4 @@ namespace apex_tensor{
 };
 
 #include "apex_tensor_sparse_inline.cpp"
-#include "apex_tensor_sparse.cpp"
 #endif
