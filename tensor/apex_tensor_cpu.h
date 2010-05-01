@@ -43,6 +43,7 @@ namespace apex_tensor{
         inline CTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::SampleGaussianPlan<CTensor1D,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::AddPlan  <CTensor1D> &val );        
+        inline CTensor1D& operator =  ( const apex_op_plan::SubPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::MulPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator += ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
@@ -87,6 +88,7 @@ namespace apex_tensor{
         inline CTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::SampleGaussianPlan<CTensor2D,TENSOR_FLOAT> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::AddPlan  <CTensor2D> &val );        
+        inline CTensor2D& operator =  ( const apex_op_plan::SubPlan  <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::MulPlan  <CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::DotPlan  <CTensor2D,CTensor2D> &val );        
         inline CTensor2D& operator += ( const apex_op_plan::DotPlan  <CTensor2D,CTensor2D> &val );        
@@ -140,6 +142,7 @@ namespace apex_tensor{
         inline CTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan  <CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::SampleGaussianPlan<CTensor3D,TENSOR_FLOAT> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::AddPlan<CTensor3D> &val );        
+        inline CTensor3D& operator =  ( const apex_op_plan::SubPlan<CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::MulPlan<CTensor3D> &val );        
         inline CTensor3D& operator =  ( const apex_op_plan::ScalePlan<CTensor3D,TENSOR_FLOAT> &val );        
         inline CTensor3D& operator += ( const apex_op_plan::ScalePlan<CTensor3D,TENSOR_FLOAT> &val );        
@@ -182,6 +185,7 @@ namespace apex_tensor{
         inline CTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan<CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::SampleGaussianPlan<CTensor4D,TENSOR_FLOAT> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::AddPlan<CTensor4D> &val );        
+        inline CTensor4D& operator =  ( const apex_op_plan::SubPlan<CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::MulPlan<CTensor4D> &val );        
         inline CTensor4D& operator =  ( const apex_op_plan::ScalePlan<CTensor4D,TENSOR_FLOAT> &val );        
         inline CTensor4D& operator += ( const apex_op_plan::ScalePlan<CTensor4D,TENSOR_FLOAT> &val );        
@@ -203,6 +207,9 @@ namespace apex_tensor{
         /** allocated length of current index, maximum number of element supported*/
         unsigned int alloc_length;
         CSparseIndex2D(){}     
+        inline bool operator==( const CSparseIndex2D &b ) const{
+            return y==b.y && x == b.x && length == b.length; 
+        }
         inline CSparseIndex2D & operator = ( const apex_op_plan::ClonePlan<CSparseIndex2D> &val );
     };
     /** 

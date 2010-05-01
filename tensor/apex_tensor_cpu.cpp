@@ -534,27 +534,27 @@ namespace apex_tensor{
 
     // support for CRBM
     namespace tensor{
-        namespace crbm{
-            namespace store_method{
-                const int SAVE = 0;
-                const int ADD  = 1;
-                const int SUB  = 2;
-                template<int st_method>
-                inline void __store( TENSOR_FLOAT &dst, TENSOR_FLOAT src );
-                template<>
-                inline void __store<SAVE>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
-                    dst = src;  
-                }
-                template<>
-                inline void __store<ADD>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
-                    dst += src;  
-                }
-                template<>
-                inline void __store<SUB>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
-                    dst -= src;  
-                }
-            };
-            
+        namespace store_method{
+            const int SAVE = 0;
+            const int ADD  = 1;
+            const int SUB  = 2;
+            template<int st_method>
+            inline void __store( TENSOR_FLOAT &dst, TENSOR_FLOAT src );
+            template<>
+            inline void __store<SAVE>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
+                dst = src;  
+            }
+            template<>
+            inline void __store<ADD>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
+                dst += src;  
+            }
+            template<>
+            inline void __store<SUB>( TENSOR_FLOAT &dst, TENSOR_FLOAT src ){
+                dst -= src;  
+            }
+        };
+
+        namespace crbm{            
             // fit the last two dimension of src into dst's size, copy the fitted part into dst
             void copy_fit( CTensor2D &dst, const CTensor2D &src ){
                 copy_template( dst, src );
@@ -782,4 +782,122 @@ namespace apex_tensor{
         };        
     };
 };
+
+/** support for sparse tensor */
+namespace apex_tensor{
+    namespace tensor{
+        // allocate space for index 
+        void alloc_space_index( CSparseIndex2D &index ){
+            index.y = new int[ index.alloc_length ];
+            index.x = new int[ index.alloc_length ];        
+        }
+        // allocate space using setting of index
+        CTensor2DSparse alloc_space_data( CSparseIndex2D index ){
+            CTensor2DSparse ts;
+            ts.index = index;
+            ts.elem  = new TENSOR_FLOAT[ index.alloc_length ]; 
+            return ts;
+        }
+        // free the index space 
+        void free_space_index( CSparseIndex2D  &index ){
+            delete [] index.y;
+            delete [] index.x; 
+        }
+        // free data space of tensor
+        void free_space_data ( CTensor2DSparse &ts ){
+            delete [] ts.elem;
+        }
+        // copy index from cpu to cpu
+        void copy_index ( CSparseIndex2D &dst , const CSparseIndex2D &a ){
+            memcpy( dst.y , a.y, sizeof(int) * a.length );
+            memcpy( dst.x , a.x, sizeof(int) * a.length );
+        }
+        // copy from cpu to cpu
+        void copy_data  ( CTensor2DSparse &dst, const CTensor2DSparse &a ){
+            memcpy( dst.elem , a.elem, sizeof(TENSOR_FLOAT) * a.index.length );
+        }
+    };
+
+    /** more complicated operations for tensor */
+    namespace tensor{
+        // dst = a + b;
+        void add   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b ){
+            check_true( dst.index == a.index && dst.index == b.index, "add::index set of sparse tensor must be same");
+            for( unsigned int i = 0 ; i < dst.index.length; i ++ )
+                dst.elem[i] = a.elem[i] + b.elem[i];
+        }
+        // dst = a - b;
+        void sub   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b ){
+            check_true( dst.index == a.index && dst.index == b.index, "add::index set of sparse tensor must be same");
+            for( unsigned int i = 0 ; i < dst.index.length; i ++ )
+                dst.elem[i] = a.elem[i] - b.elem[i];
+        }
+        
+        template<int st_m>
+        inline void dot_rt_template( CTensor2DSparse &dst, const CTensor2D &a, const CTensor2D &b ){
+            check_true( a.x_max == b.x_max, "dot_rt::matrix dimension must agree");
+            for( unsigned int i = 0; i < dst.index.length; i ++ ){
+                int y = dst.index.y[i];
+                int x = dst.index.x[i];
+                TENSOR_FLOAT sum = 0;
+                for( int j = 0; j < a.x_max; j ++ ){
+                    sum += a[y][j] * b[x][j];
+                }
+                store_method::__store<st_m>( dst.elem[ i ], sum );
+            }
+        }
+        void dot_rt( CTensor2DSparse &dst , const CTensor2D &a , const CTensor2D &b ){
+            dot_rt_template<store_method::SAVE>( dst, a, b);
+        }
+        void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a      , const CTensor2D &b ){
+            dot_rt_template<store_method::ADD>( dst, a, b);
+        }
+        
+        template<int st_m>
+        inline void dot_template( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
+            check_true( dst.x_max == P.x_max, "dot_rt::matrix dimension must agree");
+            for( unsigned int i = 0; i < W.index.length; i ++ ){
+                int y = W.index.y[i];
+                int x = W.index.x[i];
+
+                for( int j = 0; j < dst.x_max; j ++ ){
+                    store_method::__store<st_m>( dst[y][j], P[x][j] * W.elem[i] );
+                }
+            }
+        }
+
+        // dst = dot( W, P )
+        void dot( CTensor2D &dst, const CTensor2DSparse &W, const CTensor2D &P ){
+            dot_template<store_method::SAVE>( dst, W, P );
+        }
+        void sadd__dot ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
+            dot_template<store_method::ADD>( dst, W, P );
+        }
+
+        template<int st_m>
+        inline void dot_lt_template( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
+            check_true( dst.x_max == P.x_max, "dot_rt::matrix dimension must agree");
+            for( unsigned int i = 0; i < W.index.length; i ++ ){
+                int y = W.index.y[i];
+                int x = W.index.x[i];
+
+                for( int j = 0; j < dst.x_max; j ++ ){
+                    store_method::__store<st_m>( dst[x][j], P[y][j] * W.elem[i] );
+                }
+            }
+        }
+
+        // dst = dot( W.T,P )
+        void dot_lt      ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
+            dot_lt_template<store_method::SAVE>( dst, W, P );
+        }        
+        void sadd__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
+            dot_lt_template<store_method::ADD>( dst, W, P );
+        }        
+        void ssub__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
+            dot_lt_template<store_method::SUB>( dst, W, P );
+        }        
+    };
+};
+
 #endif

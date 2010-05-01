@@ -8,6 +8,7 @@ struct CFMFParam{
     float wd, momentum;
     int   num_iter;
     int   als;
+    
 };
 // MF W = Q P^T 
 void matrix_factor( CTensor2D &hQ, CTensor2D &hP, 
@@ -45,8 +46,8 @@ void matrix_factor( CTensor2D &hQ, CTensor2D &hP,
     tensor::free_space( dP );
 
     tensor::free_space_index( index );
-    tensor::free_space_data( W );
-    tensor::free_space_data( E );
+    tensor::free_space_data ( W );
+    tensor::free_space_data ( E );
 }
 
 int main( void ){
