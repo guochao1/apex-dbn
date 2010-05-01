@@ -9,13 +9,14 @@
 
 #ifndef __APEX_TENSOR_USE_GPU__
 
+// macro to switch TTensor from CPU to GPU
 #ifdef  __APEX_TENSOR_USE_GPU_IMPL__    
 #define __APEX_TENSOR_USE_GPU__    1
 #endif
 
 #endif
 
-namespace apex_tensor{
+namespace apex_tensor{    
     struct CTensor1D;
     struct CTensor2D;
     struct CTensor3D;
@@ -58,12 +59,13 @@ namespace apex_tensor{
     }
 #else
 
-    typedef CTensor1D TTensor1D;
-	typedef CSTensor1D TSTensor1D;
-    typedef CTensor2D TTensor2D;
-	typedef CSTensor2D TSTensor2D;
-    typedef CTensor3D TTensor3D;
-    typedef CTensor4D TTensor4D;
+    typedef CTensor1D  TTensor1D;
+    typedef CTensor2D  TTensor2D;
+    typedef CTensor3D  TTensor3D;
+    typedef CTensor4D  TTensor4D;
+
+    typedef CSTensor1D TSTensor1D;
+    typedef CSTensor2D TSTensor2D;
 
     inline void init_tensor_engine( int seed ){
         init_tensor_engine_cpu( seed );
