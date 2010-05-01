@@ -3,7 +3,6 @@
 
 #include "apex_op_plan.h"
 #include "apex_tensor.h"
-#include <memory.h>
 
 namespace apex_tensor{
 	struct CSTensor1D{
@@ -38,10 +37,10 @@ namespace apex_tensor{
 			this->x_max = x_max;
 			this->y_max = y_max;
 		}
-		
-		inline void scale_set( TENSOR_FLOAT val ){
-			memset( this->elem, val, x_max * y_max );
-		}
+        // BUG here, need modification
+        //		inline void scale_set( TENSOR_FLOAT val ){
+        //			memset( this->elem, val, x_max * y_max  );
+		//}
 
         inline       CSTensor1D operator[]( int idx );
         inline const CSTensor1D operator[]( int idx )const;
@@ -49,40 +48,42 @@ namespace apex_tensor{
 	};
 
 	namespace tensor{
-
+        // dst += b
 		void sadd( CSTensor1D &dst, const CTensor1D &b );
-		void add( CTensor2D &dst,  const CTensor2D &a,  const CSTensor2D &b );
-
-		void sub( CTensor2D &dst,  const CTensor2D &a,  const CSTensor2D &b );
-
+        // dst = a+b 
+		void add ( CTensor2D &dst , const CTensor2D &a, const CSTensor2D &b );
+        // dst = a-b; 
+		void sub ( CTensor2D &dst , const CTensor2D &a, const CSTensor2D &b );
+        // allocate space for ts
 		void alloc_space( CSTensor2D &ts);
-
-		void free_space( CSTensor2D &ts );
-
+        // free space for ts
+		void free_space ( CSTensor2D &ts );
+        // copy src to dsr
 		void copy( CSTensor2D &dst, const CSTensor2D &src );
-
-		void sample_softmax( CSTensor2D &dst, const CSTensor2D &mean );
-
 	};
 
 	namespace tensor{
-
-        void dot        ( CTensor1D &dst, const CSTensor1D &a, const CTensor2D &b );    
-
-		void dot_rt		( CSTensor1D &des, const CTensor1D &a, const CTensor2D &b );
-
-        void sadd__dot  ( CTensor1D &dst, const CSTensor1D &a, const CTensor2D &b );    
-
-        void sadd__dot_lt( CTensor2D &dst, const CSTensor1D &a, const CTensor1D &b );    
-
-        void ssub__dot_lt( CTensor2D &dst, const CSTensor1D &a, const CTensor1D &b );    
+        // dst = dot(a,b)
+        void dot         ( CTensor1D &dst  , const CSTensor1D &a, const CTensor2D &b );    
+        // dst = dot(a,b.T)
+		void dot_rt		 ( CSTensor1D &dst , const CTensor1D  &a, const CTensor2D &b );
+        // dst+= dot(a,b)
+        void sadd__dot   ( CTensor1D  &dst , const CSTensor1D &a, const CTensor2D &b );    
+        // dst+= dot(a.T,b)
+        void sadd__dot_lt( CTensor2D  &dst , const CSTensor1D &a, const CTensor1D &b );    
+        // dst-= dot(a.T,b)
+        void ssub__dot_lt( CTensor2D  &dst , const CSTensor1D &a, const CTensor1D &b );    
 	};
-
-	namespace cf_rbm{
-
-		void normalize( CSTensor2D &soft_max );
-
-	};
+    
+    namespace tensor{
+        // special support for cf_rbm
+        namespace cf_rbm{
+            // normalize the data by softmax
+            void norm_softmax( CSTensor2D &soft_max );
+            // sample  data by soft_max
+            void sample_softmax( CSTensor2D &dst, const CSTensor2D &mean );
+        };
+    };
 };
 
 #include "apex_tensor_sparse_inline.cpp"

@@ -2,13 +2,15 @@
 #define _APEX_TENSOR_CPU_CPP_
 
 #include "apex_tensor.h"
-#include "apex_tensor_sparse.cpp"
 #include "../external/apex_random.h"
 #include <cmath>
 #include <cstring>
+
+// sparse tensor support module
+#include "apex_tensor_sparse.cpp"
+
 // defintiions for tensor functions 
 // tqchen
-
 namespace apex_tensor{
 
     // initialize function and deconstructor
