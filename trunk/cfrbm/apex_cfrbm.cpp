@@ -25,11 +25,11 @@ namespace apex_rbm{
 	class SoftMaxNode {
 	public:
 		virtual void sample	( TSTensor2D &state, const TSTensor2D &mean ){
-			tensor::sample_softmax( state,  mean );
+			tensor::cf_rbm::sample_softmax( state,  mean );
 		}
 		virtual void cal_mean(TSTensor2D &mean, const TSTensor2D &energy ){
 			mean =  energy ;
-			cf_rbm::normalize( mean );
+			tensor::cf_rbm::norm_softmax( mean );
 		}	
 	};	
     // simple implementation of srbm

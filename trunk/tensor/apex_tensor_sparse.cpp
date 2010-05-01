@@ -97,7 +97,7 @@ namespace apex_tensor{
 
 	namespace tensor{
         namespace cf_rbm{
-            void normalize( TSTensor2D &soft_max ){
+            void norm_softmax( TSTensor2D &soft_max ){
                 TENSOR_FLOAT sumline[ soft_max.x_max ];
                 memset( sumline, 0, soft_max.x_max );
                 for( int i = 0; i < soft_max.y_max; ++ i){
@@ -114,18 +114,20 @@ namespace apex_tensor{
             
             // tmp may not be needed
             void sample_softmax( CSTensor2D &dst, const CSTensor2D &mean ){
-                dst.scale_set( 0 );
-                TENSOR_FLOAT tmp[ dst.y_max ];
-                memset( tmp, 0, dst.y_max );
+				bool flag;
                 for( int i = 0 ; i < dst.x_max; ++ i ){
+						flag = false;
                     for( int j = 0; j < dst.y_max; ++ j )
-                        tmp[ j ] = j==0?mean[ j ][ i ]: tmp[ j - 1 ] + mean[ j ][ i ];
+                        dst[ j ][ i ] = j==0?mean[ j ][ i ]: dst[ j - 1 ][ i ] + mean[ j ][ i ];
                     double ran = apex_random::next_double(); 
                     for( int j = 0; j < dst.y_max; ++ j )
-                        if( ran < tmp[ j ] ){
+                        if( ran < dst[ j ][ i ] && !flag){
                             dst[ j ][ i ] = 1;
-                            break;
-					}
+							flag = true;
+						}
+						else
+						    dst[ j ][ i ] = 0;
+					
                 }
             }
         };
