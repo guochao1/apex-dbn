@@ -37,6 +37,7 @@ namespace apex_tensor{
         inline GTensor1D& operator =  ( const apex_op_plan::SampleBinaryPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::SampleGaussianPlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::AddPlan <GTensor1D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::SubPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::MulPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator += ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
@@ -82,6 +83,7 @@ namespace apex_tensor{
         inline GTensor2D& operator =  ( const apex_op_plan::SampleBinaryPlan   <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::SampleGaussianPlan <GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::AddPlan <GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::SubPlan <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::MulPlan <GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::DotPlan  <GTensor2D,GTensor2D> &val );        
         inline GTensor2D& operator += ( const apex_op_plan::DotPlan  <GTensor2D,GTensor2D> &val );        
@@ -137,6 +139,7 @@ namespace apex_tensor{
         inline GTensor3D& operator =  ( const apex_op_plan::SampleBinaryPlan  <GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::SampleGaussianPlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::AddPlan<GTensor3D> &val );        
+        inline GTensor3D& operator =  ( const apex_op_plan::SubPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::MulPlan<GTensor3D> &val );        
         inline GTensor3D& operator =  ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
         inline GTensor3D& operator += ( const apex_op_plan::ScalePlan<GTensor3D,TENSOR_FLOAT> &val );        
@@ -180,6 +183,7 @@ namespace apex_tensor{
         inline GTensor4D& operator =  ( const apex_op_plan::SampleBinaryPlan  <GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::SampleGaussianPlan<GTensor4D,TENSOR_FLOAT> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::AddPlan<GTensor4D> &val );        
+        inline GTensor4D& operator =  ( const apex_op_plan::SubPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::MulPlan<GTensor4D> &val );        
         inline GTensor4D& operator =  ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
         inline GTensor4D& operator += ( const apex_op_plan::ScalePlan<GTensor4D,TENSOR_FLOAT> &val );                        
