@@ -1,13 +1,15 @@
 #include <cstdio>
+#include "../utils/apex_utils.h"
+#include "../tensor/apex_tensor.h"
 #include "../utils/apex_config.h"
 #include "../cfrbm/apex_cfrbm_model.h"
 #include "../cfrbm/apex_cfrbm_adapter.cpp"
-#include "../cfrbm/apex_cfrbm.cpp"
+#include "../cfrbm/apex_cfrbm.h"
 
 int main( int argc, char *argv[] ){
 
-   	FILE *training_file = fopen( argv[2], "r" );	
-	FILE *model_file = fopen( argv[3], "wb" );
+   	FILE *training_file = apex_utils::fopen_check( argv[2], "r" );
+	FILE *model_file = apex_utils::fopen_check( argv[3], "wb" );
 	
 	apex_rbm::CFSRBMTrainParam train_para;
 	apex_utils::ConfigIterator train_para_cfg( argv[0] );  

@@ -2,6 +2,7 @@
 #define _APEX_TENSOR_CPU_CPP_
 
 #include "apex_tensor.h"
+#include "apex_tensor_sparse.cpp"
 #include "../external/apex_random.h"
 #include <cmath>
 #include <cstring>
