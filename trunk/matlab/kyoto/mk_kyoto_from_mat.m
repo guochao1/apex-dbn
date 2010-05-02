@@ -10,13 +10,13 @@ fwrite( fo, [ 0 ] , 'int32');
 lst = dir( '*.mat');
 count = 0;
 for i = [ 1 : length(lst) ]
-  nm = lst(i).name;
-  clear OL OS OM;
-  load( nm );  
-  [yy_max,xx_max] = size( OL );
-  fwrite( fo, [xx_max,yy_max] , 'int32');  
-  fwrite( fo, OL', 'float32' );
-  count = count + 1;
+    nm = lst(i).name;
+    clear OL OS OM;
+    load( nm );  
+    [yy_max,xx_max] = size( OL );
+    fwrite( fo, [xx_max,yy_max] , 'int32');  
+    fwrite( fo, OL', 'float32' );
+    count = count + 1;
 end
 
 frewind( fo );

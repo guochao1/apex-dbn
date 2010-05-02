@@ -9,23 +9,23 @@ fwrite( fo, [ 0 ] , 'int32');
 
 count = 0;
 for i = [ 1 : length(lst) ]
-  nm = lst(i).name;
-  A =  rgb2gray( imread(nm) );
+    nm = lst(i).name;
+    A =  rgb2gray( imread(nm) );
     
-  [yy_max,xx_max] = size( A );
-  if zoom_x == 1
-    yy_max = floor( yy_max * z_len / xx_max );
-    xx_max = z_len;
-  else
-    xx_max = floor( xx_max * z_len / yy_max );
-    yy_max = z_len;
-  end
-  A = imresize( A , [yy_max,xx_max] );
+    [yy_max,xx_max] = size( A );
+    if zoom_x == 1
+        yy_max = floor( yy_max * z_len / xx_max );
+        xx_max = z_len;
+    else
+        xx_max = floor( xx_max * z_len / yy_max );
+        yy_max = z_len;
+    end
+    A = imresize( A , [yy_max,xx_max] );
 
-  A = im2double( A );  
-  fwrite( fo, [xx_max,yy_max] , 'int32'); 
-  fwrite( fo, A', 'float32' );
-  count = count + 1;
+    A = im2double( A );  
+    fwrite( fo, [xx_max,yy_max] , 'int32'); 
+    fwrite( fo, A', 'float32' );
+    count = count + 1;
 end
 
 frewind( fo );
