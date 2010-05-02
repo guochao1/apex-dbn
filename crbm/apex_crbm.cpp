@@ -327,7 +327,7 @@ namespace apex_rbm{
         // calculate the datas in cd steps
         inline void cal_cd_steps( TTensor3D &v_pos, TTensor3D &v_neg, 
                                   TTensor3D &h_pos, TTensor3D &h_neg,
-                                  TTensor3D &h_persistent ){
+                                  TTensor3D &h_persistent, int cd_step ){
             TTensor1D & h_bias = layers.back().h_bias;
             TTensor1D & v_bias = layers.back().v_bias;
             TTensor4D & W      = layers.back().W;            
@@ -443,7 +443,7 @@ namespace apex_rbm{
 
             // whether can be use persistent chain
             TTensor3D &hp = persistent_ok ? h_neg : h_pos;
-            cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp );
+			cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp, this->cd_step );
             persistent_ok = ( param.persistent_cd !=0 );
 
             // this is not necessary, we add it anyway 
@@ -516,7 +516,7 @@ namespace apex_rbm{
             for( int i = 0 ; i < data.h_max ; i ++ ){
                 setup_input( data[i] );                
 
-                cal_cd_steps( v_pos, v_neg, h_pos, h_neg, h_pos );
+                cal_cd_steps( v_pos, v_neg, h_pos, h_neg, h_pos, 1 );
                 
                 layers.back().sparse_reg( h_sum_mf, h_sum_mf_grad );
 
