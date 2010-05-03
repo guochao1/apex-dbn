@@ -1,4 +1,5 @@
 clear all;
+
 x_max = 10;
 y_max = 10;
 h_max = 24;
@@ -12,6 +13,10 @@ vb  = randn( [1,v_max] );
 d_hb= zeros( size(hb) );
 d_vb= zeros( size(vb) );
 d_W = zeros( size(W)  ); 
+
+epoch = 0;
+
+% load( 'models/crbm_model.1.mat');
 
 crbm_train_kyoto;
 
