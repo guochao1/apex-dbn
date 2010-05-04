@@ -6,7 +6,7 @@
 #include "../tensor/apex_tensor.h"
 #include "../tensor/apex_tensor_sparse.h"
 #include <vector>
-
+#include <iostream>
 namespace apex_rbm{
     using namespace std;
     using namespace apex_tensor;
@@ -62,6 +62,7 @@ namespace apex_rbm{
             d_W      = clone( model.d_W );
             h_neg    = alloc_like( model.d_h_bias );
             h_pos    = alloc_like( model.d_h_bias );
+			cout << model.param.softmax_size<<"\t"<< model.param.v_max<<endl;
 			v_pos.set_param(model.param.softmax_size, model.param.v_max );
 			tensor::alloc_space( v_pos );
 			v_neg	 = alloc_like( v_pos );
@@ -188,8 +189,10 @@ namespace apex_rbm{
             train_update();
         }
         virtual void train_update_trunk( const vector<apex_tensor::CSTensor2D> &data ){
-            for( int i = 0 ; i < (int)data.size() ; ++ i )
+            for( int i = 0 ; i < (int)data.size() ; ++ i ){
+			cout << "line\t" << i << endl;
                 train_update( data[i] );
+			}
         }
 
 		virtual void generate_model(FILE *fo){
