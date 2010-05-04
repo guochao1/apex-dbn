@@ -1,8 +1,9 @@
-function lst = load_kyoto_mat(dirname)
-lst = dir( dirname + '/*.mat');
+function dl = load_kyoto_mat(dirname)
+lst = dir( strcat(dirname , '\*.mat'));
 for i = [ 1 : length(lst) ]
     clear OL OS OM;
-    nm = dirname+'/'+lst(i).name;
+    nm = strcat( strcat(dirname,'\'),lst(i).name );
     load( nm );  
-    lst{i} = OL;   
+    dl{i} = OL;   
 end
+fprintf( 1, '%d loaded\n', length(dl));
