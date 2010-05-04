@@ -3,10 +3,12 @@
 
 #include "../tensor/apex_tensor.h"
 #include "../tensor/apex_tensor_sparse.h"
+#include <iostream>
 #include <vector>
 #include <cstdlib>
 #include <cstring>
 
+using namespace std;
 namespace apex_rbm{
 
     // training parameter of srbm
@@ -121,15 +123,27 @@ namespace apex_rbm{
             v_bias.set_param(param.softmax_size, param.v_max );
             W.set_param  ( param.softmax_size, param.v_max, param.h_max );
 
+		   	d_h_bias.set_param( param.h_max );
+            d_v_bias.set_param(param.softmax_size, param.v_max );
+            d_W.set_param  ( param.softmax_size, param.v_max, param.h_max );
+
             apex_tensor::tensor::alloc_space( h_bias );
             apex_tensor::tensor::alloc_space( v_bias );
             apex_tensor::tensor::alloc_space( W );
+			apex_tensor::tensor::alloc_space( d_h_bias );
+            apex_tensor::tensor::alloc_space( d_v_bias );
+            apex_tensor::tensor::alloc_space( d_W );
+
         }
 
         inline void free_space(){
             apex_tensor::tensor::free_space( h_bias );
             apex_tensor::tensor::free_space( v_bias );
             apex_tensor::tensor::free_space( W );
+			apex_tensor::tensor::free_space( d_h_bias );
+            apex_tensor::tensor::free_space( d_v_bias );
+            apex_tensor::tensor::free_space( d_W );
+
         }
                                 
         inline void rand_init(){
