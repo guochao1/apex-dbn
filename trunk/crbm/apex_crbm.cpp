@@ -388,7 +388,7 @@ namespace apex_rbm{
             TTensor1D & v_bias = layers.back().v_bias;
             TTensor4D & W      = layers.back().W;
 
-            const float eta = param.learning_rate/(param.batch_size*h_size);
+            const float eta   = param.learning_rate/(param.batch_size*h_size);
 
             if( param.chg_hidden_bias ){
                 // calculate sparse grad
@@ -396,10 +396,10 @@ namespace apex_rbm{
 
                 // add sparse regularization and weight decay, we remember both in momentum
                 if( param.use_sparse_momentum ){
-                    h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * eta;
+                    h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * (eta * param.h_learning_rate);
 				}else{
-                    h_bias += ( d_h_bias -= h_bias * param.wd_h ) * eta;
-                    h_bias += h_sum_mf * (-eta) ;
+                    h_bias += ( d_h_bias -= h_bias * param.wd_h ) * (eta * param.h_learning_rate);
+                    h_bias += h_sum_mf * ( - eta * param.h_learning_rate);
                 }
 
                 d_h_bias *= param.momentum;                

@@ -378,11 +378,11 @@ namespace apex_tensor{
             }
             template<>
             __device__ float __map<SIGMOID>( float src ){
-                return 1.0f / ( 1 + __expf( -src ));
+                return 1.0f / ( 1.0f + expf( -src ));
             }
             template<>
             __device__ float __map<SIGMOID_GRAD>( float src ){
-                return src * ( 1 - src );
+                return src * ( 1.0f - src );
             }
         };
 

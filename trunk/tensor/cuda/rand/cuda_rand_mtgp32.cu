@@ -15,7 +15,7 @@ namespace cuda_rand{
     // we can add number of block to 128 to get unit_size = 512*3*128=   3 << 15
     // access unit of random number 
     const int __ALIGN_BITS= 4; 
-    const int __BUF_SIZE  = 3 << 21;
+    const int __BUF_SIZE  = 3 << 22;
     const int __UNIT_SIZE = mtgp::LARGE_SIZE * mtgp::BLOCK_NUM ;
     const int __BUF_LEN   = (__BUF_SIZE / __UNIT_SIZE) * __UNIT_SIZE;
     

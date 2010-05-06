@@ -19,7 +19,10 @@ namespace apex_rbm{
         
         /* learning rate */
         float learning_rate;
-
+        
+        /* scaled learning rate for h_bias */
+        float h_learning_rate;
+        
         /* momentum */
         float momentum;
 
@@ -67,6 +70,7 @@ namespace apex_rbm{
         /* reset the parameters to default value */
         inline void reset_default(){
             batch_size = 1;
+            h_learning_rate   = 1.0f; 
             learning_rate     = 0.01f;
             momentum          = 0.0f;
             wd_h = wd_v = wd_W= 0.0f;
@@ -103,6 +107,7 @@ namespace apex_rbm{
             if( !strcmp("num_non_sparse_node", name ) ) num_non_sparse_node = atoi( val );
             if( !strcmp("num_light_node", name ) )      num_light_node = atoi( val );
             if( !strcmp("use_sparse_momentum", name ) ) use_sparse_momentum = atoi( val );
+            if( !strcmp("h_learning_rate", name ) )     h_learning_rate = (float)atof( val );
         }
     };
     
