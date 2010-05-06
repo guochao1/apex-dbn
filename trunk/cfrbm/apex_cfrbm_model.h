@@ -99,6 +99,25 @@ namespace apex_rbm{
 
         }
     };
+	struct PREDModel{
+
+        apex_tensor::CTensor1D h_bias;
+		apex_tensor::CTensor2D v_bias;
+       	apex_tensor::CTensor3D W;
+
+		PREDModel( FILE *f ){
+			apex_tensor::tensor::load_from_file( W, f );
+			apex_tensor::tensor::load_from_file( h_bias, f );
+			apex_tensor::tensor::load_from_file( v_bias, f );
+		}
+
+		inline void free_space(){
+            apex_tensor::tensor::free_space( h_bias );
+            apex_tensor::tensor::free_space( v_bias );
+            apex_tensor::tensor::free_space( W );
+        }
+ 
+	};
 
     // model of srbm
     struct CFSRBMModel{

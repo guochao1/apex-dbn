@@ -18,25 +18,27 @@ namespace apex_tensor{
 namespace apex_tensor{
 
     inline CSTensor1D CSTensor2D::operator[]( int idx ){
-        CSTensor1D ts;
-        ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*pitch);
-        ts.pitch = pitch;
-        ts.x_max = x_max;
-        return ts;  
+		CSTensor1D ts;
+		ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*pitch);
+		ts.index = index;
+		ts.pitch = pitch;
+		ts.x_max = x_max;
+		return ts;  
     }
-    
+
     inline const CSTensor1D CSTensor2D::operator[]( int idx )const{
-        CSTensor1D ts;
-        ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*pitch);
-        ts.pitch = pitch;
-        ts.x_max = x_max;
-        return ts;  
+		CSTensor1D ts;
+		ts.elem  = (TENSOR_FLOAT*)((char*)elem + idx*pitch);
+		ts.index = index;
+		ts.pitch = pitch;
+		ts.x_max = x_max;
+		return ts;  
     }
     
     inline CSTensor2D& CSTensor2D::operator =  ( const apex_op_plan::AllocLikePlan<CSTensor2D> &val ){
-        this->set_param( val.a->y_max, val.a->x_max );
-        tensor::alloc_space( *this );
-        return *this;
+		this->set_param( val.a->y_max, val.a->x_max );
+		tensor::alloc_space( *this );
+		return *this;
     }
 };
 

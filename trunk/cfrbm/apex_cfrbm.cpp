@@ -62,10 +62,6 @@ namespace apex_rbm{
             d_W      = clone( model.d_W );
             h_neg    = alloc_like( model.d_h_bias );
             h_pos    = alloc_like( model.d_h_bias );
-			cout << model.param.softmax_size<<"\t"<< model.param.v_max<<endl;
-			v_pos.set_param(model.param.softmax_size, model.param.v_max );
-			tensor::alloc_space( v_pos );
-			v_neg	 = alloc_like( v_pos );
         }
     public:
         CFSRBMSimple( const CFSRBMModel &model, const CFSRBMTrainParam &param ){
@@ -128,7 +124,7 @@ namespace apex_rbm{
 				downfeed_soft_max( h_neg, v_neg, W, v_bias );
                 v_node->cal_mean( v_neg, v_neg );
                 v_node->sample  ( v_neg, v_neg );
-
+				
                 // go up
 				upfeed_soft_max( v_neg, h_neg, W, h_bias );
                 h_node->cal_mean( h_neg, h_neg );
@@ -156,46 +152,61 @@ namespace apex_rbm{
         inline void train_update(){
 
             cal_cd_steps( v_pos, v_neg,  h_pos, h_neg );
-
+//			cout << "cal_cd_steps done\n";
             // calculate the gradient
 			for( int i = 0; i < d_W.z_max; ++ i ){
 				TTensor2D line = d_W[ i ];
 				tensor::sadd__dot_lt( line, v_pos[ i ], h_pos );
 				tensor::ssub__dot_lt( line, v_pos[ i ], h_neg );
 			}
-
+//			cout << "update d_W done\n";
             if( param.chg_hidden_bias ){
 				d_h_bias += h_pos;
                 d_h_bias -= h_neg; 
             }
+//			cout << "update d_h_bias done\n";
             if( param.chg_visible_bias ){
-				tensor::add( d_v_bias, d_v_bias, v_pos );
+				tensor::add( d_v_bias, d_v_bias, v_pos ); 
 				tensor::sub( d_v_bias, d_v_bias, v_neg );
             }
-
+//			cout << "update d_v_bias done\n";
             if( ++sample_counter == param.batch_size ){
                 update_weight();
+				cout << "update_weight done\n";
                 sample_counter = 0;
             }
+//			cout << "train_update done\n";
         }
 
 		inline void setup_input( const apex_tensor::CSTensor2D &data ){
-				tensor::copy( this->v_pos, data);	
+				tensor::copy( this->v_pos, data);
+				tensor::copy( this->v_neg, data);
 		}
 
     public:
         virtual void train_update( const apex_tensor::CSTensor2D &data ){
+			this->v_pos = alloc_like( data );
+			this->v_neg = alloc_like( data );
+//			cout << "alloc_like done\n";
             setup_input( data );
+//			cout << "setup_input done\n";
             train_update();
+//			cout << "train_update done\n";
+			tensor::free_space( this->v_pos );
+			tensor::free_space( this->v_neg );
+//			cout << "free_space done\n";
         }
         virtual void train_update_trunk( const vector<apex_tensor::CSTensor2D> &data ){
             for( int i = 0 ; i < (int)data.size() ; ++ i ){
-			cout << "line\t" << i << endl;
+				cout << "line\t" << i << endl;
                 train_update( data[i] );
 			}
         }
 
 		virtual void generate_model(FILE *fo){
+				tensor::save_to_file( W, fo );
+				tensor::save_to_file( h_bias, fo );
+				tensor::save_to_file( v_bias, fo );
 		}
     };
     
