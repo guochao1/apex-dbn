@@ -7,7 +7,7 @@
 #include <cstring>
 
 // sparse tensor support module
-#include "apex_tensor_sparse.cpp"
+//#include "apex_tensor_sparse.cpp"
 
 // defintiions for tensor functions 
 // tqchen

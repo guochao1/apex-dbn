@@ -131,6 +131,11 @@ namespace apex_utils{
             for( int i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::free_space( v_data[i] );            
             
+            double var = 0.0;
+            for( int i = 0 ; i < data.z_max ; i ++ )
+                var += apex_tensor::cpu_only::var( data[i] );
+            if( silent == 0 ) printf("std_var=%lf, ", sqrt( var/data.z_max ) );
+
             if( normalize != 0 ) {
                 if( silent == 0 ) printf("normalize, ");
                 for( int i = 0 ; i < data.z_max ; i ++ )
