@@ -38,7 +38,7 @@ apex_cfrbm.o: $(CFRBM_DIR)/apex_cfrbm.cpp
 	g++ $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp
 
 cfrbm_movielen_train: cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o cfrbm_moviele_train cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
+	$(NVCC) $(OPTNVCC) -o cfrbm_movielen_train cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
 
 cfrbm_movielen_predict: cfrbm_movielen_predict.cpp $(TENSOR_LIB)
 	$(NVCC) $(OPTNVCC) -o cfrbm_movielen_predict cfrbm_movielen_predict.cpp $(TENSOR_LIB)

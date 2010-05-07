@@ -118,7 +118,10 @@ namespace apex_rbm{
             for( int i = 0 ; i < param.cd_step ; i ++ ){
 
                 // sample h
-                h_node->sample( h_neg, h_neg );
+				if(i == 0)
+					h_node->sample( h_neg, h_pos );
+				else
+                	h_node->sample( h_neg, h_neg );
 
                 // go down
 				downfeed_soft_max( h_neg, v_neg, W, v_bias );
