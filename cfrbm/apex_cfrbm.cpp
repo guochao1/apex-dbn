@@ -69,6 +69,7 @@ namespace apex_rbm{
             this->param = param;
 			this->h_node = new CFSRBMBinaryNode();
 			this->v_node = new SoftMaxNode();
+			this->sample_counter = 0;
             // intialize the tensor engine
             init_tensor_engine( 0 );
         }
@@ -148,6 +149,12 @@ namespace apex_rbm{
             }
 
             W   = W * ( 1-eta*param.wd_W ) + d_W * eta;            
+//			for(int i = 0; i < W.y_max; ++ i){
+//				for(int j = 0; j< W.x_max; ++ j)
+//					cout << W[0][i][j] << "\t";
+//				cout << endl;
+//			}
+//			exit(1);
             d_W *= param.momentum;
 		}
 
@@ -172,7 +179,8 @@ namespace apex_rbm{
 				tensor::add( d_v_bias, d_v_bias, v_pos ); 
 				tensor::sub( d_v_bias, d_v_bias, v_neg );
             }
-//			cout << "update d_v_bias done\n";
+			cout << "update d_v_bias done\n";
+//			cout << "sample_counter\t" << sample_counter << "\t" << endl;
             if( ++sample_counter == param.batch_size ){
                 update_weight();
 				cout << "update_weight done\n";

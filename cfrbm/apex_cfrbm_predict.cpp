@@ -56,9 +56,11 @@ namespace apex_rbm{
 						TENSOR_FLOAT tmp = 0;
 						for( int j = 0; j < param.x_max; ++ j )
 							tmp += param[ j ]*W[ i ][ y ][ j ];
+						if(tmp < 0) tmp = 0;
 						sum += tmp;
-						expect += ( i + i )* tmp;	
+						expect += ( i + 1 ) * tmp;	
 					}
+					if(sum == 0)return 1;
 					return expect/sum;
 			}
 			~Predictor(){
