@@ -23,16 +23,12 @@ else
 end
 [ y_max, x_max, z_max ] = size( img );
 
-if mod( y_max, c_y_max ) ~= 0 || mod( x_max, c_x_max ) ~= 0 
-    error('invalide cell size'); 
-end
+s_y_max = floor((floor( y_max / c_y_max ) - b_y_max)/ slide_step);
+s_x_max = floor((floor( x_max / c_x_max ) - b_x_max)/ slide_step);
 
-if mod( y_max/c_y_max - b_y_max, slide_step ) ~= 0 ||... 
-   mod( x_max/c_x_max - b_x_max, slide_step ) ~= 0 
-    error('invalide slide step'); 
-end
-
-
+yy_max  =  (s_y_max * slide_step + b_y_max ) * c_y_max;
+xx_max  =  (s_x_max * slide_step + b_x_max ) * c_x_max;
+ 
 ff = [-1 0 1];
 
 grad_x    = imfilter( im2double(img) ,  ff  ); 
@@ -42,6 +38,16 @@ if z_max > 1
     grad_y = max( grad_y , [], 3 );
 end  
  
+if yy_max ~= y_max || xx_max ~= x_max
+    %fprintf( 1, 'warning:image size does fit all the cell size\n');
+    yy = floor( (y_max-yy_max)/2 );
+    xx = floor( (x_max-xx_max)/2 );
+    grad_x = grad_x( yy+1:yy+yy_max, xx+1:xx+xx_max);
+    grad_y = grad_y( yy+1:yy+yy_max, xx+1:xx+xx_max);
+    y_max  = yy_max;
+    x_max  = xx_max; 
+end
+
 % length of the arch
 grad_r    = sqrt(grad_x.*grad_x + grad_y.*grad_y );
 % calculate rotation of the arch
