@@ -59,7 +59,7 @@ namespace apex_tensor{
     namespace cuda_tensor{
         // produce sum of matrix, store sum at s_mmx[0][0]
         template<int mapm>
-        __device__ void __tensor_sum_2D_procedure( float s_mmx[16][16], const __GT2D ss ){
+        inline __device__ void __tensor_sum_2D_procedure( float s_mmx[16][16], const __GT2D ss ){
             float sum = 0.0f;
             for( int yy = 0; yy < ss.y_max; yy += 16 )
                 for( int xx = 0; xx < ss.x_max; xx += 16 ){
@@ -120,7 +120,7 @@ namespace apex_tensor{
            with block shape < 16 , 16 >
         */
         template<int pool_bits>
-        __device__ void __pool_procedure_1616( float &sum,
+        inline __device__ void __pool_procedure_1616( float &sum,
                                                int block_y,
                                                int block_x,    
                                                float s_mm[16][17],
@@ -201,7 +201,7 @@ namespace apex_tensor{
            with block shape < pool_size , pool_size*16 >
         */
         template<int pool_size>
-        __device__ void __pool_procedure_ord( float &sum,
+        inline __device__ void __pool_procedure_ord( float &sum,
                                               int block_y,
                                               int block_x,    
                                               float s_mm[pool_size][pool_size*16],
@@ -284,7 +284,7 @@ namespace apex_tensor{
            with block shape < 16 , 16 >       
         */
         template<int mapm_A, int mapm_B, int pool_bits, bool ceil_up>
-        __device__ void __pool_sum_procedure_1616( float &sumA,         
+        inline __device__ void __pool_sum_procedure_1616( float &sumA,         
                                                    float &sumB,
                                                    float s_mm[16][17],
                                                    const __GT2D src  ){
@@ -355,7 +355,7 @@ namespace apex_tensor{
         }
 
         template<int mapm_A, int mapm_B, int pool_size, bool ceil_up>
-        __device__ void __pool_sum_procedure_ord( float &sumA,         
+        inline __device__ void __pool_sum_procedure_ord( float &sumA,         
                                                   float &sumB,
                                                   float s_mm[pool_size][pool_size*16],
                                                   const __GT2D src  ){
@@ -475,11 +475,11 @@ namespace apex_tensor{
            with block shape < 16 , 16 >
         */
         template<int st_m,int pool_bits>
-        __device__ void __norm_maxpooling_procedure_1616( int block_y,
-                                                          int block_x,    
-                                                          float s_mm[16][16],
-                                                          __GT2D dst,
-                                                          const __GT2D energy ){
+        inline __device__ void __norm_maxpooling_procedure_1616( int block_y,
+                                                                 int block_x,    
+                                                                 float s_mm[16][16],
+                                                                 __GT2D dst,
+                                                                 const __GT2D energy ){
             // load from src 
             for( int y = 0 ; y < (1<<pool_bits) ; y ++ )
                 for( int x = 0 ; x < (1<<pool_bits) ; x ++ ){                                
@@ -562,11 +562,11 @@ namespace apex_tensor{
            with block shape < pool_size , 16*pool_size >
         */
         template<int st_m,int pool_size>
-        __device__ void __norm_maxpooling_procedure_ord( int block_y,
-                                                         int block_x,    
-                                                         float s_mm[pool_size][pool_size*16],
-                                                         __GT2D dst,
-                                                         const __GT2D energy ){
+        inline __device__ void __norm_maxpooling_procedure_ord( int block_y,
+                                                                int block_x,    
+                                                                float s_mm[pool_size][pool_size*16],
+                                                                __GT2D dst,
+                                                                const __GT2D energy ){
             // load from src 
             for( int y = 0 ; y < pool_size ; y ++ )
                 for( int x = 0 ; x < pool_size ; x ++ ){                                

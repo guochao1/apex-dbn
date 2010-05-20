@@ -38,12 +38,16 @@ namespace cuda_reduce{
             if( tid < 64  ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 64 ] );
             __syncthreads(); 
         }
-#ifndef  __DEVICE_EMULATION__
-        /* code for in warp optimization */
+       
+#if 0
+        /* 
+           code for in warp optimization 
+           option closed due to error caused in CUDA 3.0 maybe volatile is needed
+         */
         if( tid < 32 ){
             if( x_bits >= 6 ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 32 ] );
             if( x_bits >= 5 ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 16 ] );
-            if( x_bits >= 4 ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 8 ]  );
+            if( x_bits >= 4 ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 8  ] );
             if( x_bits >= 3  ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 4 ]  );
             if( x_bits >= 2  ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 2 ]  );
             if( x_bits >= 1  ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 1 ]  );
