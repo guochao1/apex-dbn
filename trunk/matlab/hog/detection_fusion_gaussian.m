@@ -6,6 +6,9 @@ function YD = detection_fusion_gaussian( Y, score, sigma_sqr,...
 % sigma_sqr: 3 * 1 matrix, x, y, s
 % ym       : 3 * 1 matrix, start point
 % return next point of fixed point iteration
+if nargin < 3
+    sigma_sqr = [ 4, 8, log(1.6) ]';
+end
 if nargin <= 3
     eps_i = 1;
     eps_r = 5;
@@ -23,18 +26,18 @@ H_det  = 1 ./ sqrt(H(1,:).*H(2,:).*H(3,:));
 % start find local detection 
 count = 0;
 for i = 1 : m
-    ym = detect_proc( Y, score, H_inv, H_det, Y(i,:), eps_i );
+    ym = detect_proc( Y, score, H_inv, H_det, Y(:,i), eps_i );
     
     new_rst = 1;
     % find overlap detections
-    for j = 1 : i - 1
-        if norm(ym - YD(j,:)) <= eps_r
+    for j = 1 : count
+        if norm(ym - YD(:,j)) <= eps_r
             new_rst = 0;
         end
     end
     if new_rst == 1
         count = count + 1;
-        YD( count,: ) = ym;
+        YD( :, count ) = ym;
     end
 end
 
@@ -49,9 +52,9 @@ end
 
 % one iteration of decttion
 function ym = detect_one_iter( Y, score, H_inv , H_det, ym )  
-[n,m] = size( Y );
+[n,m] = size( Y )
 % compute gaussian weight
-smooth_w = score .* exp( - 0.5* sum((Y-rempat(ym,[1,m])).^2 .* H_inv)).*H_det;
+smooth_w = score .* exp( - 0.5* sum((Y-repmat(ym,[1,m])).^2 .* H_inv)).*H_det;
 smooth_w = smooth_w / sum( smooth_w );
 
 Hh_inv = H_inv * smooth_w';

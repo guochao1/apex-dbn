@@ -55,9 +55,9 @@ function [Y, score] = gen_detection_svm( img, svm_model, stride, S_r, ...
                     xx = ((w_x_max/2) + (x-1)/(xx_max-d_x_max)*(x_max/scale - w_x_max ))*scale; 
                     end
                     
-                    Y( count, 1 ) = xx;
-                    Y( count, 2 ) = yy;
-                    Y( count, 3 ) = scale;
+                    Y( 1, count ) = xx;
+                    Y( 2, count ) = yy;
+                    Y( 3, count ) = scale;
                     score( 1, count ) = dvalue(1);
                 end
             end
