@@ -3,6 +3,20 @@
 
 #include "../apex_tensor_gpu.h"
 
+/*
+  definition of global constant used for CUDA 
+ */
+namespace apex_tensor{    
+    /* load unit for memory access */
+    const int MEM_UNIT_BITS = 4;
+    const int MEM_UNIT      = 1 << MEM_UNIT_BITS;
+    const int MEM_UNIT_MASK = MEM_UNIT - 1; 
+
+    const int Y_UNIT_BITS   = 4 ;
+    const int Y_UNIT        = 1 << Y_UNIT_BITS;
+    const int Y_UNIT_MASK   = Y_UNIT - 1; 
+};
+
 namespace apex_tensor{
     // support for asynchronize launch
     namespace cuda_async{
@@ -325,7 +339,7 @@ namespace apex_tensor{
         const int ALIGN_BITS       = 4;
         const int ALIGN_WIDTH      = 1 << ALIGN_BITS;
         const int BASE_THREAD_BITS = 8;
-        const int BASE_THREAD_NUM  = 1<<BASE_THREAD_BITS;
+        const int BASE_THREAD_NUM  = 1 << BASE_THREAD_BITS;
         
         inline __device__ __host__ int get_align_width( int x_max ){
             return ((x_max + ALIGN_WIDTH-1) >> ALIGN_BITS) <<ALIGN_BITS;
