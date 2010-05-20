@@ -1,4 +1,4 @@
-function mm = gen_svm_data( lst )
+function d = gen_svm_data( lst )
 for i = 1 : length(lst)
     F = lst{i};
     F = F(:);
@@ -9,7 +9,6 @@ for i = 1 : length(lst)
     d(:,i) = F(:);
 
 end
-mm = d';
 
 
 

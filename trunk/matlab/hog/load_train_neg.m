@@ -4,7 +4,7 @@ if nargin == 2
     s_x_max = 14;
 end
 % load in postive training examples
-dl = dir(strcat(dirname,'/*.png') );
+dl = dir(strcat(dirname,'\*.jpg') );
 
 num_image      = length(dl);
 
@@ -12,7 +12,7 @@ for i = 1 : num_sample
     i
     idx = floor( rand() * num_image ) + 1;
     
-    img = imread( strcat( strcat(dirname,'/'), dl(idx).name ));
+    img = imread( strcat( strcat(dirname,'\'), dl(idx).name ));
     hog = gen_hog( img );
 
     % random extract hog 
@@ -23,4 +23,5 @@ for i = 1 : num_sample
     % this is specific for current setting
     lst{i} = hog( y+1:y+s_y_max , x+1:x+s_x_max, : );     
 end
+
 

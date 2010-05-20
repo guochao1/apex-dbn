@@ -8,7 +8,7 @@ end
 
 [ y_max, x_max, z_max ] = size( F );
 
-img = zeros( (y_max/b_max-1)*s_max*c_max + b_max*c_max  ,... 
+img = zeros( (y_max/b_max-1)*s_max*c_max +b_max*c_max  ,... 
              (x_max/b_max-1)*s_max*c_max +b_max*c_max);
 
 pic = zeros( c_max, c_max, z_max );
