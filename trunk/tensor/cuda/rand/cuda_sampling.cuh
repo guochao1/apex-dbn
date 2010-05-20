@@ -10,7 +10,7 @@ namespace cuda_rand{
         return prob > rnd01 ? 1.0f : 0.0f; 
     }
     
-    __device__ void __box_muller(float &u1, float &u2){
+    inline __device__ void __box_muller(float &u1, float &u2){
         float   r = sqrtf(-2.0f * logf(u1));
         float phi = 2.0f * 3.14159265358979f * u2;
         u1 = r * __cosf(phi);

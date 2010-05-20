@@ -92,7 +92,7 @@ namespace mtgp{
      * @param[in] bid block id.
      * @return output
      */
-    __device__ uint32_t para_rec(uint32_t X1, uint32_t X2, uint32_t Y, int bid) {
+    inline __device__ uint32_t para_rec(uint32_t X1, uint32_t X2, uint32_t Y, int bid) {
         uint32_t X = (X1 & __mtgp_mask) ^ X2;
         uint32_t MAT;
         
@@ -110,7 +110,7 @@ namespace mtgp{
      * @param[in] bid block id.
      * @return the tempered value.
      */
-    __device__ uint32_t temper(uint32_t V, uint32_t T, int bid) {
+    inline __device__ uint32_t temper(uint32_t V, uint32_t T, int bid) {
         uint32_t MAT;
         
         T ^= T >> 16;
@@ -129,7 +129,7 @@ namespace mtgp{
      * @param[in] bid block id.
      * @return the tempered and converted value.
      */
-    __device__ uint32_t temper_single(uint32_t V, uint32_t T, int bid) {
+    inline __device__ uint32_t temper_single(uint32_t V, uint32_t T, int bid) {
         uint32_t MAT;
         uint32_t r;
         
@@ -149,10 +149,10 @@ namespace mtgp{
      * @param[in] bid block id
      * @param[in] tid thread id
      */
-    __device__ void __mtgp_status_read(uint32_t __mtgp_status[LARGE_SIZE],
-                                       const mtgp32_kernel_status_t *d_status,
-                                       int bid,
-                                       int tid) {
+    inline __device__ void __mtgp_status_read(uint32_t __mtgp_status[LARGE_SIZE],
+                                              const mtgp32_kernel_status_t *d_status,
+                                              int bid,
+                                              int tid) {
         __mtgp_status[LARGE_SIZE - N + tid] = d_status[bid].status[tid];
         if (tid < N - THREAD_NUM) {
             __mtgp_status[LARGE_SIZE - N + THREAD_NUM + tid]
@@ -170,10 +170,10 @@ namespace mtgp{
      * @param[in] bid block id
      * @param[in] tid thread id
      */
-    __device__ void __mtgp_status_write(mtgp32_kernel_status_t *d_status,
-                                        const uint32_t __mtgp_status[LARGE_SIZE],
-                                        int bid,
-                                        int tid) {
+    inline __device__ void __mtgp_status_write(mtgp32_kernel_status_t *d_status,
+                                               const uint32_t __mtgp_status[LARGE_SIZE],
+                                               int bid,
+                                               int tid) {
         d_status[bid].status[tid] = __mtgp_status[LARGE_SIZE - N + tid];
         if (tid < N - THREAD_NUM) {
             d_status[bid].status[THREAD_NUM + tid]

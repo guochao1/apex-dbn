@@ -331,13 +331,6 @@ namespace apex_tensor{
             return ((x_max + ALIGN_WIDTH-1) >> ALIGN_BITS) <<ALIGN_BITS;
         }
         
-        __device__ float *get_line( float *elem, int idx, unsigned int pitch ){           
-            return (float*)((char*)elem + idx*pitch);
-        }
-        __device__ const float *get_line_const( const float *elem, int idx, unsigned int pitch ){           
-            return (const float*)((const char*)elem + idx*pitch);
-        }
-
         // support for store metohod
         namespace store_method{
             const int SAVE = 0;
