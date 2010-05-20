@@ -330,7 +330,14 @@ namespace apex_tensor{
         inline __device__ __host__ int get_align_width( int x_max ){
             return ((x_max + ALIGN_WIDTH-1) >> ALIGN_BITS) <<ALIGN_BITS;
         }
+        inline __device__ TENSOR_FLOAT *get_line( TENSOR_FLOAT *elem, int idx, unsigned int pitch ){
+            return (TENSOR_FLOAT*)( (char*)elem + idx*pitch );
+        }
         
+        inline __device__ const TENSOR_FLOAT *get_line_const( const TENSOR_FLOAT *elem, int idx, unsigned int pitch ){
+            return (const TENSOR_FLOAT*)( (const char*)elem + idx*pitch );
+        }       
+
         // support for store metohod
         namespace store_method{
             const int SAVE = 0;

@@ -49,8 +49,7 @@ namespace apex_tensor{
             
             elem_dst = get_line      ( elem_dst, y, pitch_dst );
             elem_src = get_line_const( elem_src, y, pitch_src );
-            
-            
+                        
             if( y < y_max && x < x_max ){
                 float val = map_method_A::__map<mapm_A>( elem_src[x] );
                 store_method::__store<st_m>( elem_dst[x], val );

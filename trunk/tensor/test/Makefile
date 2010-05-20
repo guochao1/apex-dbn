@@ -9,7 +9,7 @@ OPT= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR=../..
 TENSOR_DIR=$(PRJ_DIR)/tensor
 NVCC    =nvcc
-OPTNVCC = -arch sm_11 -Xcompiler "$(OPT)" 
+OPTNVCC = -arch sm_20 -Xcompiler "$(OPT)" 
 
 all: $(BIN)
 

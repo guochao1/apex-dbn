@@ -46,7 +46,7 @@ namespace apex_tensor{
         namespace __conv2{
             // load a segment into array, check whether the data is aligned 
             template< int x_size >
-            __device__ void __load_line_shared_pad_1616_check_align( float m_shared[x_size],
+            inline __device__ void __load_line_shared_pad_1616_check_align( float m_shared[x_size],
                                                                      const __GT1D m_global,
                                                                      int x_start ){
                 // noting: x_start may be mis-aligned
@@ -81,9 +81,9 @@ namespace apex_tensor{
             
             // load data into array, the x_start is ensured to be aligned 
             template< int x_size >
-            __device__ void __load_line_shared_pad_1616_aligned( float m_shared[x_size],
-                                                                 const __GT1D m_global,
-                                                                 int x_start ){
+            inline __device__ void __load_line_shared_pad_1616_aligned( float m_shared[x_size],
+                                                                        const __GT1D m_global,
+                                                                        int x_start ){
                 for( int x = 0 ; x < x_size ; x += 16 ){
                     int xx = x       + threadIdx.x;
                     int cx = x_start + xx;
@@ -98,9 +98,9 @@ namespace apex_tensor{
             // load matrix into shared memory, dim_x = dim_y
             // pad exceeding dimsions with 0
             template<int y_size, int x_size,bool check_align>
-            __device__ void __load_mat_shared_pad_1616( float m_shared[y_size][x_size], 
-                                                        const __GT2D m_global, 
-                                                        int y_start ,int x_start ){
+            inline __device__ void __load_mat_shared_pad_1616( float m_shared[y_size][x_size], 
+                                                               const __GT2D m_global, 
+                                                               int y_start ,int x_start ){
                 for( int y = 0; y < y_size; y += 16 ){
                     int yy =  y + threadIdx.y; // consant in warp
                     int cy =  y_start + yy;
@@ -118,8 +118,8 @@ namespace apex_tensor{
             
             // reverse load 
             template<int y_size,int x_size>
-            __device__ void __load_mat_shared_reverse_1616( float m_shared[y_size][x_size], 
-                                                            const __GT2D g_filter ){
+            inline __device__ void __load_mat_shared_reverse_1616( float m_shared[y_size][x_size], 
+                                                                   const __GT2D g_filter ){
                 for( int y = 0; y < y_size; y +=16 ){
                     for( int x = 0; x < x_size; x +=16 ){                        
                         int yy =  y + threadIdx.y; // consant in warp
@@ -142,13 +142,13 @@ namespace apex_tensor{
            they may not equal to blockIdx.x and blockIdx.y
         */
         template<int y_size, int x_size>
-        __device__ void __conv2_r_valid_procedure_1616( float &sum,
-                                                        int block_y  , int block_x,                                    
-                                                        float s_ft[y_size][x_size] ,
-                                                        float s_mm[y_size+16][x_size+16],
-                                                        int ans_y_max, int ans_x_max,
-                                                        const __GT2D mat,
-                                                        const __GT2D filter ){
+        inline __device__ void __conv2_r_valid_procedure_1616( float &sum,
+                                                               int block_y  , int block_x,                                    
+                                                               float s_ft[y_size][x_size] ,
+                                                               float s_mm[y_size+16][x_size+16],
+                                                               int ans_y_max, int ans_x_max,
+                                                               const __GT2D mat,
+                                                               const __GT2D filter ){
             // load filter into shared memory
             __conv2::__load_mat_shared_pad_1616<y_size, x_size, false>
                 ( s_ft , filter, 0, 0 ); 
@@ -176,14 +176,14 @@ namespace apex_tensor{
         }
         
         template<int y_size, int x_size>
-        __device__ void __conv2_r_valid_procedure_1616( float &sum,
-                                                        int   h_idx,
-                                                        int   block_y, int block_x, 
-                                                        float s_ft[y_size][x_size],
-                                                        float s_mm[y_size+16][x_size+16],
-                                                        int   ans_y_max, int ans_x_max,
-                                                        const __GT3D mat,
-                                                        const __GT4D filter ){        
+        inline __device__ void __conv2_r_valid_procedure_1616( float &sum,
+                                                               int   h_idx,
+                                                               int   block_y, int block_x, 
+                                                               float s_ft[y_size][x_size],
+                                                               float s_mm[y_size+16][x_size+16],
+                                                               int   ans_y_max, int ans_x_max,
+                                                               const __GT3D mat,
+                                                               const __GT4D filter ){        
             
             for( int v = 0 ;  v < filter.h_max ; v ++ ){                
                 __conv2_r_valid_procedure_1616<y_size,x_size>
@@ -259,13 +259,13 @@ namespace apex_tensor{
     // conv2_full
     namespace cuda_tensor{
         template<int y_size, int x_size>
-        __device__ void __conv2_full_procedure_1616( float &sum,
-                                                     int block_y, int block_x,
-                                                     float s_ft[y_size   ][x_size],
-                                                     float s_mm[y_size+16][x_size+16],
-                                                     int   ans_y_max, int ans_x_max,
-                                                     const __GT2D mat,
-                                                     const __GT2D filter ){
+        inline __device__ void __conv2_full_procedure_1616( float &sum,
+                                                            int block_y, int block_x,
+                                                            float s_ft[y_size   ][x_size],
+                                                            float s_mm[y_size+16][x_size+16],
+                                                            int   ans_y_max, int ans_x_max,
+                                                            const __GT2D mat,
+                                                            const __GT2D filter ){
             // load filter into shared memory
             __conv2::__load_mat_shared_reverse_1616< y_size, x_size >( s_ft, filter );
             
@@ -292,13 +292,13 @@ namespace apex_tensor{
         }
         
         template<int y_size, int x_size>
-        __device__ void __conv2_full_procedure_1616( float &sum,
-                                                     int v_idx, int block_y, int block_x,
-                                                     float s_ft[y_size   ][x_size] ,
-                                                     float s_mm[y_size+16][x_size+16] ,
-                                                     const __GT3D ans,
-                                                     const __GT3D mat,
-                                                     const __GT4D filter ){        
+        inline __device__ void __conv2_full_procedure_1616( float &sum,
+                                                            int v_idx, int block_y, int block_x,
+                                                            float s_ft[y_size   ][x_size] ,
+                                                            float s_mm[y_size+16][x_size+16] ,
+                                                            const __GT3D ans,
+                                                            const __GT3D mat,
+                                                            const __GT4D filter ){        
             for( int h = 0 ; h < filter.z_max ; h ++ ){
                 __conv2_full_procedure_1616<y_size,x_size>
                     ( sum ,
@@ -370,7 +370,7 @@ namespace apex_tensor{
     namespace cuda_tensor{
         /* calculate a block of convolution */  
         // restrict filter size to be in (16,16)
-        __device__ void __conv2_r_big_filter_block_procedure_1616_restricted( CUDA_CONV2_SUM_PARAM( sum, c_kahan ),
+        inline __device__ void __conv2_r_big_filter_block_procedure_1616_restricted( CUDA_CONV2_SUM_PARAM( sum, c_kahan ),
                                                                               int   y_start, int x_start,
                                                                               float s_ft [16][16],
                                                                               float s_mat[32][32],
@@ -395,11 +395,11 @@ namespace apex_tensor{
         }
 
         template<int st_m>
-        __device__ void __conv2_r_big_filter_procedure_1616_restricted( float s_ft [16][16],
-                                                                        float s_mat[32][32],
-                                                                        __GT2D ans,
-                                                                        const __GT2D mat, 
-                                                                        const __GT2D filter ){
+        inline __device__ void __conv2_r_big_filter_procedure_1616_restricted( float s_ft [16][16],
+                                                                               float s_mat[32][32],
+                                                                               __GT2D ans,
+                                                                               const __GT2D mat, 
+                                                                               const __GT2D filter ){
             CUDA_CONV2_SUM_VAR_DEF( sum, c_kahan );
 
             for( int yy = 0 ; yy < filter.y_max ; yy += 16 )
