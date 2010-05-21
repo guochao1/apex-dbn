@@ -135,9 +135,6 @@ namespace apex_tensor{
         };
     };
 
-#define   __load_mat_shared_pad_1616 __load_mat_shared_pad_rec
-#define   __load_mat_shared_reverse_1616 __load_mat_shared_reverse_rec
-
     // conv2 valid 
     namespace cuda_tensor{
         /* 
@@ -239,10 +236,10 @@ namespace apex_tensor{
         }
         
         template<int st_m>
-        inline void conv2_r_valid( GTensor3D &ans,
-                                   const GTensor3D &mat,
-                                   const GTensor4D &filter,
-                                   const GTensor1D &h_bias ){
+        inline void conv2_r_valid_orign( GTensor3D &ans,
+                                         const GTensor3D &mat,
+                                         const GTensor4D &filter,
+                                         const GTensor1D &h_bias ){
             // only 16,16 block is allowed to support maxpooling
             if( filter.y_max <= Y_UNIT && filter.x_max <= MEM_UNIT ){
                 int  grid_height = (ans.y_max+Y_UNIT-1) >> Y_UNIT_BITS;
@@ -442,4 +439,138 @@ namespace apex_tensor{
         }        
     };
 };
+
+/*---------------we want to add optimization in this part to convolution -----------*/
+namespace apex_tensor{
+    namespace cuda_tensor{
+        namespace __conv2{
+            template< int x_size, int amount,bool pad, bool chk_lower>
+            inline __device__ void __load_line_shared( float m_shared[amount],
+                                                     const __GT1D m_global,
+                                                     int x_start ){
+                for( int x = 0 ; x < amount ; x += x_size ){
+                    const int xx = x       + threadIdx.x;
+                    const int cx = x_start + xx;
+                    if( cx < m_global.x_max && ((!chk_lower)||cx>=0 ) ){
+                        m_shared[ xx ] = m_global[ cx ]; 
+                    }else{
+                        if( pad ) m_shared[ xx ] = 0.0f;
+                    }
+                }                
+            }
+        };
+    };
+
+    namespace cuda_tensor{       
+        template<int y_size,int x_bits>
+        inline __device__ void __conv2_r_valid_opt_A( float &sum,
+                                                      int y_start,
+                                                      int x_start,
+                                                      float s_ft[y_size       ][1<< x_bits],    
+                                                      float s_mm[(y_size<<1)-1][1<<(x_bits+1)],
+                                                      int ans_y_max, int ans_x_max,
+                                                      const __GT2D mat,
+                                                      const __GT2D filter ){            
+            const int x_size = 1 << x_bits;
+            const int yy = y_start + threadIdx.y;
+            const int xx = x_start + threadIdx.x;
+
+            __conv2::__load_line_shared<x_size,x_size,false,false> 
+                ( s_ft[threadIdx.y], filter[threadIdx.y], 0 );
+            
+            if( yy < mat.y_max ){
+                __conv2::__load_line_shared<x_size,x_size<<1,false,false>
+                    ( s_mm[threadIdx.y], mat[yy], x_start );
+            }            
+            if( threadIdx.y != y_size-1 && yy + y_size < mat.y_max )
+                __conv2::__load_line_shared<x_size,x_size<<1,false,false>
+                    ( s_mm[threadIdx.y+y_size], mat[yy+y_size], x_start );
+            
+            __syncthreads();
+            
+            if( yy < ans_y_max && xx < ans_x_max ){
+                for( int dy = 0; dy < y_size; dy ++ ){
+                    float ss = 0.0f;
+                    for( int dx = 0; dx < filter.x_max ; dx ++ )
+                        ss += s_ft[dy][dx] * s_mm[ threadIdx.y + dy ][ threadIdx.x + dx ];
+                    sum += ss;
+                }
+            }               
+            __syncthreads();
+        }
+        
+        template<int st_m,int y_size,int x_bits>
+        __global__ void __conv2_r_valid_opt_A_kernel( int grid_width,
+                                                      __GT3D ans,                                                   
+                                                      const __GT3D mat,
+                                                      const __GT4D filter,
+                                                      const __GT1D h_bias   ){
+            const int x_size = 1 << x_bits;
+            const int block_z = blockIdx.y;
+            const int block_y = blockIdx.x / grid_width;
+            const int block_x = blockIdx.x % grid_width;
+            const int y_start = block_y *  y_size;
+            const int x_start = block_x << x_bits;
+            
+            __shared__ float bias;
+            __shared__ float s_ft[y_size   ][x_size];
+            __shared__ float s_mm[(y_size<<1)-1][x_size<<1];
+
+            //load the bias
+            if( threadIdx.y == y_size-1 && threadIdx.x == x_size-1 ){
+                // we use last thread because last thread seems more likely to be idle
+                // no need to sync because sync will occur in latter procedure
+                bias = h_bias[ block_z ];
+            }
+
+            float sum = 0.0f;
+            for( int v = 0; v < mat.z_max ; v ++ )
+                __conv2_r_valid_opt_A<y_size,x_bits>
+                    ( sum, y_start, x_start, s_ft, s_mm, ans.y_max, ans.x_max, mat[v], filter[v][block_z] );
+
+            const int yy = y_start + threadIdx.y;
+            const int xx = x_start + threadIdx.x;
+            
+            if( yy < ans.y_max && xx < ans.x_max ){
+                store_method::__store<st_m>( ans[block_z][yy][xx] , sum+bias );
+            }
+        }
+        
+        template<int st_m,int y_size>
+        inline void conv2_r_valid_opt_A( GTensor3D &ans,
+                                         const GTensor3D &mat,
+                                         const GTensor4D &filter,
+                                         const GTensor1D &h_bias ){
+            const int x_bits = MEM_UNIT_BITS; 
+            const int x_size = 1 << x_bits;
+            const int y_max  = ( ans.y_max + y_size - 1 )/y_size;
+            const int x_max  = ( ans.x_max + x_size - 1 )/x_size;
+            
+            dim3 dimBlock( x_size, y_size );
+            dim3 dimGrid ( y_max*x_max , ans.z_max );
+
+            __conv2_r_valid_opt_A_kernel<st_m,y_size,x_bits> <<<dimGrid,dimBlock>>>
+                ( x_max, __GT(ans), __GT(mat), __GT(filter), __GT(h_bias) ); 
+        }
+                
+        template<int st_m>
+        inline void conv2_r_valid( GTensor3D &ans,
+                                   const GTensor3D &mat,
+                                   const GTensor4D &filter,
+                                   const GTensor1D &h_bias ){
+            if( filter.x_max < MEM_UNIT ){ 
+                switch( filter.y_max ){
+                case 10: conv2_r_valid_opt_A<st_m,10>( ans, mat, filter, h_bias ); break;
+                default: conv2_r_valid_orign<st_m>( ans, mat, filter, h_bias );    break;
+                }
+            }else{
+                error("too large answer size");
+            }
+        }
+    };
+
+    namespace cuda_tensor{
+    };
+};
+
 #endif

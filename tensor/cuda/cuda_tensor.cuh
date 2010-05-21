@@ -356,8 +356,9 @@ namespace apex_tensor{
         namespace store_method{
             const int SAVE = 0;
             const int ADD  = 1;
-            const int SUB  = 2;
-            const int MUL  = 3;
+            const int SUB  = 3;
+            const int MUL  = 5;
+            
             template<int st_method>
             __device__ void __store( float &dst, float src );
 
