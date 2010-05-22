@@ -295,7 +295,7 @@ void test_sample_maxpooling_2D( int num_iter, int num_sample ){
     tensor::alloc_space( tc_hc );
     tensor::alloc_space( tc_h );
     tensor::alloc_space( tc_hp_g );
-    printf("start test norm_maxpooling_2D\n");
+    printf("start test sample_maxpooling_2D\n");
     
 	TestStats<CTensor3D> statsA( "maxpooling_prob","sample_maxpooling_2D_CPU");
 	TestStats<CTensor3D> statsB( "maxpooling_prob","sample_maxpooling_2D_GPU");

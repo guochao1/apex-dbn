@@ -10,13 +10,13 @@ namespace apex_tensor{
         /*----------the following are sum kernels that calculate sum of the data-------*/
         template<int st_m,int mapm_A, int mapm_B>
         __global__ void __tensor_sum_2D_kernel( float *v_reduce_A , float *v_reduce_B, const __GT3D src ){
-            __shared__ float s_mmx[16][16];
+            __shared__ float s_mmx[Y_UNIT][MEM_UNIT];
             const __GT2D ss = src[ blockIdx.x ];
             
             float sumA = 0.0f, sumB = 0.0f;
 
-            for( int yy = 0 ; yy < ss.y_max ; yy += 16 )
-                for( int xx = 0 ; xx < ss.x_max ; xx += 16 ){
+            for( int yy = 0 ; yy < ss.y_max ; yy += Y_UNIT )
+                for( int xx = 0 ; xx < ss.x_max ; xx += MEM_UNIT ){
                     const int y_idx = yy + threadIdx.y; 
                     const int x_idx = xx + threadIdx.x; 
 
@@ -30,7 +30,7 @@ namespace apex_tensor{
             s_mmx[ threadIdx.y ][ threadIdx.x ] = sumA;
             __syncthreads();
             
-            cuda_reduce::reduce_2D<cuda_reduce::SUM,4,4>( s_mmx );
+            cuda_reduce::reduce_2D<cuda_reduce::SUM,Y_UNIT_BITS,MEM_UNIT_BITS>( s_mmx );
             // we only depend on thread 0 0, no need to sync
 
             if( threadIdx.y == 0 && threadIdx.x == 0 ){
@@ -40,7 +40,7 @@ namespace apex_tensor{
             s_mmx[ threadIdx.y ][ threadIdx.x ] = sumB;
             __syncthreads();
             
-            cuda_reduce::reduce_2D<cuda_reduce::SUM,4,4>( s_mmx );
+            cuda_reduce::reduce_2D<cuda_reduce::SUM,Y_UNIT_BITS,MEM_UNIT_BITS>( s_mmx );
             if( threadIdx.y == 0 && threadIdx.x == 0 ){
                 store_method::__store<st_m>( v_reduce_B[ blockIdx.x ], s_mmx[0][0] ); 
             }
@@ -48,7 +48,7 @@ namespace apex_tensor{
                
         template<int st_m,int mapm_A, int mapm_B>
         inline void tensor_sum_2D( GTensor1D &ra, GTensor1D &rb, const GTensor3D &src ){
-            dim3 dimBlock( 16, 16 );
+            dim3 dimBlock( MEM_UNIT, Y_UNIT );
             dim3 dimGrid ( src.z_max, 1 );
             __tensor_sum_2D_kernel<st_m,mapm_A,mapm_B> <<<dimGrid,dimBlock,0,cuda_async::get_stream(ra,rb,src)>>>
                 ( ra.elem, rb.elem, __GT(src) );
@@ -59,10 +59,10 @@ namespace apex_tensor{
     namespace cuda_tensor{
         // produce sum of matrix, store sum at s_mmx[0][0]
         template<int mapm>
-        inline __device__ void __tensor_sum_2D_procedure( float s_mmx[16][16], const __GT2D ss ){
+        inline __device__ void __tensor_sum_2D_procedure( float s_mmx[Y_UNIT][MEM_UNIT], const __GT2D ss ){
             float sum = 0.0f;
-            for( int yy = 0; yy < ss.y_max; yy += 16 )
-                for( int xx = 0; xx < ss.x_max; xx += 16 ){
+            for( int yy = 0; yy < ss.y_max; yy += Y_UNIT )
+                for( int xx = 0; xx < ss.x_max; xx += MEM_UNIT ){
                     const int y_idx = yy + threadIdx.y; 
                     const int x_idx = xx + threadIdx.x; 
                     
@@ -72,13 +72,13 @@ namespace apex_tensor{
                 }
             s_mmx[ threadIdx.y ][ threadIdx.x ] = sum;
             __syncthreads();            
-            cuda_reduce::reduce_2D<cuda_reduce::SUM,4,4>( s_mmx );
+            cuda_reduce::reduce_2D<cuda_reduce::SUM,Y_UNIT_BITS,MEM_UNIT_BITS>( s_mmx );
         }
         
     
         template<int st_m, int map_m>
         __global__ void __tensor_sum_2D_kernel( float *v_reduce, const __GT3D src ){
-            __shared__ float s_mmx[16][16];
+            __shared__ float s_mmx[Y_UNIT][MEM_UNIT];
             
             __tensor_sum_2D_procedure<map_m>( s_mmx, src[ blockIdx.x ] );
             // we only depend on thread 0 0
@@ -89,14 +89,14 @@ namespace apex_tensor{
         
         template<int st_m, int map_m>
         inline void tensor_sum_2D( GTensor1D &r , const GTensor3D &src ){
-            dim3 dimBlock( 16 , 16 );
+            dim3 dimBlock( MEM_UNIT , Y_UNIT );
             dim3 dimGrid ( src.z_max ,1 );
             __tensor_sum_2D_kernel<st_m,map_m><<<dimGrid,dimBlock,0,cuda_async::get_stream(r,src)>>>( r.elem, __GT(src) );
         }
 
         template<int st_m, int map_m>
         __global__ void __tensor_sum_2D_kernel( __GT2D dst , const __GT4D src ){
-            __shared__ float s_mmx[16][16];
+            __shared__ float s_mmx[Y_UNIT][MEM_UNIT];
             
             __tensor_sum_2D_procedure<map_m>( s_mmx, src[ blockIdx.y ][ blockIdx.x ] );
             // we only depend on thread 0 0
@@ -107,7 +107,7 @@ namespace apex_tensor{
         
         template<int st_m, int map_m>
         inline void tensor_sum_2D( GTensor2D &r , const GTensor4D &src ){
-            dim3 dimBlock( 16, 16 );
+            dim3 dimBlock( MEM_UNIT, Y_UNIT );
             dim3 dimGrid ( src.z_max, src.h_max );
             __tensor_sum_2D_kernel<st_m,map_m><<<dimGrid,dimBlock,0,cuda_async::get_stream(r,src)>>>( __GT(r), __GT(src) );
         }
@@ -117,14 +117,14 @@ namespace apex_tensor{
     namespace cuda_tensor{
         /* 
            pool src to dst,optimized for pool_size = 2^pool_bits, write the result to sum
-           with block shape < 16 , 16 >
+           with block shape < Y_UNIT , MEM_UNIT >
         */
         template<int pool_bits>
         inline __device__ void __pool_procedure_1616( float &sum,
-                                               int block_y,
-                                               int block_x,    
-                                               float s_mm[16][17],
-                                               const __GT2D src  ){
+                                                      int block_y,
+                                                      int block_x,    
+                                                      float s_mm[16][17],
+                                                      const __GT2D src  ){
             // load from src 
             for( int y = 0 ; y < (1<<pool_bits) ; y ++ )
                 for( int x = 0 ; x < (1<<pool_bits) ; x ++ ){                
@@ -202,10 +202,10 @@ namespace apex_tensor{
         */
         template<int pool_size>
         inline __device__ void __pool_procedure_ord( float &sum,
-                                              int block_y,
-                                              int block_x,    
-                                              float s_mm[pool_size][pool_size*16],
-                                              const __GT2D src  ){
+                                                     int block_y,
+                                                     int block_x,    
+                                                     float s_mm[pool_size][pool_size*16],
+                                                     const __GT2D src  ){
             for( int y = 0 ; y < pool_size ; y ++ )
                 for( int x = 0 ; x < pool_size; x ++ ){                
                     int y_idx = block_y * pool_size*pool_size    + y*pool_size    + threadIdx.y; 
@@ -559,21 +559,21 @@ namespace apex_tensor{
 
         /* 
            normalize the data by maxpooling with pool_size
-           with block shape < pool_size , 16*pool_size >
+           with block shape < pool_size , MEM_UNIT*pool_size >
         */
         template<int st_m,int pool_size>
         inline __device__ void __norm_maxpooling_procedure_ord( int block_y,
                                                                 int block_x,    
-                                                                float s_mm[pool_size][pool_size*16],
+                                                                float s_mm[pool_size][pool_size*MEM_UNIT],
                                                                 __GT2D dst,
                                                                 const __GT2D energy ){
             // load from src 
             for( int y = 0 ; y < pool_size ; y ++ )
                 for( int x = 0 ; x < pool_size ; x ++ ){                                
                     int y_idx = block_y * pool_size*pool_size    + y*pool_size    + threadIdx.y;
-                    int x_idx = block_x * pool_size*pool_size*16 + x*pool_size*16 + threadIdx.x;                    
+                    int x_idx = block_x * pool_size*pool_size*MEM_UNIT + x*pool_size*MEM_UNIT + threadIdx.x;                    
                     bool is_valid   = y_idx < energy.y_max && x_idx < energy.x_max;
-                    bool is_inrange = ( y==threadIdx.y && x == (threadIdx.x>>4) );
+                    bool is_inrange = ( y==threadIdx.y && x == (threadIdx.x>>MEM_UNIT_BITS) );
                     
                     // we don't need to sync here since each thread always use the same position                     
                     if( is_valid ){
@@ -586,8 +586,8 @@ namespace apex_tensor{
                     float nm;
                     // if the thread is in this range 
                     if( is_inrange ){
-                        nm = __norm_maxpooling_step1<pool_size,pool_size,pool_size*16>
-                            ( 0, (threadIdx.x&15)*pool_size, s_mm );                                                 
+                        nm = __norm_maxpooling_step1<pool_size,pool_size,pool_size*MEM_UNIT>
+                            ( 0, (threadIdx.x&MEM_UNIT_MASK)*pool_size, s_mm );                                                 
                     }
                     __syncthreads();
 
@@ -597,8 +597,8 @@ namespace apex_tensor{
                     __syncthreads();
                     
                     if( is_inrange ){
-                        __norm_maxpooling_step2<pool_size,pool_size,pool_size*16>
-                            ( 0, (threadIdx.x&15)*pool_size, s_mm, nm );                                                 
+                        __norm_maxpooling_step2<pool_size,pool_size,pool_size*MEM_UNIT>
+                            ( 0, (threadIdx.x&MEM_UNIT_MASK)*pool_size, s_mm, nm );                                                 
                     }
                     __syncthreads();
                     
@@ -617,7 +617,7 @@ namespace apex_tensor{
             const int block_y = blockIdx.x / grid_width;
             const int block_x = blockIdx.x % grid_width;
             
-            __shared__ float s_mm[ pool_size ][ pool_size*16 ];
+            __shared__ float s_mm[ pool_size ][ pool_size*MEM_UNIT ];
             
             __norm_maxpooling_procedure_ord<st_m,pool_size>
                 (  block_y, block_x, s_mm, dst[block_z], energy[block_z] );
@@ -625,12 +625,12 @@ namespace apex_tensor{
         
         template<int st_m, int pool_size>
         inline void __norm_maxpooling_ord( GTensor3D &dst, const GTensor3D &energy ){                    
-            dim3 dimBlock( pool_size*16, pool_size );       
+            dim3 dimBlock( pool_size*MEM_UNIT, pool_size );       
             const int d_y_max = (energy.y_max + pool_size-1) / pool_size;  
             const int d_x_max = (energy.x_max + pool_size-1) / pool_size;
 
             int  grid_height= (d_y_max+ pool_size-1)    / pool_size;        
-            int  grid_width = (d_x_max+ pool_size*16-1) / (pool_size*16);
+            int  grid_width = (d_x_max+ pool_size*MEM_UNIT-1) / (pool_size*MEM_UNIT);
 
             dim3 dimGrid( grid_width*grid_height, energy.z_max );
             

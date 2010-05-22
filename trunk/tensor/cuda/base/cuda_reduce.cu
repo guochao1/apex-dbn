@@ -121,7 +121,7 @@ namespace cuda_reduce{
         __reduce_x_non_align< rm , x_size*y_size > ( buf[0] , threadIdx.y*x_size + threadIdx.x );
     }   
 
-    /* block reduction optimized for <16,16> thread block */
+    /* block reduction optimized for <16,16> thread block */    
     template<int rm, int block_bits>
     __device__ void __reduce_x_block_1616( float buf[ 16 ][ 17 ] ){
         // position in block 
@@ -148,7 +148,7 @@ namespace cuda_reduce{
             if( pos < 1 ) reduce_method::__reduce<rm>( buf[y_idx][x_idx] ,  buf[y_idx][x_idx + 1] );         
         }
     }
-
+    
     template<int rm,int block_bits>
     __device__ void __reduce_y_block_1616( float buf[16][17] ){
         // stride = 17 is used to avoid bank conflict

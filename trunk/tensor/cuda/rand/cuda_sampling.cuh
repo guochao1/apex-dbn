@@ -1,5 +1,7 @@
 #ifndef _CUDA_SAMPLING_CUH_
 #define _CUDA_SAMPLING_CUH_
+
+
 /* methods for sampling */
 namespace cuda_rand{
     /* 
@@ -53,8 +55,8 @@ namespace cuda_rand{
     }
     
     
-    template<int pool_bits>
-    inline __device__ void sample_maxpooling( int y_start, int x_start, float s_mm[16][16], float rnd01 ){
+    template<int pool_bits,int mem_size>
+    inline __device__ void sample_maxpooling( int y_start, int x_start, float s_mm[][mem_size], float rnd01 ){
         float sum = 0.0f;
         bool  hit = false;
         for( int y = y_start ; y < y_start + (1<<pool_bits) ; y ++ )
@@ -68,8 +70,8 @@ namespace cuda_rand{
             }
     }
 
-    template<int pool_size>
-    inline __device__ void sample_maxpooling_ord( int y_start, int x_start, float s_mm[pool_size][pool_size*16], float rnd01 ){
+    template<int pool_size, int mem_size>
+    inline __device__ void sample_maxpooling_ord( int y_start, int x_start, float s_mm[pool_size][pool_size*mem_size], float rnd01 ){
         float sum = 0.0f;
         bool  hit = false;
         for( int y = y_start ; y < y_start + pool_size ; y ++ )
