@@ -5,15 +5,15 @@ namespace cuda_reduce{
     namespace reduce_method{
         // reduce 
         template<int rm>
-        __device__ void __reduce( float &dst, float src );
+        __device__ void __reduce( volatile float &dst, volatile float src );
 
         template<>
-        __device__ void __reduce<SUM>( float &dst, float src ){
+        __device__ void __reduce<SUM>( volatile float &dst, volatile float src ){
             dst += src;
         } 
         
         template<>
-        __device__ void __reduce<MAX>( float &dst, float src ){
+        __device__ void __reduce<MAX>( volatile float &dst, volatile float src ){
             dst = max( dst, src );
         } 
 
@@ -25,7 +25,11 @@ namespace cuda_reduce{
        x_bits corresponds to bits each block
     */
     template<int rm,int x_bits>
-    __device__ void __reduce_x( float buf[],int tid ){
+    __device__ void __reduce_x( volatile float buf[],int tid ){
+        if( x_bits >= 10 ){
+            if( tid < 512 ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 512] );
+            __syncthreads(); 
+        }
         if( x_bits >= 9 ){
             if( tid < 256 ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 256] );
             __syncthreads(); 
@@ -38,8 +42,8 @@ namespace cuda_reduce{
             if( tid < 64  ) reduce_method::__reduce<rm>( buf[tid] , buf[tid + 64 ] );
             __syncthreads(); 
         }
-       
-#if 0
+
+#ifndef __DEVICE_EMULATION__
         /* 
            code for in warp optimization 
            option closed due to error caused in CUDA 3.0 maybe volatile is needed
