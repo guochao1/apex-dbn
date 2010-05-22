@@ -293,9 +293,9 @@ namespace apex_rbm{
         }
         
         inline void save_to_text( FILE *fo ) const{
-            fprintf( fo, "%d layers\n\n", layers.size());
+            fprintf( fo, "%d layers\n\n", (int)layers.size());
             for( size_t i = 0 ; i < layers.size() ; i ++ ){
-                fprintf( fo,"layer[%d]:\n", i );
+                fprintf( fo,"layer[%d]:\n", (int)i );
                 layers[i].save_to_text( fo );
             }
         }
