@@ -15,6 +15,9 @@
 // option to open asynchronize stream support 
 #define __APEX_TENSOR_GPU_USE_ASYNC__
 
+// use optimized convolution method for special masks
+#define  __CUDA_CONV2_USE_OPT__ 1
+
 // use kahan sum in GPU convolution
 //#define __CUDA_CONV2_USE_KAHAN_SUM__
 
