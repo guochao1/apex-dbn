@@ -8,7 +8,12 @@
  */
 namespace apex_tensor{    
     /* load unit for memory access */
+#if __CUDA_ARCH__>=200
+    const int MEM_UNIT_BITS = 5;
+#else
     const int MEM_UNIT_BITS = 4;
+#endif
+
     const int MEM_UNIT      = 1 << MEM_UNIT_BITS;
     const int MEM_UNIT_MASK = MEM_UNIT - 1; 
 
