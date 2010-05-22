@@ -600,7 +600,7 @@ namespace apex_tensor{
                         __conv2::__load_line_shared<x_size,x_size,true,false> 
                             ( s_ft[threadIdx.y], filter[y_start+threadIdx.y], x_start );
                     }else{
-                        __conv2::__fill_zero<x_size,x_size>( s_ft[ threadIdx.y] );
+                        __conv2::__fill_zero<x_size,x_size>( s_ft[ threadIdx.y ] );
                     }
                     if( y_start+threadIdx.y < mat.y_max ){
                         __conv2::__load_line_shared<x_size,x_size<<1,true,false> 
@@ -639,6 +639,89 @@ namespace apex_tensor{
             if( threadIdx.x < ans.x_max ){
                 store_method::__store<st_m>( ans[threadIdx.y][threadIdx.x], sum );
             }
+        } 
+                   
+        // optimized using rolling array to cache data which reduces memory access 
+        template<int st_m,int y_size,int x_bits>
+        inline __device__ void __conv2_r_big_filter_optB( float s_ft [y_size][(1<<x_bits)],
+                                                          float s_mm [(y_size<<1)-1][1<<(x_bits+1)],
+                                                          float s_rst[y_size][1<<x_bits],
+                                                          __GT2D ans,
+                                                          const __GT2D mat,
+                                                          const __GT2D filter ){
+            float sum = 0.0f;
+            const int x_size = 1<<x_bits;
+            const int x_mask = (1<<(x_bits+1)) - 1;
+
+            for( int y_start = 0; y_start < filter.y_max; y_start += y_size ){
+                // load first part of data 
+                if( y_start+threadIdx.y < mat.y_max ){
+                    __conv2::__load_line_shared<x_size,x_size,true,false> 
+                        ( s_mm[threadIdx.y], mat[y_start+threadIdx.y], 0 );                        
+                }else{
+                    __conv2::__fill_zero<x_size,x_size >( s_mm[ threadIdx.y] );
+                }
+                if( threadIdx.y != y_size-1 ){
+                    if( y_start+threadIdx.y+y_size < mat.y_max ){
+                        __conv2::__load_line_shared<x_size,x_size,true,false> 
+                            ( s_mm[threadIdx.y+y_size], mat[y_start+threadIdx.y+y_size], 0 );                        
+                    }else{
+                        __conv2::__fill_zero<x_size,x_size >( s_mm[ threadIdx.y + y_size ] );
+                    }                   
+                }
+
+                for( int x_start = 0; x_start < filter.x_max; x_start += x_size ){
+                    // load filter data 
+                    if( y_start+threadIdx.y < filter.y_max ){
+                        __conv2::__load_line_shared<x_size,x_size,true,false> 
+                            ( s_ft[threadIdx.y], filter[y_start+threadIdx.y], x_start );
+                    }else{
+                        __conv2::__fill_zero<x_size,x_size>( s_ft[ threadIdx.y ] );
+                    }
+                    // use rolling array
+                    if( y_start+threadIdx.y < mat.y_max ){
+                        __conv2::__load_line_shared<x_size,x_size,true,false> 
+                            ( s_mm[threadIdx.y] + ((1-((x_start>>x_bits)&1)) << x_bits), 
+                              mat[y_start+threadIdx.y], x_start + x_size );                        
+                    }else{
+                        __conv2::__fill_zero<x_size,x_size >( s_mm[ threadIdx.y ] + 
+                                                              ((1-((x_start>>x_bits)&1)) << x_bits) );
+                    }
+
+                    if( threadIdx.y != y_size-1 ){
+                        if( y_start+threadIdx.y+y_size < mat.y_max ){
+                            __conv2::__load_line_shared<x_size,x_size,true,false> 
+                                ( s_mm[threadIdx.y+y_size] + ((1-((x_start>>x_bits)&1)) << x_bits) , 
+                                  mat[y_start+threadIdx.y+y_size], x_start + x_size );                        
+                        }else{
+                            __conv2::__fill_zero<x_size,x_size>( s_mm[ threadIdx.y + y_size ]+
+                                                                     ((1-((x_start>>x_bits)&1)) << x_bits) );
+                        }                   
+                    }
+                    __syncthreads();
+
+                    // calculate multiplication
+                    for( int x = 0; x < ans.x_max; x++ ){
+                        float ss = 0.0f;
+                        for( int y = 0; y < y_size; y ++ ){
+                            // s_ft: no bank conflict, s_mm no bank conflict
+                            ss += s_mm[ threadIdx.y+y ][ (threadIdx.x + x + (((x_start>>x_bits)&1)<<x_bits)) & x_mask  ] * s_ft[ y ][ threadIdx.x ];
+                        }                                  
+                        s_rst[ threadIdx.y ][ threadIdx.x ] = ss;
+
+                        // reduce sum 
+                        __syncthreads();
+                        cuda_reduce::reduce_1D<cuda_reduce::SUM,x_bits>( s_rst[threadIdx.y] );
+                        __syncthreads();
+                        if( threadIdx.x == x ){
+                            sum += s_rst[ threadIdx.y ][ 0 ];
+                        }               
+                    }
+                }
+            }
+            if( threadIdx.x < ans.x_max ){
+                store_method::__store<st_m>( ans[threadIdx.y][threadIdx.x], sum );
+            }
         }                    
         
         template<int st_m,int y_size,int x_bits>
@@ -649,7 +732,7 @@ namespace apex_tensor{
             __shared__ float s_mm [(y_size<<1)-1][1<<(x_bits+1)];
             __shared__ float s_rst[y_size][1<<x_bits];
             
-            __conv2_r_big_filter_optA<st_m,y_size,x_bits>
+            __conv2_r_big_filter_optB<st_m,y_size,x_bits>
                 ( s_ft, s_mm, s_rst, ans[ blockIdx.y ][ blockIdx.x ], mat[ blockIdx.y ], filter[blockIdx.x] );  
         }
         
