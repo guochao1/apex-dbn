@@ -3,13 +3,18 @@ ifeq ($(cpu), 1)
 else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
 endif
+ifeq ($(showptx),1)
+	SHOW_PTX:=--ptxas-options=-v
+else
+	SHOW_PTX:=
+endif
 
 BIN= test_cmp
 OPT= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR=../..
 TENSOR_DIR=$(PRJ_DIR)/tensor
 NVCC    =nvcc
-OPTNVCC = -arch sm_20 -Xcompiler "$(OPT)" 
+OPTNVCC = -arch sm_20 -Xcompiler "$(OPT)" $(SHOW_PTX)
 
 all: $(BIN)
 

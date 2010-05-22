@@ -2,6 +2,7 @@
 #define _CUDA_TENSOR_CONV2_CU_
 
 #include "cuda_tensor.cuh"
+#include "base/cuda_reduce.cuh"
 
 namespace apex_tensor{
 
@@ -424,9 +425,9 @@ namespace apex_tensor{
         }
 
         template<int st_m>
-        inline void conv2_r_big_filter( GTensor4D &ans,
-                                        const GTensor3D &mat,
-                                        const GTensor3D &filter ){
+        inline void conv2_r_big_filter_origin( GTensor4D &ans,
+                                               const GTensor3D &mat,
+                                               const GTensor3D &filter ){
             if( ans.y_max <= Y_UNIT && ans.x_max <= MEM_UNIT ){
                 dim3 dimBlock( MEM_UNIT,Y_UNIT, 1 );
                 dim3 dimGrid ( ans.z_max, ans.h_max, 1  );
@@ -446,8 +447,8 @@ namespace apex_tensor{
         namespace __conv2{
             template< int x_size, int amount,bool pad, bool chk_lower>
             inline __device__ void __load_line_shared( float m_shared[amount],
-                                                     const __GT1D m_global,
-                                                     int x_start ){
+                                                       const __GT1D m_global,
+                                                       int x_start ){
                 for( int x = 0 ; x < amount ; x += x_size ){
                     const int xx = x       + threadIdx.x;
                     const int cx = x_start + xx;
@@ -457,6 +458,12 @@ namespace apex_tensor{
                         if( pad ) m_shared[ xx ] = 0.0f;
                     }
                 }                
+            }
+            template< int x_size, int amount>
+            inline __device__ void __fill_zero( float m_shared[amount] ){
+                for( int x = 0 ; x < amount ; x += x_size ){
+                    m_shared[ x+ threadIdx.x ] = 0.0f;
+                }
             }
         };
     };
@@ -474,7 +481,6 @@ namespace apex_tensor{
             const int x_size = 1 << x_bits;
             const int yy = y_start + threadIdx.y;
             const int xx = x_start + threadIdx.x;
-
             __conv2::__load_line_shared<x_size,x_size,false,false> 
                 ( s_ft[threadIdx.y], filter[threadIdx.y], 0 );
             
@@ -561,6 +567,7 @@ namespace apex_tensor{
             if( filter.x_max < MEM_UNIT ){ 
                 switch( filter.y_max ){
                 case 10: conv2_r_valid_opt_A<st_m,10>( ans, mat, filter, h_bias ); break;
+                case 12: conv2_r_valid_opt_A<st_m,12>( ans, mat, filter, h_bias ); break;
                 default: conv2_r_valid_orign<st_m>( ans, mat, filter, h_bias );    break;
                 }
             }else{
@@ -568,8 +575,107 @@ namespace apex_tensor{
             }
         }
     };
-
+    
+    /* conv2 r big filter */
     namespace cuda_tensor{
+        template<int st_m,int y_size,int x_bits>
+        inline __device__ void __conv2_r_big_filter_optA( float s_ft [y_size][(1<<x_bits)],
+                                                          float s_mm [(y_size<<1)-1][1<<(x_bits+1)],
+                                                          float s_rst[y_size][1<<x_bits],
+                                                          __GT2D ans,
+                                                          const __GT2D mat,
+                                                          const __GT2D filter ){
+            float sum = 0.0f;
+            const int x_size = 1<<x_bits;
+
+            for( int y_start = 0; y_start < filter.y_max; y_start += y_size )
+                for( int x_start = 0; x_start < filter.x_max; x_start += (1<<x_bits) ){
+                    // load filter data 
+                    if( y_start+threadIdx.y < filter.y_max ){
+                        __conv2::__load_line_shared<x_size,x_size,true,false> 
+                            ( s_ft[threadIdx.y], filter[y_start+threadIdx.y], x_start );
+                    }else{
+                        __conv2::__fill_zero<x_size,x_size>( s_ft[ threadIdx.y] );
+                    }
+                    if( y_start+threadIdx.y < mat.y_max ){
+                        __conv2::__load_line_shared<x_size,x_size<<1,true,false> 
+                            ( s_mm[threadIdx.y], mat[y_start+threadIdx.y], x_start );                        
+                    }else{
+                        __conv2::__fill_zero<x_size,x_size<<1 >( s_mm[ threadIdx.y] );
+                    }
+                    if( threadIdx.y != y_size-1 ){
+                        if( y_start+threadIdx.y+y_size < mat.y_max ){
+                            __conv2::__load_line_shared<x_size,x_size<<1,true,false> 
+                                ( s_mm[threadIdx.y+y_size], mat[y_start+threadIdx.y+y_size], x_start );                        
+                        }else{
+                            __conv2::__fill_zero<x_size,x_size<<1 >( s_mm[ threadIdx.y + y_size ] );
+                        }                   
+                    }
+                    __syncthreads();
+
+                    // calculate multiplication
+                    for( int x = 0; x < ans.x_max; x++ ){
+                        float ss = 0.0f;
+                        for( int y = 0; y < y_size; y ++ ){
+                            // s_ft: no bank conflict, s_mm no bank conflict
+                            ss += s_mm[ threadIdx.y+y ][ threadIdx.x+x ] * s_ft[ y ][ threadIdx.x ];
+                        }                                  
+                        s_rst[ threadIdx.y ][ threadIdx.x ] = ss;
+
+                        // reduce sum 
+                        __syncthreads();
+                        cuda_reduce::reduce_1D<cuda_reduce::SUM,x_bits>( s_rst[threadIdx.y] );
+                        __syncthreads();
+                        if( threadIdx.x == x ){
+                            sum += s_rst[ threadIdx.y ][ 0 ];
+                        }               
+                    }
+                }
+            if( threadIdx.x < ans.x_max ){
+                store_method::__store<st_m>( ans[threadIdx.y][threadIdx.x], sum );
+            }
+        }                    
+        
+        template<int st_m,int y_size,int x_bits>
+        __global__ void __conv2_r_big_filter_optA_kernel( __GT4D ans,
+                                                          const __GT3D mat,
+                                                          const __GT3D filter ){
+            __shared__ float s_ft [y_size][(1<<x_bits)];
+            __shared__ float s_mm [(y_size<<1)-1][1<<(x_bits+1)];
+            __shared__ float s_rst[y_size][1<<x_bits];
+            
+            __conv2_r_big_filter_optA<st_m,y_size,x_bits>
+                ( s_ft, s_mm, s_rst, ans[ blockIdx.y ][ blockIdx.x ], mat[ blockIdx.y ], filter[blockIdx.x] );  
+        }
+        
+
+        template<int st_m,int y_size>
+        inline void conv2_r_big_filter_optA( GTensor4D &ans,
+                                             const GTensor3D &mat,
+                                             const GTensor3D &filter ){
+            const int x_bits = MEM_UNIT_BITS;
+            const int x_size = 1 << x_bits;
+            dim3 dimBlock( x_size, y_size, 1 );
+            dim3 dimGrid ( ans.z_max, ans.h_max, 1  );
+                            
+            __conv2_r_big_filter_optA_kernel<st_m,y_size,x_bits><<<dimGrid,dimBlock,0,cuda_async::get_stream(ans,mat,filter)>>> 
+                ( __GT(ans), __GT(mat), __GT(filter) );            
+        }                        
+
+        template<int st_m>
+        inline void conv2_r_big_filter( GTensor4D &ans,
+                                        const GTensor3D &mat,
+                                        const GTensor3D &filter ){
+            if( ans.x_max < MEM_UNIT ){ 
+                switch( ans.y_max ){
+                case 10: conv2_r_big_filter_optA<st_m,10>( ans, mat, filter ); break;
+                case 12: conv2_r_big_filter_optA<st_m,12>( ans, mat, filter ); break;
+                default: conv2_r_big_filter_origin<st_m> ( ans, mat, filter ); break;
+                }
+            }else{
+                error("too large answer size");
+            }
+        }        
     };
 };
 

@@ -106,7 +106,7 @@ namespace cuda_reduce{
     __device__ void reduce_1D( float buf[1<<x_bits] ){
         __reduce_x< rm, x_bits >( buf , threadIdx.x );
     }    
-
+        
 
     template<int rm,int y_bits, int x_bits>
     __device__ void reduce_2D( float buf[1<<y_bits][1<<x_bits] ){
