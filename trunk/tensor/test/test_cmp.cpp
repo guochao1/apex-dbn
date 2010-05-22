@@ -33,9 +33,9 @@ int main( void ){
 
     //test_conv2_r_valid( NUM_ITER );
     
-        //test_conv2_full( NUM_ITER );
+    //test_conv2_full( NUM_ITER );
     //test_conv2_r_valid( NUM_ITER );
-    test_conv2_r_big_filter( NUM_ITER );
+        test_conv2_r_big_filter( NUM_ITER );
     //test_gaussian( NUM_ITER ); 
 	/*
 	test_sample_maxpooling_2D( NUM_ITER, NUM_SAMPLE );
