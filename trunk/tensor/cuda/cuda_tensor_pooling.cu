@@ -285,9 +285,9 @@ namespace apex_tensor{
         */
         template<int mapm_A, int mapm_B, int pool_bits, bool ceil_up>
         inline __device__ void __pool_sum_procedure_1616( float &sumA,         
-                                                   float &sumB,
-                                                   float s_mm[16][17],
-                                                   const __GT2D src  ){
+                                                          float &sumB,
+                                                          float s_mm[16][17],
+                                                          const __GT2D src  ){
             int d_y_max, d_x_max;
             if( ceil_up ){
                 d_y_max = (src.y_max + (1<<pool_bits)-1) >> pool_bits;
@@ -356,9 +356,9 @@ namespace apex_tensor{
 
         template<int mapm_A, int mapm_B, int pool_size, bool ceil_up>
         inline __device__ void __pool_sum_procedure_ord( float &sumA,         
-                                                  float &sumB,
-                                                  float s_mm[pool_size][pool_size*16],
-                                                  const __GT2D src  ){
+                                                         float &sumB,
+                                                         float s_mm[pool_size][pool_size*16],
+                                                         const __GT2D src  ){
             int d_y_max, d_x_max;
             if( ceil_up ){
                 d_y_max = (src.y_max + pool_size-1) / pool_size;
@@ -472,21 +472,21 @@ namespace apex_tensor{
 
         /* 
            normalize the data by maxpooling with pool_size = 2^pool_bits
-           with block shape < 16 , 16 >
+           with block shape < Y_UNIT , MEM_UNIT >
         */
         template<int st_m,int pool_bits>
-        inline __device__ void __norm_maxpooling_procedure_1616( int block_y,
-                                                                 int block_x,    
-                                                                 float s_mm[16][16],
-                                                                 __GT2D dst,
-                                                                 const __GT2D energy ){
+        inline __device__ void __norm_maxpooling_procedure_rec( int block_y,
+                                                                int block_x,    
+                                                                float s_mm[Y_UNIT][MEM_UNIT],
+                                                                __GT2D dst,
+                                                                const __GT2D energy ){
             // load from src 
             for( int y = 0 ; y < (1<<pool_bits) ; y ++ )
                 for( int x = 0 ; x < (1<<pool_bits) ; x ++ ){                                
-                    int y_idx = block_y * (16 << pool_bits) + (y<<4) + threadIdx.y;
-                    int x_idx = block_x * (16 << pool_bits) + (x<<4) + threadIdx.x;                    
+                    int y_idx = block_y * (Y_UNIT << pool_bits)   + (y<<Y_UNIT_BITS)   + threadIdx.y;
+                    int x_idx = block_x * (MEM_UNIT << pool_bits) + (x<<MEM_UNIT_BITS) + threadIdx.x;                    
                     bool is_valid   = y_idx < energy.y_max && x_idx < energy.x_max;
-                    bool is_inrange = (y == ((threadIdx.y<<pool_bits)>>4) && x == ((threadIdx.x<<pool_bits)>>4) );
+                    bool is_inrange = (y == ((threadIdx.y<<pool_bits)>>Y_UNIT_BITS) && x == ((threadIdx.x<<pool_bits)>>MEM_UNIT_BITS) );
                     
                     // we don't need to sync here since each thread always use the same position                     
                     if( is_valid ){
@@ -500,9 +500,9 @@ namespace apex_tensor{
                     // if the thread is in this range 
                     if( is_inrange ){
                         // no bank conflict in the same pool, since we only access bank in the same row 
-                        nm = __norm_maxpooling_step1<1<<pool_bits,16,16>( (threadIdx.y<<pool_bits) &15, 
-                                                                          (threadIdx.x<<pool_bits) &15,
-                                                                          s_mm );                                                 
+                        nm = __norm_maxpooling_step1<1<<pool_bits,Y_UNIT,MEM_UNIT>( (threadIdx.y<<pool_bits) &Y_UNIT_MASK, 
+                                                                                    (threadIdx.x<<pool_bits) &MEM_UNIT_MASK,
+                                                                                    s_mm );                                                 
                     }
                     __syncthreads();
 
@@ -513,9 +513,9 @@ namespace apex_tensor{
                     
                     if( is_inrange ){
                         // no bank conflict in the same pool, since we only access bank in the same row 
-                        __norm_maxpooling_step2<1<<pool_bits,16,16>( (threadIdx.y<<pool_bits) &15, 
-                                                                     (threadIdx.x<<pool_bits) &15,
-                                                                     s_mm, nm );                                                 
+                        __norm_maxpooling_step2<1<<pool_bits,Y_UNIT,MEM_UNIT>( (threadIdx.y<<pool_bits) &Y_UNIT_MASK, 
+                                                                               (threadIdx.x<<pool_bits) &MEM_UNIT_MASK,
+                                                                               s_mm, nm );                                                 
                     }
                     __syncthreads();
                     
@@ -529,32 +529,32 @@ namespace apex_tensor{
         
         /* pooling kernel, using 3DGrid */
         template<int st_m, int pool_bits>
-        __global__ void __norm_maxpooling_kernel_1616( int grid_width, 
+        __global__ void __norm_maxpooling_kernel_rec( int grid_width, 
                                                        __GT3D dst, 
-                                                       const __GT3D energy ){
+                                                      const __GT3D energy ){
             const int block_z = blockIdx.y;
             const int block_y = blockIdx.x / grid_width;
             const int block_x = blockIdx.x % grid_width;
             
-            __shared__ float s_mm[ 16 ][ 16 ];
+            __shared__ float s_mm[ Y_UNIT ][ MEM_UNIT ];
             
-            __norm_maxpooling_procedure_1616<st_m,pool_bits>
+            __norm_maxpooling_procedure_rec<st_m,pool_bits>
                 (  block_y, block_x, s_mm, dst[block_z], energy[block_z] );
         }
         
         /* pooling data up */
         template<int st_m, int pool_bits>
-        inline void __norm_maxpooling_1616( GTensor3D &dst, const GTensor3D &energy ){                    
-            dim3 dimBlock( 16 , 16 );       
+        inline void __norm_maxpooling_rec( GTensor3D &dst, const GTensor3D &energy ){                    
+            dim3 dimBlock( MEM_UNIT , Y_UNIT );       
             const int d_y_max = (energy.y_max + (1<<pool_bits)-1) >> pool_bits;  
             const int d_x_max = (energy.x_max + (1<<pool_bits)-1) >> pool_bits;
 
-            int  grid_height= (d_y_max+15) >> 4 ;        
-            int  grid_width = (d_x_max+15) >> 4;
+            int  grid_height= (d_y_max+Y_UNIT-1  ) >> Y_UNIT_BITS;        
+            int  grid_width = (d_x_max+MEM_UNIT-1) >> MEM_UNIT_BITS;
 
             dim3 dimGrid( grid_width*grid_height, energy.z_max );
             
-            __norm_maxpooling_kernel_1616<st_m,pool_bits><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(energy) );
+            __norm_maxpooling_kernel_rec<st_m,pool_bits><<<dimGrid,dimBlock>>>( grid_width, __GT(dst), __GT(energy) );
         }
 
         /* 
@@ -641,10 +641,10 @@ namespace apex_tensor{
         inline void norm_maxpooling( GTensor3D &dst, const GTensor3D &energy, int pool_size ){        
             switch( pool_size ){
             case 1: map_A<st_m,map_method_A::SIGMOID>( dst, energy ); break;
-            case 2: __norm_maxpooling_1616<st_m,1>( dst, energy );    break;
+            case 2: __norm_maxpooling_rec<st_m,1>( dst, energy );     break;
             case 3: __norm_maxpooling_ord <st_m,3>( dst, energy );    break;
-            case 4: __norm_maxpooling_1616<st_m,2>( dst, energy );    break;
-            case 8: __norm_maxpooling_1616<st_m,3>( dst, energy );    break;
+            case 4: __norm_maxpooling_rec<st_m,2>( dst, energy );     break;
+            case 8: __norm_maxpooling_rec<st_m,3>( dst, energy );     break;
             default: error("pooling size not supported");
             }
         }        
