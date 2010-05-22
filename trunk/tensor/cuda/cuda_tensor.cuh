@@ -341,7 +341,7 @@ namespace apex_tensor{
     };
 
     namespace cuda_tensor{
-        const int ALIGN_BITS       = 4;
+        const int ALIGN_BITS       = MEM_UNIT_BITS;
         const int ALIGN_WIDTH      = 1 << ALIGN_BITS;
         const int BASE_THREAD_BITS = 8;
         const int BASE_THREAD_NUM  = 1 << BASE_THREAD_BITS;
