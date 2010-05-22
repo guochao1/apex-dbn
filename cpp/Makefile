@@ -19,7 +19,7 @@ ifeq ($(cpu), 1)
 	TENSOR_LIB:=apex_tensor_cpu.o	
 else
 	NVCC :=nvcc
-	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)"
+	OPTNVCC := -arch sm_20 -Xcompiler "$(OPT)"
 	TENSOR_LIB:=apex_tensor_cpu.o apex_tensor_gpu.o			
 endif
 
@@ -80,4 +80,4 @@ crbm_model_modify: crbm_model_modify.cpp apex_tensor_cpu.o
 	g++ $(OPT) -o crbm_model_modify crbm_model_modify.cpp apex_tensor_cpu.o
 
 kyoto_data_viewer: kyoto_data_viewer.cpp apex_tensor_cpu.o  
-	g++ $(OPT) -lpthread -lX11  -o kyoto_data_viewer kyoto_data_viewer.cpp apex_tensor_cpu.o
+	g++ $(OPT) -lpthread -lX11 -I/usr/X11R6/include -o kyoto_data_viewer kyoto_data_viewer.cpp apex_tensor_cpu.o

@@ -124,7 +124,7 @@ namespace apex_utils{
             fclose( fi );
         
             if( silent == 0 )
-                printf("Kyoto Dataset, %d images loaded,", v_data.size() ); 
+                printf("Kyoto Dataset, %d images loaded,", (int)v_data.size() ); 
                        
             gen_random_extract( v_data ); 
             
