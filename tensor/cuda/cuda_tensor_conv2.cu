@@ -566,8 +566,10 @@ namespace apex_tensor{
                                    const GTensor1D &h_bias ){
             if( filter.x_max < MEM_UNIT ){ 
                 switch( filter.y_max ){
+#if __CUDA_CONV2_USE_OPT__
                 case 10: conv2_r_valid_opt_A<st_m,10>( ans, mat, filter, h_bias ); break;
                 case 12: conv2_r_valid_opt_A<st_m,12>( ans, mat, filter, h_bias ); break;
+#endif
                 default: conv2_r_valid_orign<st_m>( ans, mat, filter, h_bias );    break;
                 }
             }else{
@@ -668,8 +670,10 @@ namespace apex_tensor{
                                         const GTensor3D &filter ){
             if( ans.x_max < MEM_UNIT ){ 
                 switch( ans.y_max ){
+#if __CUDA_CONV2_USE_OPT__
                 case 10: conv2_r_big_filter_optA<st_m,10>( ans, mat, filter ); break;
                 case 12: conv2_r_big_filter_optA<st_m,12>( ans, mat, filter ); break;
+#endif
                 default: conv2_r_big_filter_origin<st_m> ( ans, mat, filter ); break;
                 }
             }else{
