@@ -215,7 +215,8 @@ namespace apex_rbm{
  
     
     // simple implementation of srbm
-    class CRBMSimple:public ICRBM{
+    template<typename InputType,typename InputTypeSub>
+    class CRBMSimple: public ICRBM<InputType>{
     private:
         int  cd_step, h_size, v_size, vv_size;
         CRBMTrainParam param;
@@ -482,24 +483,26 @@ namespace apex_rbm{
             }
         }
         
-        inline void setup_input( const apex_tensor::CTensor3D &data ){
+        inline void setup_input( const InputTypeSub &data ){
             tensor::crbm::copy_fit( layers[0].v_state , data );
             for( size_t i = 1 ; i < layers.size() ; i ++ ){
                 layers[i-1].feed_forward( layers[i].v_state );
             }  
         }
+
     public:
-        virtual void train_update( const apex_tensor::CTensor3D &data ){
+        virtual void train_update( const InputTypeSub &data ){
             setup_input( data );
             train_update();
         }
-        virtual void train_update_trunk( const apex_tensor::CTensor4D &data ){
+
+        virtual void train_update_trunk( const InputType &data ){
             for( int i = 0 ; i < data.h_max ; i ++ )
                 train_update( data[i] );
         }
         
         // do validation, return the statistics
-        virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor4D &data ){
+        virtual void validate_stats( CRBMModelStats &stats, const InputType &data ){
             TTensor4D grad_W;
             TTensor1D pos_grad_h, neg_grad_h, pos_grad_v, neg_grad_v, loss, grad_sparse;
             grad_W     = clone( stats.grad_W );
@@ -584,8 +587,13 @@ namespace apex_rbm{
 
     namespace factory{
         // create a stacked rbm
-        ICRBM *create_crbm( const CDBNModel &model, const CRBMTrainParam &param ){
-            return  new CRBMSimple( model, param );
+        template<>
+        ICRBM<apex_tensor::CTensor4D> *create_crbm( const CDBNModel &model, const CRBMTrainParam &param ){
+            return  new CRBMSimple<apex_tensor::CTensor4D,apex_tensor::CTensor3D>( model, param );
+        }
+        template<>
+        ICRBM<apex_tensor::GTensor4D> *create_crbm( const CDBNModel &model, const CRBMTrainParam &param ){
+            return  new CRBMSimple<apex_tensor::GTensor4D,apex_tensor::GTensor3D>( model, param );
         }
     };
 };

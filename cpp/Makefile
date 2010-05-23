@@ -6,7 +6,7 @@ else
 endif
 
 INSTALL_DIR := ../../bin
-BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 
+BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_kyoto_gpubuf
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -21,7 +21,7 @@ ifeq ($(cpu), 1)
 	TENSOR_LIB:=apex_tensor_cpu.o	
 else
 	NVCC :=nvcc
-	OPTNVCC := -arch sm_20 -Xcompiler "$(OPT)"
+	OPTNVCC := -arch sm_10 -Xcompiler "$(OPT)"
 	TENSOR_LIB:=apex_tensor_cpu.o apex_tensor_gpu.o			
 endif
 
@@ -67,6 +67,9 @@ crbm_minist: crbm_minist.cpp apex_crbm.o $(TENSOR_LIB)
 
 crbm_kyoto: crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB)  
 	$(NVCC) $(OPTNVCC) -o crbm_kyoto crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB) 
+
+crbm_kyoto_gpubuf: crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB)  
+	$(NVCC) $(OPTNVCC) -o crbm_kyoto_gpubuf crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB) 
 
 srbm_model_drawer: srbm_model_drawer.cpp apex_tensor_cpu.o  
 	$(CC) $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o

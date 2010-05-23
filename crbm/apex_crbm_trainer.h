@@ -11,7 +11,8 @@
 #include "../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
-	class CRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor4D> {
+    template<typename InputType>
+	class CRBMTrainer : public apex_utils::ITensorUpdater<InputType> {
     private:
         // model parameter
         /* parameter for new layer */
@@ -19,7 +20,7 @@ namespace apex_rbm{
         CRBMTrainParam param_train;
         /* model of SDBN */
 		CDBNModel  model;
-        ICRBM     *crbm;        
+        ICRBM<InputType>     *crbm;        
     private:
         // name of config file 
         char name_config[ 256 ];
@@ -112,22 +113,19 @@ namespace apex_rbm{
             if( task == 0 ){
                 model.add_layer( param_new_layer );
             }
-            crbm = factory::create_crbm( model, param_train );
+            crbm = factory::create_crbm<InputType>( model, param_train );
             crbm->set_cd_step( cd_step );
             // saved for further usage
             fo_summary_log = apex_utils::fopen_check( name_summary_log , "w" );
             fo_detail_log  = apex_utils::fopen_check( name_detail_log  , "w" );
         }      
         
-        virtual void train_update( const apex_tensor::CTensor3D &data ){
-            crbm->train_update( data );
-        }
 
-        virtual void train_update_trunk( const apex_tensor::CTensor4D &data ){
+        virtual void train_update_trunk( const InputType &data ){
             crbm->train_update_trunk( data );
         }
 
-        virtual void validate_trunk    ( const apex_tensor::CTensor4D &data ){
+        virtual void validate_trunk    ( const InputType &data ){
             CRBMModelParam &param = model.layers.back().param;            
 			CRBMModelStats stats( param.v_max, param.h_max, param.y_max, param.x_max );
             crbm->validate_stats( stats, data );

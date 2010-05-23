@@ -16,6 +16,7 @@ namespace apex_utils{
     inline void __kyoto_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.y_max = z_max; m.x_max = y_max * x_max; m.pitch = pitch*y_max; 
     }
+
     template<>
     inline void __kyoto_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
@@ -25,11 +26,20 @@ namespace apex_utils{
         m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
 
+    template<>
+    inline void __kyoto_set_param<apex_tensor::GTensor3D>( apex_tensor::GTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
+    }
+    template<>
+    inline void __kyoto_set_param<apex_tensor::GTensor4D>( apex_tensor::GTensor4D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+    }
+
     /* 
        iterator that  iterates over the image data set
        we extract regions from the datas to generate dataset.
      */
-    template<typename T>
+    template<typename T,typename InputDataType>
     class KyotoIterator: public ITensorIterator<T>{
     private:
         int idx, max_idx, num_amount_used;
@@ -40,8 +50,8 @@ namespace apex_utils{
         int num_extract_per_image;        
         int repeat_round, remain_round;
         int validate_train;
-
-        apex_tensor::CTensor3D data;
+        
+        InputDataType data;        
     private:
         char name_image_set[ 256 ];
         
@@ -64,8 +74,9 @@ namespace apex_utils{
             remain_round = 0; repeat_round = 1; validate_train = 0; 
         }
         virtual ~KyotoIterator(){
-            if( data.elem != NULL )
-                delete [] data.elem;
+            if( data.elem != NULL ){
+                apex_tensor::tensor::free_space( data );
+            }
         }
         virtual void set_param( const char *name, const char *val ){
             if( !strcmp( name, "image_set"   ) ) strcpy( name_image_set, val );        
@@ -81,30 +92,27 @@ namespace apex_utils{
             if( !strcmp( name, "num_extract_per_image")) num_extract_per_image = atoi( val );
             if( !strcmp( name, "validate_train"))  validate_train = atoi( val );            
         }
-        
-        inline void shuffle(){
-            apex_tensor::cpu_only::shuffle( data );
-        }
-        
-        inline void gen_random_extract( const std::vector<apex_tensor::CTensor2D> &v_data ){
-            data.set_param( (int)v_data.size()*num_extract_per_image , height, width );
-            apex_tensor::tensor::alloc_space( data );
+
+        inline apex_tensor::CTensor3D gen_random_extract( const std::vector<apex_tensor::CTensor2D> &v_data ){
+            apex_tensor::CTensor3D t_data( (int)v_data.size()*num_extract_per_image , height, width );
+            apex_tensor::tensor::alloc_space( t_data );
             
             int num_used = 0;
             for( size_t i = 0 ; i < v_data.size() ; i ++ ){
-                if( v_data[i].y_max < data.y_max || v_data[i].x_max < data.x_max ) continue;
+                if( v_data[i].y_max < t_data.y_max || v_data[i].x_max < t_data.x_max ) continue;
                 for( int j = 0 ; j < num_extract_per_image ; j ++ ){
-                    apex_tensor::CTensor2D dd = data[ num_used* num_extract_per_image + j ];
+                    apex_tensor::CTensor2D dd = t_data[ num_used* num_extract_per_image + j ];
                     apex_tensor::cpu_only::rand_extract( dd, v_data[i] );
                 }                        
                 num_used ++;
             }                
 
             if( num_used < (int)v_data.size() ){
-                data.z_max = num_used * num_extract_per_image;
+                t_data.z_max = num_used * num_extract_per_image;
                 if( silent == 0 ) printf("%d images unused, ", (int)v_data.size()- num_used );
             }
             if( silent == 0 ) printf("random extract, ");
+            return t_data;
         }
         
         // initialize the model
@@ -126,31 +134,35 @@ namespace apex_utils{
             if( silent == 0 )
                 printf("Kyoto Dataset, %d images loaded,", (int)v_data.size() ); 
                        
-            gen_random_extract( v_data ); 
+            apex_tensor::CTensor3D t_data = gen_random_extract( v_data ); 
             
             for( int i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::free_space( v_data[i] );            
             
             double var = 0.0;
-            for( int i = 0 ; i < data.z_max ; i ++ )
-                var += apex_tensor::cpu_only::var( data[i] );
-            if( silent == 0 ) printf("std_var=%lf, ", sqrt( var/data.z_max ) );
+            for( int i = 0 ; i < t_data.z_max ; i ++ )
+                var += apex_tensor::cpu_only::var( t_data[i] );
+            if( silent == 0 ) printf("std_var=%lf, ", sqrt( var/t_data.z_max ) );
 
             if( normalize != 0 ) {
                 if( silent == 0 ) printf("normalize, ");
-                for( int i = 0 ; i < data.z_max ; i ++ )
-                    data[i] += -apex_tensor::cpu_only::avg( data[i] );
+                for( int i = 0 ; i < t_data.z_max ; i ++ )
+                    t_data[i] += -apex_tensor::cpu_only::avg( t_data[i] );
             }
           
             if( do_shuffle != 0 ){
                 if( silent == 0 ) printf("shuffle, ");
-                shuffle();
+                apex_tensor::cpu_only::shuffle( t_data );
             }
             
             if( silent == 0 ){
-                printf( "%d sample generated\n", data.z_max ); 
+                printf( "%d sample generated\n", t_data.z_max ); 
             }    
-            if( max_idx > data.z_max ) max_idx = data.z_max;                                   
+            if( max_idx > t_data.z_max ) max_idx = t_data.z_max;                                   
+            
+            data = clone( t_data );
+            apex_tensor::tensor::free_space( t_data );
+
             remain_round = repeat_round;  
         }
         
