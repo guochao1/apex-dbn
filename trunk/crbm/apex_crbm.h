@@ -7,13 +7,11 @@
 
 namespace apex_rbm{
     //interface of stacked rbm
+    template<typename InputType>
     class ICRBM{
     public:
-        /* update model using data */
-        virtual void train_update( const apex_tensor::CTensor3D &data ) = 0;
-
         // update the model using trunk of data 
-        virtual void train_update_trunk( const apex_tensor::CTensor4D &data ) = 0;
+        virtual void train_update_trunk( const InputType &data ) = 0;
          
         /* clone model trainied to model */
         virtual void clone_model( CDBNModel &model )const = 0;        
@@ -22,14 +20,14 @@ namespace apex_rbm{
         virtual void set_cd_step( int cd_step ) = 0;
 
         // validate the model by statistics
-        virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor4D &data ) = 0;
-
+        virtual void validate_stats( CRBMModelStats &stats, const InputType &data ) = 0;
+        
         virtual ~ICRBM(){}              
     };
-    
+
     namespace factory{
-        // create a stacked rbm
-        ICRBM *create_crbm( const CDBNModel &model, const CRBMTrainParam &param );
+        template<typename InputType>
+        ICRBM<InputType> * create_crbm( const CDBNModel &model, const CRBMTrainParam &param );
     };
 
 };

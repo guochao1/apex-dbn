@@ -7,17 +7,18 @@ function YD = detection_fusion_gaussian( Y, score, sigma_sqr,...
 % ym       : 3 * 1 matrix, start point
 % return next point of fixed point iteration
 if nargin < 3
-    sigma_sqr = [ 4, 8, log(1.6) ]';
+    sigma = [ 4, 8, log(1.3) ]';
 end
 if nargin <= 3
-    eps_i = 1;
-    eps_r = 5;
+    eps_i = 0.001;
+    eps_r = 8;
 end 
 
 [n,m] = size( Y );
+Y(3,:)= log( Y(3,:) );
 
 % compute convariance matrix
-H = repmat( sigma_sqr , [1,m] );
+H = repmat( sigma.^2 , [1,m] );
 H(1,:) = H(1,:) .* (exp( Y(3,:) ).^2);
 H(2,:) = H(2,:) .* (exp( Y(3,:) ).^2);
 H_inv  = 1 ./ H;
@@ -41,6 +42,7 @@ for i = 1 : m
     end
 end
 
+YD(3,:) = exp( YD(3,:) );
 
 function ym = detect_proc( Y, score, H_inv, H_det, ym, eps_i )
 err = 10;
@@ -52,7 +54,7 @@ end
 
 % one iteration of decttion
 function ym = detect_one_iter( Y, score, H_inv , H_det, ym )  
-[n,m] = size( Y )
+[n,m] = size( Y );
 % compute gaussian weight
 smooth_w = score .* exp( - 0.5* sum((Y-repmat(ym,[1,m])).^2 .* H_inv)).*H_det;
 smooth_w = smooth_w / sum( smooth_w );

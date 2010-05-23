@@ -44,6 +44,7 @@ function img = draw_line_y( img, x, y_s, y_e )
     [y_max,x_max,z_max] = size( img );
     if x <= x_max && x > 0
        for y = max(1,y_s) : min( y_max, y_e )
+           img( y, x, : ) = 0;
            img( y, x, 1 ) = 255;
        end
     end
