@@ -90,7 +90,9 @@ namespace apex_utils{
             
             int num_used = 0;
             for( size_t i = 0 ; i < v_data.size() ; i ++ ){
-                if( v_data[i].y_max < t_data.y_max || v_data[i].x_max < t_data.x_max ) continue;
+                if( v_data[i].y_max < t_data.y_max || v_data[i].x_max < t_data.x_max ) {
+                    continue;
+                }
                 for( int j = 0 ; j < num_extract_per_image ; j ++ ){
                     apex_tensor::CTensor3D dd = t_data[ num_used* num_extract_per_image + j ];
                     apex_tensor::cpu_only::rand_extract( dd, v_data[i] );
@@ -147,9 +149,9 @@ namespace apex_utils{
             }
             
             if( silent == 0 ){
-                printf( "%d sample generated\n", t_data.z_max ); 
+                printf( "%d sample generated\n", t_data.h_max ); 
             }    
-            if( max_idx > t_data.z_max ) max_idx = t_data.z_max;                                   
+            if( max_idx > t_data.h_max ) max_idx = t_data.h_max;                                   
             
             data = clone( t_data );
             apex_tensor::tensor::free_space( t_data );
