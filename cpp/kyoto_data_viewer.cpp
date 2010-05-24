@@ -17,10 +17,10 @@ int MAX_NUM_PER_LINE = 7;
 
 inline void draw_mat( const CTensor4D &m, const char *fname, int scale = 1 ){
     // drawing procedure 
-    if( m.z_max < MAX_NUM_PER_LINE ) MAX_NUM_PER_LINE = m.z_max;
-    int y_count = (m.z_max + MAX_NUM_PER_LINE-1) / MAX_NUM_PER_LINE; 
+    if( m.h_max < MAX_NUM_PER_LINE ) MAX_NUM_PER_LINE = m.h_max;
+    int y_count = (m.h_max + MAX_NUM_PER_LINE-1) / MAX_NUM_PER_LINE; 
     CImg<unsigned char> img( (m.x_max+1)*MAX_NUM_PER_LINE*scale + 1 , (m.y_max+1)*y_count*scale +1 , 1 , 1 , 0 );
-    
+
     for( int h = 0 ; h < m.h_max ; h ++ ){
         int xx = h % MAX_NUM_PER_LINE;
         int yy = h / MAX_NUM_PER_LINE;
