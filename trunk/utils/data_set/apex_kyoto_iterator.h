@@ -18,12 +18,12 @@ namespace apex_utils{
     
     template<>
     inline void __kyoto_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.h_max = z_max; m.z_max = h_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+        m.h_max = h_max; m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
 
     template<>
     inline void __kyoto_set_param<apex_tensor::GTensor4D>( apex_tensor::GTensor4D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.h_max = z_max; m.z_max = h_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+        m.h_max = h_max; m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
 
     /* 
@@ -101,7 +101,7 @@ namespace apex_utils{
             }                
 
             if( num_used < (int)v_data.size() ){
-                t_data.z_max = num_used * num_extract_per_image;
+                t_data.h_max = num_used * num_extract_per_image;
                 if( silent == 0 ) printf("%d images unused, ", (int)v_data.size()- num_used );
             }
             if( silent == 0 ) printf("random extract, ");
@@ -133,13 +133,13 @@ namespace apex_utils{
                 apex_tensor::tensor::free_space( v_data[i] );            
             
             double var = 0.0;
-            for( int i = 0 ; i < t_data.z_max ; i ++ )
+            for( int i = 0 ; i < t_data.h_max ; i ++ )
                 var += apex_tensor::cpu_only::var( t_data[i] );
-            if( silent == 0 ) printf("std_var=%lf, ", sqrt( var/t_data.z_max ) );
+            if( silent == 0 ) printf("std_var=%lf, ", sqrt( var/t_data.h_max ) );
 
             if( normalize != 0 ) {
                 if( silent == 0 ) printf("normalize, ");
-                for( int i = 0 ; i < t_data.z_max ; i ++ )
+                for( int i = 0 ; i < t_data.h_max ; i ++ )
                     t_data[i] += -apex_tensor::cpu_only::avg( t_data[i] );
             }
           
@@ -188,10 +188,10 @@ namespace apex_utils{
         virtual const T validation_trunk()const{
             if( validate_train ){
                 // return training dataset 
-                return get_trunk( 0, data.z_max );
+                return get_trunk( 0, data.h_max );
             }else{
                 // return validation data
-                return get_trunk( (int)max_idx, data.z_max );
+                return get_trunk( (int)max_idx, data.h_max );
             }
         }
     };
