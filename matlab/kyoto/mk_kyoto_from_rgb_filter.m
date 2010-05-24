@@ -10,21 +10,26 @@ fwrite( fo, [ 0 ] , 'int32');
 count = 0;
 for i = [ 1 : length(lst) ]
     nm = lst(i).name;
-    img = imread(nm);
-    [x_max,y_max,z_max] = size( img );
+    img = im2double(rgb2gray( imread(nm)));
+    [y_max,x_max,z_max] = size( img );
 
     ff = [-1 0 1];
-    grad_x    = imfilter( im2double(img) ,  ff  ); 
-    grad_y    = imfilter( im2double(img) , -ff' ); 
+    grad_x    = imfilter( img ,  ff  ); 
+    grad_y    = imfilter( img , -ff' ); 
+    
     if z_max > 1
-        grad_x = max( grad_x , [], 3 );
-        grad_y = max( grad_y , [], 3 );
+        [g,idx_x] = max( abs(grad_x) , [], 3 );
+        grad_x    = grad_x(:,:,idx_x);   
+
+        [g,idx_y] = max( abs(grad_y) , [], 3 );
+        grad_y    = grad_y(:,:,idx_y);                   
     end  
            
     fwrite( fo, [x_max,y_max,2] , 'int32'); 
     fwrite( fo, grad_x', 'float32' );
     fwrite( fo, grad_y', 'float32' );
     count = count + 1;
+    clear grad_x grad_y nm img g
 end
 
 frewind( fo );
