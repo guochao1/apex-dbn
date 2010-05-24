@@ -14,7 +14,7 @@ for i = [ 1 : length(lst) ]
     clear OL OS OM;
     load( nm );  
     [yy_max,xx_max] = size( OL );
-    fwrite( fo, [xx_max,yy_max] , 'int32');  
+    fwrite( fo, [xx_max,yy_max,1] , 'int32');  
     fwrite( fo, OL', 'float32' );
     count = count + 1;
 end

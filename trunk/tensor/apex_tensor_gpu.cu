@@ -273,6 +273,10 @@ namespace apex_tensor{
                 for( int i = 0 ; i < dst.z_max ; i ++ )
                     copy_template<GTensor2D,GTensor2D,cudaMemcpyDeviceToDevice>( dst[i], src[i] );
             } 
+            void copy_fit( CTensor3D &dst, const GTensor3D &src ){
+                for( int i = 0 ; i < dst.z_max ; i ++ )
+                    copy_template<CTensor2D,GTensor2D,cudaMemcpyDeviceToHost>( dst[i], src[i] );
+            } 
             
             void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size ){
                 cuda_tensor::sample_maxpooling<store_method::SAVE>( state, mean, pool_size );

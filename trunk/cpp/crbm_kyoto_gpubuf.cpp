@@ -10,7 +10,7 @@ using namespace apex_utils;
 
 int main( int argc, char *argv[] ){
 	apex_tensor::init_tensor_engine_cpu( 10 );
-    KyotoIterator<apex_tensor::GTensor4D,apex_tensor::GTensor3D> itr;        
+    KyotoIterator<apex_tensor::GTensor4D,apex_tensor::GTensor4D> itr;        
     apex_rbm::CRBMTrainer<apex_tensor::GTensor4D> trainer;
 	TensorUpdateTask<apex_tensor::GTensor4D> tsk( &trainer, &itr );	
     return run_task( argc, argv, &tsk );

@@ -512,9 +512,9 @@ namespace apex_tensor{
         TENSOR_FLOAT max_value( const CTensor4D &a );
 
         // random extract a region from src
-        void rand_extract( CTensor2D &dst, const CTensor2D &src );
-        // shuffle the z_index of data randomly
-        void shuffle( CTensor3D &data );
+        void rand_extract( CTensor3D &dst, const CTensor3D &src );
+        // shuffle the h_index of data randomly
+        void shuffle( CTensor4D &data );
     };
 };
 #endif

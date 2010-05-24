@@ -10,36 +10,27 @@
 
 namespace apex_utils{
     template<typename T>
-    inline void __kyoto_set_param( T & m, int z_max, int y_max, int x_max, unsigned int pitch );
+    inline void __kyoto_set_param( T & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch );
+    template<>
+    inline void __kyoto_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
+        m.y_max = h_max; m.x_max = z_max * y_max * x_max; m.pitch = pitch*y_max*z_max; 
+    }
     
     template<>
-    inline void __kyoto_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.y_max = z_max; m.x_max = y_max * x_max; m.pitch = pitch*y_max; 
+    inline void __kyoto_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
+        m.h_max = z_max; m.z_max = h_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
 
     template<>
-    inline void __kyoto_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
-    }
-    template<>
-    inline void __kyoto_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
-    }
-
-    template<>
-    inline void __kyoto_set_param<apex_tensor::GTensor3D>( apex_tensor::GTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
-    }
-    template<>
-    inline void __kyoto_set_param<apex_tensor::GTensor4D>( apex_tensor::GTensor4D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
-        m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+    inline void __kyoto_set_param<apex_tensor::GTensor4D>( apex_tensor::GTensor4D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
+        m.h_max = z_max; m.z_max = h_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
 
     /* 
        iterator that  iterates over the image data set
        we extract regions from the datas to generate dataset.
      */
-    template<typename T,typename InputDataType>
+    template<typename T,typename StoreDataType>
     class KyotoIterator: public ITensorIterator<T>{
     private:
         int idx, max_idx, num_amount_used;
@@ -51,7 +42,7 @@ namespace apex_utils{
         int repeat_round, remain_round;
         int validate_train;
         
-        InputDataType data;        
+        StoreDataType data;        
     private:
         char name_image_set[ 256 ];
         
@@ -60,7 +51,7 @@ namespace apex_utils{
             if( y_max > trunk_size ) y_max = trunk_size;            
             T m; 
             m.elem  = data[ start_idx ].elem;
-            __kyoto_set_param<T>( m , y_max, data.y_max, data.x_max, data.pitch ); 
+            __kyoto_set_param<T>( m , y_max, data.z_max, data.y_max, data.x_max, data.pitch ); 
             return m;
         } 
         
@@ -93,15 +84,15 @@ namespace apex_utils{
             if( !strcmp( name, "validate_train"))  validate_train = atoi( val );            
         }
 
-        inline apex_tensor::CTensor3D gen_random_extract( const std::vector<apex_tensor::CTensor2D> &v_data ){
-            apex_tensor::CTensor3D t_data( (int)v_data.size()*num_extract_per_image , height, width );
+        inline apex_tensor::CTensor4D gen_random_extract( const std::vector<apex_tensor::CTensor3D> &v_data ){
+            apex_tensor::CTensor4D t_data( (int)v_data.size()*num_extract_per_image , v_data[0].z_max, height, width );
             apex_tensor::tensor::alloc_space( t_data );
             
             int num_used = 0;
             for( size_t i = 0 ; i < v_data.size() ; i ++ ){
                 if( v_data[i].y_max < t_data.y_max || v_data[i].x_max < t_data.x_max ) continue;
                 for( int j = 0 ; j < num_extract_per_image ; j ++ ){
-                    apex_tensor::CTensor2D dd = t_data[ num_used* num_extract_per_image + j ];
+                    apex_tensor::CTensor3D dd = t_data[ num_used* num_extract_per_image + j ];
                     apex_tensor::cpu_only::rand_extract( dd, v_data[i] );
                 }                        
                 num_used ++;
@@ -118,7 +109,7 @@ namespace apex_utils{
         // initialize the model
         virtual void init( void ){
             int num;
-            std::vector<apex_tensor::CTensor2D> v_data;
+            std::vector<apex_tensor::CTensor3D> v_data;
             
             FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
             if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
@@ -134,7 +125,7 @@ namespace apex_utils{
             if( silent == 0 )
                 printf("Kyoto Dataset, %d images loaded,", (int)v_data.size() ); 
                        
-            apex_tensor::CTensor3D t_data = gen_random_extract( v_data ); 
+            apex_tensor::CTensor4D t_data = gen_random_extract( v_data ); 
             
             for( int i = 0 ; i < num ; i ++ )
                 apex_tensor::tensor::free_space( v_data[i] );            
