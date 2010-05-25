@@ -215,8 +215,7 @@ namespace apex_rbm{
  
     
     // simple implementation of srbm
-    template<typename InputType,typename InputTypeSub>
-    class CRBMSimple: public ICRBM<InputType>{
+    class CRBMSimple: public ICRBM{
     private:
         int  cd_step, h_size, v_size, vv_size;
         CRBMTrainParam param;
@@ -483,26 +482,52 @@ namespace apex_rbm{
             }
         }
         
-        inline void setup_input( const InputTypeSub &data ){
+        inline void setup_input( const apex_tensor::CTensor3D &data ){
             tensor::crbm::copy_fit( layers[0].v_state , data );
             for( size_t i = 1 ; i < layers.size() ; i ++ ){
                 layers[i-1].feed_forward( layers[i].v_state );
             }  
         }
-
+    
     public:
-        virtual void train_update( const InputTypeSub &data ){
+        virtual void get_feed_bound( int &f_z_max, int &f_y_max, int &f_x_max ){
+            f_y_max = layers.back().v_state.y_max; 
+            f_x_max = layers.back().v_state.x_max; 
+            f_z_max = layers.back().h_state.z_max; 
+            layers.back().reget_bound( f_y_max, f_x_max );            
+        }
+
+        virtual void feed_forward_trunk( apex_tensor::CTensor4D &state_out, const apex_tensor::CTensor4D &data ){            
+            int y_max = layers.back().v_state.y_max; 
+            int x_max = layers.back().v_state.x_max; 
+            int h_max = layers.back().h_state.z_max; 
+            layers.back().reget_bound( y_max, x_max );
+             
+            TTensor3D v_state( h_max, y_max, x_max );
+            tensor::alloc_space( v_state );
+            
+            for( int i = 0 ; i < data.h_max ; i ++ ){
+                setup_input( data[i] );
+                layers.back().feed_forward( v_state );
+
+                apex_tensor::CTensor3D so = state_out[i];
+                tensor::copy( so, v_state );
+            }            
+            tensor::free_space( v_state );
+        }
+
+        virtual void train_update( const apex_tensor::CTensor3D &data ){
             setup_input( data );
             train_update();
         }
 
-        virtual void train_update_trunk( const InputType &data ){
+        virtual void train_update_trunk( const apex_tensor::CTensor4D &data ){
             for( int i = 0 ; i < data.h_max ; i ++ )
                 train_update( data[i] );
         }
         
         // do validation, return the statistics
-        virtual void validate_stats( CRBMModelStats &stats, const InputType &data ){
+        virtual void validate_stats( CRBMModelStats &stats, const apex_tensor::CTensor4D &data ){
             TTensor4D grad_W;
             TTensor1D pos_grad_h, neg_grad_h, pos_grad_v, neg_grad_v, loss, grad_sparse;
             grad_W     = clone( stats.grad_W );
@@ -587,13 +612,8 @@ namespace apex_rbm{
 
     namespace factory{
         // create a stacked rbm
-        template<>
-        ICRBM<apex_tensor::CTensor4D> *create_crbm( const CDBNModel &model, const CRBMTrainParam &param ){
-            return  new CRBMSimple<apex_tensor::CTensor4D,apex_tensor::CTensor3D>( model, param );
-        }
-        template<>
-        ICRBM<apex_tensor::GTensor4D> *create_crbm( const CDBNModel &model, const CRBMTrainParam &param ){
-            return  new CRBMSimple<apex_tensor::GTensor4D,apex_tensor::GTensor3D>( model, param );
+        ICRBM *create_crbm( const CDBNModel &model, const CRBMTrainParam &param ){
+            return  new CRBMSimple( model, param );
         }
     };
 };

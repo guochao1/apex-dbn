@@ -6,7 +6,9 @@ else
 endif
 
 INSTALL_DIR := ../../bin
-BIN:= srbm_model_drawer srbm_minist crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_kyoto_gpubuf
+
+BIN:= crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor
+
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -70,6 +72,9 @@ crbm_kyoto: crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB)
 
 crbm_kyoto_gpubuf: crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB)  
 	$(NVCC) $(OPTNVCC) -o crbm_kyoto_gpubuf crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB) 
+
+crbm_kyoto_extractor: crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB)  
+	$(NVCC) $(OPTNVCC) -o crbm_kyoto_extractor crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB) 
 
 srbm_model_drawer: srbm_model_drawer.cpp apex_tensor_cpu.o  
 	$(CC) $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o

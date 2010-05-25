@@ -145,7 +145,7 @@ int main( int argc, char *argv[] ){
     fclose( fi );	
 
     apex_tensor::init_tensor_engine_cpu( 10 );
-    KyotoIterator<apex_tensor::CTensor3D> itr;        
+    KyotoIterator<apex_tensor::CTensor3D,apex_tensor::CTensor4D> itr;        
     ConfigIterator cfg( argv[1] );
     while( cfg.next() ){
         itr.set_param( cfg.name(), cfg.val() );

@@ -15,6 +15,11 @@ namespace apex_utils{
     inline void __kyoto_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.y_max = h_max; m.x_max = z_max * y_max * x_max; m.pitch = pitch*y_max*z_max; 
     }
+
+    template<>
+    inline void __kyoto_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){
+        m.z_max = h_max; m.x_max = x_max; m.y_max = y_max*z_max; m.pitch = pitch; 
+    }
     
     template<>
     inline void __kyoto_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch ){

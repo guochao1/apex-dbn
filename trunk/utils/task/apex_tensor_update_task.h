@@ -61,7 +61,7 @@ namespace apex_utils{
             silent     = 0;
             do_validation = 0;
             task       = 0;
-            num_round  = 100;
+            num_round  = 1;
             print_step = 30;
             strcpy( name_config, "config.conf" );
         }
