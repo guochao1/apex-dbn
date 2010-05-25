@@ -9,8 +9,8 @@ label_train( 1:size( feature_train_pos, 2 ) ) = 1;
 clear feature*;
 
 fprintf( 1, 'data ready, start training...');
-svm_model = svmtrain( label_train', double(data_train)', '-t 0' )
-save( fname_model, 'svm_model');
+linear_model = train( label_train', sparse(double(data_train))', '-s 0' );
+save( fname_model, 'linear_model');
 
 
 
