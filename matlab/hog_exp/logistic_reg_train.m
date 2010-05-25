@@ -1,4 +1,5 @@
 function [B,bias] = logistic_reg_train( G, R, ...
+                                        GG, RR,...
                                         learning_rate, wd, momentum,...
                                         num_iter, ...
                                         B, bias )
@@ -9,19 +10,19 @@ function [B,bias] = logistic_reg_train( G, R, ...
 % B            : 1 * v matrix global factor
 % bias         : global bias
 
-if nargin < 3
+if nargin < 4
     learning_rate = 0.01;
     wd = 1.0;
     momentum = 0.5; 
 end
-if nargin < 6
+if nargin < 8
     num_iter = 100;
 end
 
 [v,h] = size( G );
 
-if nagin < 8
-    B = randn( 1, n ) * 0.01;
+if nagin < 10
+    B = randn( 1, n ) * 0.0001;
     bias = 0;
 end
 
@@ -36,10 +37,12 @@ for iter = 1 : num_iter
         idx     = iter / plot_step;
         xx(idx) = iter;
         yy(idx) = mean( abs(R -(W>0.5))); 
-        
+        yyt(idx)= mean( abs(RR-((1./(1+exp(-B*GG-bias))) >0.5)));
         plot(xx,yy);
+        hold;
+        plot(xx,yyt,'red');
         xlabel('iter');            
-        ylabel('Acc_Train' );
+        ylabel('Acc' );
         drawnow;
     end
     % calculate gradient
