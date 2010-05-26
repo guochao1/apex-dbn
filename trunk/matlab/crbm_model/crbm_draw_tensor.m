@@ -1,4 +1,4 @@
-function img = draw_tensor( W, norm_method, x_num )
+function img = crbm_draw_tensor( W, norm_method, x_num )
 if nargin < 2
     norm_method = 'all';
 end
