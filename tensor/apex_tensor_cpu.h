@@ -393,7 +393,7 @@ namespace apex_tensor{
         void sadd__mul      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
 
         // matrix multiplication
-        // dst   = dot( a, b  ) 
+        // dst   = dot( a, b ) 
         // note: the 1D tensor is treated as 1 * n matrix 
         void dot        ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
         void dot        ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );            
