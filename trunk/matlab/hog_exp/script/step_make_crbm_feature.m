@@ -5,7 +5,7 @@ fname = 'models/feature_crbm';
 
 
 
-crbm_model = load_crbm_model('');
+crbm_model = crbm_load_model('');
 
 fprintf(1,'generate feature for %s train_pos\n',fname);
 feature_train_pos = gen_crbm_feature( lst_train_pos, crbm_model );
