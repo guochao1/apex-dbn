@@ -1,9 +1,9 @@
-function YD = fusion_detection( Y, score, sigma_sqr,...
+function YD = fusion_detection( Y, score, sigma,...
                                 eps_i, eps_r )
 % fusion the dection by finding the local point of gaussian density
 % Y        : 3 * m matrix, m is the number of detection   
 % score    : 1 * m matrix, m is the number of detection
-% sigma_sqr: 3 * 1 matrix, x, y, s
+% sigma    : 3 * 1 matrix, x, y, s
 % ym       : 3 * 1 matrix, start point
 % return next point of fixed point iteration
 
