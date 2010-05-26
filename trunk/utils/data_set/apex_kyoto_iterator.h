@@ -154,7 +154,7 @@ namespace apex_utils{
             }
             
             if( silent == 0 ){
-                printf( "%d sample generated\n", t_data.h_max ); 
+                printf( "%d sample generated, size=[%d,%d,%d]\n", t_data.h_max, t_data.z_max, t_data.y_max, t_data.x_max ); 
             }    
             if( max_idx > t_data.h_max ) max_idx = t_data.h_max;                                   
             
