@@ -45,7 +45,7 @@ function [Y, score] = gen_detection_crbm_filter_linear( img    , param,...
     
     count = 0;    
     [y_max,x_max,z_max] = size(img); 
-    if z_max > 0
+    if z_max == 3
         img = rgb2gray( img );
     end
 
@@ -56,7 +56,8 @@ function [Y, score] = gen_detection_crbm_filter_linear( img    , param,...
     % enumerate the scale
     for i = 1 : num_s    
         gg = im2double( imresize( img, 1/scale ) );
-
+        [yy,xx] = size( gg );
+        grad = zeros( yy, xx, 2 );
         grad(:,:,1) = imfilter( gg, [-1 0  1]  );
         grad(:,:,2) = imfilter( gg, [ 1 0 -1]' );
         
