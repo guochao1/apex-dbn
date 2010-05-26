@@ -1,19 +1,24 @@
 function YD = fusion_detection( Y, score, sigma,...
+                                lambda,...
                                 eps_i, eps_r )
 % fusion the dection by finding the local point of gaussian density
 % Y        : 3 * m matrix, m is the number of detection   
 % score    : 1 * m matrix, m is the number of detection
 % sigma    : 3 * 1 matrix, x, y, s
-% ym       : 3 * 1 matrix, start point
-% return next point of fixed point iteration
+% lambda   : decision threshold
+
 
 if nargin < 3
-    sigma = [ 4, 8, log(1.3) ]';
+    sigma = [ 8, 16, log(1.6) ]';
 end
-if nargin <= 3
+if nargin < 4 
+    lambda = 4;
+end
+if nargin < 5
     eps_i = 0.001;
     eps_r = 8;
 end 
+
 
 [n,m] = size( Y );
 Y(3,:)= log( Y(3,:) );
@@ -35,15 +40,18 @@ for i = 1 : m
     for j = 1 : count
         if norm(ym - YD(:,j)) <= eps_r
             new_rst = 0;
+            ss(:,j) = ss(:,j) + score(:,i);
         end
     end
     if new_rst == 1
         count = count + 1;
         YD( :, count ) = ym;
+        ss(:,count) = score(:,i);
     end
 end
 
 YD(3,:) = exp( YD(3,:) );
+YD = YD(:,ss > mean(score) * lambda );
 
 function ym = detect_proc( Y, score, H_inv, H_det, ym, eps_i )
 err = 10;
