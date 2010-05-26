@@ -11,7 +11,7 @@ for i = 1 : n
     true_pos  = sum( pos_sol(i:n) );
     false_neg = sum( neg_sol(i:n) );
 
-    ftpw(i)   = false_pos / n;
+    ffpw(i)   = false_pos / n;
     miss(i)   = false_neg / (true_pos+false_neg);    
 end
 
