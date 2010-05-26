@@ -24,7 +24,7 @@ end
 if layer.model_type == 2
     Wout = Wout ./ (layer.v_sigma^2);
 end
-Wout = norm_maxpooling( Wout,1 );
+Wout = norm_maxpooling( Wout, layer.pool_size );
 
 function Wout = norm_maxpooling( Win, pool_size )
 [y_max,x_max,z_max] = size( Win );
