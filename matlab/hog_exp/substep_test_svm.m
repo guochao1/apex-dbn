@@ -9,7 +9,7 @@ label_test( 1:size( feature_test_pos, 2 ) ) = 1;
 
 clear feature*;
 
-fprintf( 1, 'data ready, start testing...');
+fprintf( 1, 'data ready, start testing...\n');
 
 [pred,acc,dvalue] = svmpredict( label_test' , double(data_test)' , svm_model ); 
 

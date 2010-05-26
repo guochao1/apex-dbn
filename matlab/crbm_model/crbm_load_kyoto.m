@@ -2,7 +2,7 @@ function lst = crbm_load_kyoto( fname, F )
 
 fi = fopen( fname,'rb');
 
-num = fread( fi, 1, 'int32' )
+num = fread( fi, 1, 'int32' );
 
 for i =  1 : num 
     
