@@ -12,7 +12,7 @@ label_test( 1:size( feature_test_pos, 2 ) ) = 1;
 
 clear feature*;
 
-fprintf( 1, 'data ready, start training...');
+fprintf( 1, 'data ready, start training...\n');
 [lB, lbias] = logistic_reg_train( data_train, label_train, data_test, label_test );
 save( fname_model, 'lB', 'lbias');
 
