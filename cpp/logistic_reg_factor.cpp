@@ -1,3 +1,6 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_DEPRECATE
+
 // use matrix factorization to do 
 // factored version of logistic regression
 
@@ -36,11 +39,11 @@ struct LogRegParam{
     char  name_rank[256];
     
     LogRegParam(){
-        learning_rate_B = learning_rate_bias = learning_rate = 0.01;
-        wd_B = wd = 1.0; momentum = 0.5;
-        q_init_sigma = 0.001; 
-        p_init_sigma = 0.001;
-        b_init_sigma = 0;
+        learning_rate_B = learning_rate_bias = learning_rate = 0.01f;
+        wd_B = wd = 1.0f; momentum = 0.5f;
+        q_init_sigma = 0.001f; 
+        p_init_sigma = 0.001f;
+        b_init_sigma = 0.0f;
         num_iter = 10; 
         batch_size = 1000;
         print_step = 1;
