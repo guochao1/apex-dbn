@@ -56,15 +56,15 @@ struct LogRegParam{
         strcpy( name_rank      , "rank.txt"     );
     }
     inline void set_param( const char *name, const char *val ){
-        if( !strcmp( name,"learning_rate") ) learning_rate = atof( val );
-        if( !strcmp( name,"learning_rate_B") ) learning_rate_B = atof( val );
-        if( !strcmp( name,"learning_rate_bias") ) learning_rate_bias = atof( val );
-        if( !strcmp( name,"wd") )            wd = atof( val );
-        if( !strcmp( name,"wd_B") )          wd_B = atof( val );
-        if( !strcmp( name,"momentum") )      momentum = atof( val );
-        if( !strcmp( name,"q_init_sigma") )  q_init_sigma = atof( val );
-        if( !strcmp( name,"p_init_sigma") )  p_init_sigma = atof( val );
-        if( !strcmp( name,"b_init_sigma") )  b_init_sigma = atof( val );        
+        if( !strcmp( name,"learning_rate") ) learning_rate = (float)atof( val );
+        if( !strcmp( name,"learning_rate_B") ) learning_rate_B = (float)atof( val );
+        if( !strcmp( name,"learning_rate_bias") ) learning_rate_bias = (float)atof( val );
+        if( !strcmp( name,"wd") )            wd = (float)atof( val );
+        if( !strcmp( name,"wd_B") )          wd_B = (float)atof( val );
+        if( !strcmp( name,"momentum") )      momentum = (float)atof( val );
+        if( !strcmp( name,"q_init_sigma") )  q_init_sigma = (float)atof( val );
+        if( !strcmp( name,"p_init_sigma") )  p_init_sigma = (float)atof( val );
+        if( !strcmp( name,"b_init_sigma") )  b_init_sigma = (float)atof( val );        
         if( !strcmp( name,"num_iter") )      num_iter = atoi( val );
         if( !strcmp( name,"batch_size") )    batch_size = atoi( val );
         if( !strcmp( name,"print_step") )    print_step = atoi( val );
