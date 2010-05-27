@@ -914,9 +914,26 @@ namespace apex_tensor{
     };
 
     namespace tensor{
+        CTensor1DSparse create_sparse( const std::vector<int> &idx, const std::vector<TENSOR_FLOAT> &vals ){
+            CTensor1DSparse sps;
+            sps.index.length = (unsigned int)idx.size();
+            sps.index.alloc_length = (unsigned int)idx.size();
+            sps.index.x = new int[ idx.size() ];
+            sps.elem    = new TENSOR_FLOAT[ idx.size() ];
+            for( size_t  i = 0 ; i < idx.size() ; i ++ ){
+                sps.index.x[i]   = idx[i];
+                sps.elem[i]      = vals[i];
+            } 
+            return sps;
+        }
+        void free_space( CTensor1DSparse &sps ){
+            delete[] sps.index.x;
+            delete[] sps.elem;
+        }
+
         void sadd__mul( CTensor1D &dst , const CTensor1DSparse &a, TENSOR_FLOAT val ){
             for( unsigned int i = 0 ; i < a.index.length ; i ++ )
-                dst[ a.index.x[i] ] += a.elem[i];
+                dst[ a.index.x[i] ] += a.elem[i] * val;
         }
                 
         template<int st_m>
@@ -924,8 +941,8 @@ namespace apex_tensor{
             for( int x = 0; x < b.x_max ; x ++ ){
                 TENSOR_FLOAT ans = 0;
                 for( unsigned int i = 0; i < W.index.length; i ++ ){
-                    int y = W.index.x[i];
-                    ans += W.elem[i] * b[ y ][ x ];
+                    int y = W.index.x[ i ];
+                    ans += W.elem[ i ] * b[ y ][ x ];
                 }
                 store_method::__store<st_m>( dst[x], ans );
             }
