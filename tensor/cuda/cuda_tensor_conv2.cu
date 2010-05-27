@@ -617,6 +617,7 @@ namespace apex_tensor{
 #if __CUDA_CONV2_USE_OPT__
             if( filter.x_max < MEM_UNIT ){ 
                 switch( filter.y_max ){
+                case 8: conv2_full_optA<st_m,8>  ( ans, mat, filter, v_bias ); break;
                 case 10: conv2_full_optA<st_m,10>( ans, mat, filter, v_bias ); break;
                 case 12: conv2_full_optA<st_m,12>( ans, mat, filter, v_bias ); break;
                 default: conv2_full_orign<st_m>( ans, mat, filter, v_bias );    break;
@@ -729,6 +730,7 @@ namespace apex_tensor{
 #if __CUDA_CONV2_USE_OPT__
             if( filter.x_max < MEM_UNIT ){ 
                 switch( filter.y_max ){
+                case 8: conv2_r_valid_optA<st_m,8>  ( ans, mat, filter, h_bias ); break;
                 case 10: conv2_r_valid_optA<st_m,10>( ans, mat, filter, h_bias ); break;
                 case 12: conv2_r_valid_optA<st_m,12>( ans, mat, filter, h_bias ); break;
 
@@ -919,6 +921,7 @@ namespace apex_tensor{
 #if __CUDA_CONV2_USE_OPT__
             if( ans.x_max < MEM_UNIT ){ 
                 switch( ans.y_max ){
+                case 8 : conv2_r_big_filter_optA<st_m,8>( ans, mat, filter ); break;
                 case 10: conv2_r_big_filter_optA<st_m,10>( ans, mat, filter ); break;
                 case 12: conv2_r_big_filter_optA<st_m,12>( ans, mat, filter ); break;
                 default: conv2_r_big_filter_origin<st_m> ( ans, mat, filter ); break;
