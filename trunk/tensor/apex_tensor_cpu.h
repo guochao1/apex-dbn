@@ -45,10 +45,13 @@ namespace apex_tensor{
         inline CTensor1D& operator =  ( const apex_op_plan::AddPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::SubPlan  <CTensor1D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::MulPlan  <CTensor1D> &val );        
+        inline CTensor1D& operator =  ( const apex_op_plan::DotPlan  <CTensor1DSparse,CTensor2D> &val );  
+        inline CTensor1D& operator += ( const apex_op_plan::DotPlan  <CTensor1DSparse,CTensor2D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator += ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::DotRTPlan<CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator += ( const apex_op_plan::DotRTPlan<CTensor1D,CTensor2D> &val );        
+        inline CTensor1D& operator += ( const apex_op_plan::ScalePlan<CTensor1DSparse,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::ScalePlan<CTensor1D,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator += ( const apex_op_plan::ScalePlan<CTensor1D,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator -= ( const apex_op_plan::ScalePlan<CTensor1D,TENSOR_FLOAT> &val );        
@@ -94,6 +97,9 @@ namespace apex_tensor{
         inline CTensor2D& operator += ( const apex_op_plan::DotPlan  <CTensor2D,CTensor2D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::DotRTPlan<CTensor2D,CTensor2D> &val );        
         inline CTensor2D& operator += ( const apex_op_plan::DotRTPlan<CTensor2D,CTensor2D> &val );        
+        inline CTensor2D& operator =  ( const apex_op_plan::DotLTPlan<CTensor1DSparse,CTensor1D> &val );  
+        inline CTensor2D& operator += ( const apex_op_plan::DotLTPlan<CTensor1DSparse,CTensor1D> &val );        
+        inline CTensor2D& operator -= ( const apex_op_plan::DotLTPlan<CTensor1DSparse,CTensor1D> &val );        
         inline CTensor2D& operator =  ( const apex_op_plan::DotLTPlan<CTensor1D,CTensor1D> &val );        
         inline CTensor2D& operator += ( const apex_op_plan::DotLTPlan<CTensor1D,CTensor1D> &val );        
         inline CTensor2D& operator -= ( const apex_op_plan::DotLTPlan<CTensor1D,CTensor1D> &val );        
@@ -199,6 +205,18 @@ namespace apex_tensor{
     /** 
         index structure for sparse tensor
     */
+    struct CSparseIndex1D{
+        /** index for y and x dimension */
+        int *x;
+        /** length of current index */
+        unsigned int length;
+        /** allocated length of current index, maximum number of element supported*/
+        unsigned int alloc_length;
+        CSparseIndex1D(){}     
+        inline bool operator==( const CSparseIndex1D &b ) const{
+            return x == b.x && length == b.length; 
+        }
+    };
     struct CSparseIndex2D{
         /** index for y and x dimension */
         int *y, *x;
@@ -213,8 +231,16 @@ namespace apex_tensor{
         inline CSparseIndex2D & operator = ( const apex_op_plan::ClonePlan<CSparseIndex2D> &val );
     };
     /** 
-        sparse 2D tensor
+        sparse tensor
      */
+    struct CTensor1DSparse{
+        CSparseIndex1D index;
+        TENSOR_FLOAT *elem;        
+        CTensor1DSparse(){}
+
+        inline apex_op_plan::TransposePlan<CTensor1DSparse> T() const;
+    };
+
     struct CTensor2DSparse{
         CSparseIndex2D index;
         TENSOR_FLOAT  *elem;
@@ -232,7 +258,7 @@ namespace apex_tensor{
         // allocate space for index 
         void alloc_space_index( CSparseIndex2D &index ); 
         // allocate space using setting of index
-        CTensor2DSparse alloc_space_data( CSparseIndex2D index ); 
+        CTensor2DSparse alloc_space_data( CSparseIndex2D index );                 
         // free the index space 
         void free_space_index( CSparseIndex2D  &index );
         // free data space of tensor
@@ -240,21 +266,36 @@ namespace apex_tensor{
         // copy index from cpu to cpu
         void copy_index ( CSparseIndex2D &dst , const CSparseIndex2D &a );
         // copy from cpu to cpu
-        void copy_data  ( CTensor2DSparse &dst, const CTensor2DSparse &a ); 
+        void copy_data  ( CTensor2DSparse &dst, const CTensor2DSparse &a );                
     };
 
     // functions related to sparse tensor 
+    namespace tensor{
+        // dst += a * scale
+        void sadd__mul( CTensor1D &dst , const CTensor1DSparse &a, TENSOR_FLOAT val );
+        // dst = dot( a   , b );
+        void dot      ( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
+        void sadd__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
+        // dst = dot( a.T , b );
+        void dot_lt      ( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
+        void sadd__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
+        void ssub__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
+        // dst = sum( a * b );
+        TENSOR_FLOAT sum_mul( const CTensor1DSparse &a, const CTensor1D &b );        
+    };
+
     namespace tensor{
         // dst = a + b;
         void add   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b );
         // dst = a - b;
         void sub   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b );        
+        
         // dst = dot( a, b.T );
-        void dot_rt( CTensor2DSparse &dst , const CTensor2D &a      , const CTensor2D &b );
-        void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a      , const CTensor2D &b );
+        void dot_rt( CTensor2DSparse &dst , const CTensor2D &a , const CTensor2D &b );
+        void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a, const CTensor2D &b );      
         // dst = dot( W, P )
         void dot       ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );
-        void sadd__dot ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );
+        void sadd__dot ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
         // dst = dot( W.T,P )
         void dot_lt      ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
         void sadd__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
@@ -410,6 +451,11 @@ namespace apex_tensor{
         void dot_lt      ( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
+    };
+    
+    namespace tensor{
+        // ans = sum( a*b );
+        TENSOR_FLOAT sum_mul( const CTensor1D &a, const CTensor1D &b );
     };
 
     // support for error esimtation

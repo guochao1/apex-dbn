@@ -535,6 +535,15 @@ namespace apex_tensor{
  
     };
 
+    namespace tensor{
+        TENSOR_FLOAT sum_mul( const CTensor1D &a, const CTensor1D &b ){
+            TENSOR_FLOAT ans = 0;
+            for( int i = 0; i < a.x_max; i ++ )
+                ans += a[ i ] * b[ i ];
+            return ans;
+        }        
+    };
+
     // support for CRBM
     namespace tensor{
         namespace store_method{
@@ -850,10 +859,10 @@ namespace apex_tensor{
             }
         }
         void dot_rt( CTensor2DSparse &dst , const CTensor2D &a , const CTensor2D &b ){
-            dot_rt_template<store_method::SAVE>( dst, a, b);
+            dot_rt_template<store_method::SAVE>( dst, a, b );
         }
-        void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a      , const CTensor2D &b ){
-            dot_rt_template<store_method::ADD>( dst, a, b);
+        void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a, const CTensor2D &b ){
+            dot_rt_template<store_method::ADD> ( dst, a, b );
         }
         
         template<int st_m>
@@ -871,7 +880,8 @@ namespace apex_tensor{
 
         // dst = dot( W, P )
         void dot( CTensor2D &dst, const CTensor2DSparse &W, const CTensor2D &P ){
-            dot_template<store_method::SAVE>( dst, W, P );
+            dst = 0;
+            dot_template<store_method::ADD>( dst, W, P );
         }
         void sadd__dot ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
             dot_template<store_method::ADD>( dst, W, P );
@@ -892,13 +902,65 @@ namespace apex_tensor{
 
         // dst = dot( W.T,P )
         void dot_lt      ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
-            dot_lt_template<store_method::SAVE>( dst, W, P );
+            dst = 0;
+            dot_lt_template<store_method::ADD>( dst, W, P );
         }        
         void sadd__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
             dot_lt_template<store_method::ADD>( dst, W, P );
         }        
         void ssub__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P ){
             dot_lt_template<store_method::SUB>( dst, W, P );
+        }        
+    };
+
+    namespace tensor{
+        void sadd__mul( CTensor1D &dst , const CTensor1DSparse &a, TENSOR_FLOAT val ){
+            for( unsigned int i = 0 ; i < a.index.length ; i ++ )
+                dst[ a.index.x[i] ] += a.elem[i];
+        }
+                
+        template<int st_m>
+        inline void dot_template( CTensor1D &dst , const CTensor1DSparse &W, const CTensor2D &b ){
+            for( int x = 0; x < b.x_max ; x ++ ){
+                TENSOR_FLOAT ans = 0;
+                for( unsigned int i = 0; i < W.index.length; i ++ ){
+                    int y = W.index.x[i];
+                    ans += W.elem[i] * b[ y ][ x ];
+                }
+                store_method::__store<st_m>( dst[x], ans );
+            }
+        }
+        void dot   ( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b ){
+            dot_template<store_method::SAVE>( dst, a, b );
+        }
+        void sadd__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b ){
+            dot_template<store_method::ADD>( dst, a, b );
+        }
+        
+        template<int st_m>
+        inline void dot_lt_template( CTensor2D &dst , const CTensor1DSparse &W, const CTensor1D &b ){
+            for( unsigned int i = 0; i < W.index.length; i ++ ){
+                int y = W.index.x[i];
+                for( int x = 0 ; x < b.x_max ; x ++ )
+                    store_method::__store<st_m>( dst[y][x], W.elem[i]*b[x] );                                
+            }
+        }
+        void dot_lt      ( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b ){
+            dst = 0;
+            dot_lt_template<store_method::ADD>( dst, a, b );
+        }
+        void sadd__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b ){
+            dot_lt_template<store_method::ADD>( dst, a, b );
+        }
+        void ssub__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b ){
+            dot_lt_template<store_method::SUB>( dst, a, b );
+        }
+        // dst = sum( a * b );
+        TENSOR_FLOAT sum_mul( const CTensor1DSparse &a, const CTensor1D &b ){
+            TENSOR_FLOAT ans = 0;
+            for( unsigned int i = 0; i < a.index.length; i ++ )
+                ans += a.elem[i] * b[ a.index.x[i] ];
+            return ans;
         }        
     };
 };
