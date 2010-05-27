@@ -3,7 +3,7 @@
 
 #include "apex_op_plan.h"
 #include "apex_tensor.h"
-
+#include <vector>
 // data structure for tensor
 namespace apex_tensor{
     struct CTensor1D{
@@ -234,8 +234,8 @@ namespace apex_tensor{
         sparse tensor
      */
     struct CTensor1DSparse{
-        CSparseIndex1D index;
-        TENSOR_FLOAT *elem;        
+        CSparseIndex1D  index;
+        TENSOR_FLOAT   *elem;        
         CTensor1DSparse(){}
 
         inline apex_op_plan::TransposePlan<CTensor1DSparse> T() const;
@@ -271,6 +271,10 @@ namespace apex_tensor{
 
     // functions related to sparse tensor 
     namespace tensor{
+        // free space 
+        void free_space( CTensor1DSparse &sps );
+        // create sparse matrix by vector
+        CTensor1DSparse create_sparse( const std::vector<int> &idx, const std::vector<TENSOR_FLOAT> &vals );
         // dst += a * scale
         void sadd__mul( CTensor1D &dst , const CTensor1DSparse &a, TENSOR_FLOAT val );
         // dst = dot( a   , b );
