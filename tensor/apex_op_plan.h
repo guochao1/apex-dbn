@@ -114,6 +114,9 @@ namespace apex_op_plan{
     inline apex_op_plan::ScalePlan<T,TV> operator*( const T &a, TV scale ){ \
         return apex_op_plan::ScalePlan<T,TV>( &a, scale );              \
     }                                                                   \
+    inline apex_op_plan::ScalePlan<T,TV> operator*( TV scale, const T &a ){ \
+        return apex_op_plan::ScalePlan<T,TV>( &a, scale );              \
+    }                                                                   \
         
     template<typename TA,typename TB>
     struct DotPlan{

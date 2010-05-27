@@ -249,10 +249,6 @@ namespace apex_tensor{
     APEX_EVAL_DOT_RT_PLAN( TT1D, TT1D, TT2D )
     APEX_EVAL_DOT_RT_PLAN( TT2D, TT2D, TT2D )
     
-    APEX_EVAL_DOT_PLAN   ( TT2D, TT2DS, TT2D  )
-    APEX_EVAL_DOT_RT_PLAN( TT2DS, TT2D, TT2D  )
-    APEX_EVAL_DOT_LT_PLAN( TT2D , TT2DS, TT2D )
-
     
 #define APEX_EVAL_CLONE_PLAN_1D(T,plan,op)                              \
     inline TT1D& TT1D::operator= ( const apex_op_plan::plan<T> &val ){  \
@@ -340,6 +336,7 @@ namespace apex_tensor{
     }                                                                   
 };
 
+
 namespace apex_tensor{
     inline TSIDX2D& TSIDX2D::operator=( const apex_op_plan::ClonePlan<CSparseIndex2D> &val ){
         this->length = (val.a)->length;
@@ -354,9 +351,27 @@ namespace apex_tensor{
 namespace apex_tensor{    
     APEX_ADD_SUPPORT_CLONE_OP    ( TSIDX2D )
     APEX_ADD_SUPPORT_TRANSPOSE_OP( TT2DS )
+    APEX_ADD_SUPPORT_TRANSPOSE_OP( TT1DS )
     APEX_ADD_SUPPORT_DOT_LT_OP   ( TT2DS, TT2D )
     APEX_ADD_SUPPORT_DOT_OP      ( TT2DS, TT2D ) 
-
+    APEX_ADD_SUPPORT_DOT_LT_OP   ( TT1DS, TT1D )
+    APEX_ADD_SUPPORT_DOT_OP      ( TT1DS, TT2D )
+    APEX_ADD_SUPPORT_SCALE_OP    ( TT1DS, TENSOR_FLOAT )
     APEX_ADD_SUPPORT_SUB_OP      ( TT2DS )
     APEX_EVAL_SUB_PLAN           ( TT2DS )    
 };
+
+namespace apex_tensor{
+    inline TT1D& TT1D::operator+= ( const apex_op_plan::ScalePlan<TT1DS,TENSOR_FLOAT> &val ){
+        tensor::sadd__mul( *this, *(val.a), val.scale );                      
+        return *this;                                                   
+    }                                                                       
+};
+namespace apex_tensor{
+    APEX_EVAL_DOT_PLAN   ( TT1D, TT1DS, TT2D  )
+    APEX_EVAL_DOT_PLAN   ( TT2D, TT2DS, TT2D  )
+    APEX_EVAL_DOT_RT_PLAN( TT2DS, TT2D, TT2D  )
+    APEX_EVAL_DOT_LT_PLAN( TT2D , TT1DS, TT1D )
+    APEX_EVAL_DOT_LT_PLAN( TT2D , TT2DS, TT2D )    
+};
+

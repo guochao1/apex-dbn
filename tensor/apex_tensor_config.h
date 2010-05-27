@@ -25,5 +25,9 @@
 //option to open debug for cuda_rand 
 //#define __DEBUG_CUDA_RAND__   
 
+// accuracy of tensor float
+namespace apex_tensor{
+    typedef float TENSOR_FLOAT;
+};
 #endif
 

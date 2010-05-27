@@ -39,10 +39,13 @@ namespace apex_tensor{
         inline GTensor1D& operator =  ( const apex_op_plan::AddPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::SubPlan <GTensor1D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::MulPlan <GTensor1D> &val );        
+        inline GTensor1D& operator += ( const apex_op_plan::DotPlan  <GTensor1DSparse,GTensor2D> &val );        
+        inline GTensor1D& operator =  ( const apex_op_plan::DotPlan  <GTensor1DSparse,GTensor2D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator += ( const apex_op_plan::DotPlan  <GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::DotRTPlan<GTensor1D,GTensor2D> &val );        
         inline GTensor1D& operator += ( const apex_op_plan::DotRTPlan<GTensor1D,GTensor2D> &val );        
+        inline GTensor1D& operator += ( const apex_op_plan::ScalePlan<GTensor1DSparse,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator =  ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator += ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
         inline GTensor1D& operator -= ( const apex_op_plan::ScalePlan<GTensor1D,TENSOR_FLOAT> &val );        
@@ -89,8 +92,11 @@ namespace apex_tensor{
         inline GTensor2D& operator += ( const apex_op_plan::DotPlan  <GTensor2D,GTensor2D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::DotRTPlan<GTensor2D,GTensor2D> &val );        
         inline GTensor2D& operator += ( const apex_op_plan::DotRTPlan<GTensor2D,GTensor2D> &val );        
+        inline GTensor2D& operator =  ( const apex_op_plan::DotLTPlan<GTensor1DSparse,GTensor1D> &val );  
+        inline GTensor2D& operator += ( const apex_op_plan::DotLTPlan<GTensor1DSparse,GTensor1D> &val );        
+        inline GTensor2D& operator -= ( const apex_op_plan::DotLTPlan<GTensor1DSparse,GTensor1D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
-        inline GTensor2D& operator += ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
+        inline GTensor2D& operator += ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );                
         inline GTensor2D& operator -= ( const apex_op_plan::DotLTPlan<GTensor1D,GTensor1D> &val );        
         inline GTensor2D& operator =  ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator += ( const apex_op_plan::ScalePlan<GTensor2D,TENSOR_FLOAT> &val );        
@@ -197,6 +203,18 @@ namespace apex_tensor{
     /** 
         index structure for sparse tensor
     */
+    struct GSparseIndex1D{
+        /** index for y and x dimension */
+        int *x;
+        /** length of current index */
+        unsigned int length;
+        /** allocated length of current index, maximum number of element supported*/
+        unsigned int alloc_length;
+        GSparseIndex1D(){}     
+        inline bool operator==( const CSparseIndex1D &b ) const{
+            return x == b.x && length == b.length; 
+        }
+    };
     struct GSparseIndex2D{
         /** index for y and x dimension */
         int *y, *x;
@@ -208,8 +226,15 @@ namespace apex_tensor{
         inline GSparseIndex2D & operator = ( const apex_op_plan::ClonePlan<CSparseIndex2D> &val );
     };
     /** 
-        sparse 2D tensor
+        sparse tensor
      */
+    struct GTensor1DSparse{
+        GSparseIndex1D index;
+        TENSOR_FLOAT *elem;        
+        GTensor1DSparse(){}
+
+        inline apex_op_plan::TransposePlan<GTensor1DSparse> T() const;
+    };
     struct GTensor2DSparse{
         GSparseIndex2D index;
         TENSOR_FLOAT  *elem;
@@ -240,7 +265,21 @@ namespace apex_tensor{
         // copy from gpu to cpu
         void copy_data  ( CTensor2DSparse &dst, const GTensor2DSparse &a ); 
     };
-
+    
+    namespace tensor{
+        // dst += a * scale
+        void sadd__mul( GTensor1D &dst , const GTensor1DSparse &a, TENSOR_FLOAT val );
+        // dst = dot( a   , b );
+        void dot   ( GTensor1D &dst, const GTensor1DSparse &a, const GTensor2D &b );
+        void sadd__dot   ( GTensor1D &dst, const GTensor1DSparse &a, const GTensor2D &b );
+        // dst = dot( a.T , b )
+        void dot_lt( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b );        
+        void sadd__dot_lt( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b );        
+        void ssub__dot_lt( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b );        
+        // dst = sum( a * b );
+        TENSOR_FLOAT sum_mul( const GTensor1DSparse &a, const GTensor1D &b );        
+    };
+    
     namespace tensor{
         // dst = a + b;
         void add   ( GTensor2DSparse &dst , const GTensor2DSparse &a, const GTensor2DSparse &b );
