@@ -410,9 +410,9 @@ namespace apex_rbm{
 				if( param.v_average ){
                     // use average method to update visible bias
                     float eta_v = param.learning_rate /(param.batch_size*vv_size);
-                    v_bias += ( d_v_bias-= v_bias*param.wd_v ) * eta_v;
+                    v_bias += ( d_v_bias-= v_bias*param.wd_v ) * ( eta_v * param.v_learning_rate );
                 }else{
-                    v_bias += ( d_v_bias-= v_bias*param.wd_v ) * eta;
+                    v_bias += ( d_v_bias-= v_bias*param.wd_v ) * ( eta * param.v_learning_rate );
                 }
                 d_v_bias *= param.momentum;
             }
