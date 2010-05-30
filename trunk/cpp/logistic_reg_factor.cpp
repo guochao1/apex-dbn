@@ -10,6 +10,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdlib>
+#include <cmath>
 
 using namespace std;
 using namespace apex_tensor;
@@ -25,6 +26,8 @@ struct LogRegParam{
     int   print_step;
     int   dump_step;
 
+	int   use_csv;
+		
     int   num_factor;
     
     int   num_user_f;
@@ -40,7 +43,7 @@ struct LogRegParam{
     
     LogRegParam(){
         learning_rate_B = learning_rate_bias = learning_rate = 0.01f;
-        wd_B = wd = 1.0f; momentum = 0.5f;
+        wd_B = wd = 1.0f; momentum = 0.5f; use_csv = 0;
         q_init_sigma = 0.001f; 
         p_init_sigma = 0.001f;
         b_init_sigma = 0.0f;
@@ -66,6 +69,7 @@ struct LogRegParam{
         if( !strcmp( name,"p_init_sigma") )  p_init_sigma = (float)atof( val );
         if( !strcmp( name,"b_init_sigma") )  b_init_sigma = (float)atof( val );        
         if( !strcmp( name,"num_iter") )      num_iter = atoi( val );
+		if( !strcmp( name,"use_csv") )       use_csv  = atoi( val );
         if( !strcmp( name,"batch_size") )    batch_size = atoi( val );
         if( !strcmp( name,"print_step") )    print_step = atoi( val );
         if( !strcmp( name,"dump_step") )     dump_step = atoi( val );
@@ -145,17 +149,17 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
             // calculate energy
             TENSOR_FLOAT energy = tensor::sum_mul( prjP, prjQ ) + tensor::sum_mul( global_f[i], B ) + bias;
             TENSOR_FLOAT pred   = sigmoid( energy * rank[i] );
+            TENSOR_FLOAT diff   = (1-pred) * rank[i];
+			// calculate update
+            prjQ *= diff;  
+            prjP *= diff;
 
-            // calculate update
-            prjQ *= ( 1 - pred );  
-            prjP *= ( 1 - pred );
-            
-            dQ +=  dot( user_f[i].T(), prjP );
+			dQ +=  dot( user_f[i].T(), prjP );
             dP +=  dot( item_f[i].T(), prjQ );
-            dB +=  global_f[i] * ( 1 - pred );
-            dbias += 1 - pred;
+            dB +=  global_f[i] * diff;
+            dbias += diff;
             
-            sum_likelihood      += pred;
+            sum_likelihood      += log( pred );
 
             if( ++ sample_counter % param.batch_size == 0 ){
                 // update parameter 
@@ -186,12 +190,12 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
     tensor::free_space( dB );    
 }
 
-inline void load_data( vector<CTensor1DSparse> &feature, const char *fname ){
+inline void load_data( vector<CTensor1DSparse> &feature, const char *fname, int max_idx ){
     FILE *fi = apex_utils::fopen_check( fname, "r" );
     int x,y,lastx = -1;
     float v;
     vector<int>   idx;
-    vector<float> vals;
+    vector<TENSOR_FLOAT> vals;
     
     while( fscanf( fi, "%d%d%f",&x,&y,&v ) == 3 ){
         if( x != lastx ){
@@ -201,7 +205,10 @@ inline void load_data( vector<CTensor1DSparse> &feature, const char *fname ){
             }
             idx.clear(); vals.clear();
         }
-        idx.push_back( y-1 );
+        if( y > max_idx )
+			apex_utils::error("input exceed max index allowed");
+		
+		idx.push_back( y-1 );
         vals.push_back( v );
     }
     if( idx.size() > 0 ){
@@ -212,10 +219,49 @@ inline void load_data( vector<CTensor1DSparse> &feature, const char *fname ){
     fclose( fi );
 } 
  
+inline void load_data_csv( vector<CTensor1DSparse> &feature, const char *fname, int max_idx  ){
+    FILE *fi = apex_utils::fopen_check( fname, "r" );
+    int x,y,lastx = -1;
+    float v;
+    vector<int>   idx;
+    vector<TENSOR_FLOAT> vals;
+
+    fscanf( fi,"%*[^\n]\n" );
+    while( fscanf( fi, "%d,%d,%f\n",&x,&y,&v ) == 3 ){
+        if( x != lastx ){
+            lastx = x; 
+            if( idx.size() > 0 ){
+                feature.push_back( tensor::create_sparse( idx, vals ) );
+            }
+            idx.clear(); vals.clear();
+        }
+		if( y > max_idx )
+			apex_utils::error("input exceed max index allowed");
+        idx.push_back( y-1 );
+        vals.push_back( v );
+    }
+    if( idx.size() > 0 ){
+        feature.push_back( tensor::create_sparse( idx, vals ) );
+    }
+    idx.clear(); vals.clear();
+    
+    fclose( fi );
+} 
+
 inline void load_data( vector<int> &rank, const char *fname ){
     int r;
     FILE *fi = apex_utils::fopen_check( fname, "r" );    
     while( fscanf( fi, "%d",&r ) == 1 ){
+        rank.push_back( r == 0 ? -1: r );
+    }
+    fclose( fi );
+}
+
+inline void load_data_csv( vector<int> &rank, const char *fname ){
+    int r;
+    FILE *fi = apex_utils::fopen_check( fname, "r" );    
+    fscanf( fi,"%*[^\n]\n" );
+    while( fscanf( fi, "%*d,%d",&r ) == 1 ){
         rank.push_back( r == 0 ? -1: r );
     }
     fclose( fi );
@@ -247,11 +293,18 @@ inline void train_proc( const LogRegParam &param ){
     vector<int> rank;
     vector<CTensor1DSparse> user_f,item_f,global_f;
 
-    load_data( rank    , param.name_rank );
-    load_data( user_f  , param.name_user_f );
-    load_data( item_f  , param.name_item_f );
-    load_data( global_f, param.name_global_f );
-    if( user_f.size() != rank.size()  ||
+	if( param.use_csv ){
+		load_data_csv( rank    , param.name_rank );
+		load_data_csv( user_f  , param.name_user_f, param.num_user_f );
+		load_data_csv( item_f  , param.name_item_f, param.num_item_f );
+		load_data_csv( global_f, param.name_global_f, param.num_global_f );
+	}else{
+		load_data( rank    , param.name_rank );
+		load_data( user_f  , param.name_user_f, param.num_user_f );
+		load_data( item_f  , param.name_item_f, param.num_item_f );
+		load_data( global_f, param.name_global_f, param.num_global_f );
+	}
+	if( user_f.size() != rank.size()  ||
         user_f.size() != item_f.size()||
         user_f.size() != global_f.size() ){
         apex_utils::error("feature number not matched\n");
