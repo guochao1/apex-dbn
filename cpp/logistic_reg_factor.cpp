@@ -186,7 +186,8 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
 
         if( (iter+1) % param.dump_step == 0 )
             save_model( (iter+1)/param.dump_step , param, Q, P, B, bias );
-        sum_likelihood = 0;                
+        sum_rmse       = 0;
+        sum_likelihood = 0;                        
     }
     
     tensor::free_space( prjQ );
