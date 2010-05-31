@@ -251,7 +251,7 @@ inline void load_data_csv( vector<CTensor1DSparse> &feature, const char *fname, 
 inline void load_data( vector<int> &rank, const char *fname ){
     int r;
     FILE *fi = apex_utils::fopen_check( fname, "r" );    
-    while( fscanf( fi, "%d",&r ) == 1 ){
+    while( fscanf( fi, "%*d%d",&r ) == 1 ){
         rank.push_back( r == 0 ? -1: r );
     }
     fclose( fi );
