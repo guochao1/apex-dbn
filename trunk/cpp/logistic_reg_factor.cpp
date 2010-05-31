@@ -138,8 +138,9 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
     
     dQ = 0; dP = 0; dB = 0;
     
+    TENSOR_FLOAT sum_rmse = 0;
     TENSOR_FLOAT sum_likelihood = 0;    
-    
+
     for( int iter = 0 ; iter < param.num_iter ; iter++ ){
         for( size_t i = 0 ; i < rank.size() ; i ++ ){
             // prjQ,P : 1 * k
@@ -159,6 +160,7 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
             dB +=  global_f[i] * diff;
             dbias += diff;
             
+            sum_rmse            += (1-pred)*(1-pred);
             sum_likelihood      += log( pred );
 
             if( ++ sample_counter % param.batch_size == 0 ){
@@ -177,7 +179,11 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
             }                        
         }
         if( (iter+1) % param.print_step == 0 )
-            printf("%d iter, likelihood=%lf\n", iter, (double)sum_likelihood/rank.size() );
+            printf("%d iter, likelihood=%lf, RMSE=%lf\n", 
+                   iter, 
+                   (double)sum_likelihood/rank.size(),
+                   (double)sum_rmse/rank.size() );
+
         if( (iter+1) % param.dump_step == 0 )
             save_model( (iter+1)/param.dump_step , param, Q, P, B, bias );
         sum_likelihood = 0;                
