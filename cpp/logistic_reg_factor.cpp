@@ -182,7 +182,7 @@ inline void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSO
             printf("%d iter, likelihood=%lf, RMSE=%lf\n", 
                    iter, 
                    (double)sum_likelihood/rank.size(),
-                   (double)sum_rmse/rank.size() );
+                   sqrt((double)sum_rmse/rank.size()) );
 
         if( (iter+1) % param.dump_step == 0 )
             save_model( (iter+1)/param.dump_step , param, Q, P, B, bias );
