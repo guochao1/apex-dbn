@@ -953,6 +953,9 @@ namespace apex_tensor{
         void sadd__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b ){
             dot_template<store_method::ADD>( dst, a, b );
         }
+        void ssub__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b ){
+            dot_template<store_method::SUB>( dst, a, b );
+        }
         
         template<int st_m>
         inline void dot_template_scale( CTensor1D &dst , const CTensor1DSparse &W, const CTensor2D &b, TENSOR_FLOAT scale ){

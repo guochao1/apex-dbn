@@ -380,6 +380,11 @@ namespace apex_tensor{
         tensor::ssub__dot_scale( *this, *((val.a)->a), *((val.a)->b),  val.scale );                      
         return *this;                                                   
     }                                                                       
+
+    inline TT1D& TT1D::operator-= ( const apex_op_plan::DotPlan<TT1DS,TT2D> &val ){ 
+        tensor::ssub__dot( *this, *(val.a), *(val.b) );                 
+        return *this;                                                   
+    }                                                                   
 };
 namespace apex_tensor{
     APEX_EVAL_DOT_PLAN   ( TT1D, TT1DS, TT2D  )
