@@ -181,11 +181,11 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
                 prjQ = 0;
                 // backward procedure to calculate update                
                 for( int j = ((int)i)-1; j >= 0 && uid[j] == last_uid ; j -- ){                    
+                    // accumulate profile in prjQ
+                    prjQ += diff[j] * prjQ_profile;
+                    
                     if( update_profile[j] ){
-                        // accumulate profile in prjQ
-                        prjQ += diff[j] * prjQ_profile;
                         dQ_profile += dot( user_profile[j].T(), prjQ ); 
-
                         // recover previous profile
                         prjQ_profile -= dot( user_profile[j] , Q_profile );
                         prjQ_profile *= alpha;
