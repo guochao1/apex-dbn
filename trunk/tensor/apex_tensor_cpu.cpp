@@ -955,6 +955,21 @@ namespace apex_tensor{
         }
         
         template<int st_m>
+        inline void dot_template_scale( CTensor1D &dst , const CTensor1DSparse &W, const CTensor2D &b, TENSOR_FLOAT scale ){
+            for( int x = 0; x < b.x_max ; x ++ ){
+                TENSOR_FLOAT ans = 0;
+                for( unsigned int i = 0; i < W.index.length; i ++ ){
+                    int y = W.index.x[ i ];
+                    ans += W.elem[ i ] * b[ y ][ x ];
+                }
+                store_method::__store<st_m>( dst[x], ans*scale );
+            }
+        }
+        void ssub__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale ){
+            dot_template_scale<store_method::SUB>( dst, a, b, scale );
+        }
+        
+        template<int st_m>
         inline void dot_lt_template( CTensor2D &dst , const CTensor1DSparse &W, const CTensor1D &b ){
             for( unsigned int i = 0; i < W.index.length; i ++ ){
                 int y = W.index.x[i];

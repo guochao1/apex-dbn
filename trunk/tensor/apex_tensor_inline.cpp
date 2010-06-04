@@ -360,17 +360,24 @@ namespace apex_tensor{
     APEX_ADD_SUPPORT_SUB_OP      ( TT2DS )
     APEX_EVAL_SUB_PLAN           ( TT2DS )    
 
+    APEX_ADD_SUPPORT_SCALE_DOT_OP    ( TT1DS, TT2D, TENSOR_FLOAT )
     APEX_ADD_SUPPORT_SCALE_DOT_LT_OP ( TT1DS, TT1D, TENSOR_FLOAT )
+
 };
 
 namespace apex_tensor{
     inline TT1D& TT1D::operator+= ( const apex_op_plan::ScalePlan<TT1DS,TENSOR_FLOAT> &val ){
         tensor::sadd__mul( *this, *(val.a), val.scale );                      
         return *this;                                                   
-    }                                                                       
+    }                                                                               
 
     inline TT2D& TT2D::operator+= ( const apex_op_plan::ScalePlan<apex_op_plan::DotLTPlan<TT1DS,TT1D>,TENSOR_FLOAT> &val ){
         tensor::sadd__dot_lt_scale( *this, *((val.a)->a), *((val.a)->b),  val.scale );                      
+        return *this;                                                   
+    }                                                                       
+
+    inline TT1D& TT1D::operator-= ( const apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TT1DS,TT2D>,TENSOR_FLOAT> &val ){
+        tensor::ssub__dot_scale( *this, *((val.a)->a), *((val.a)->b),  val.scale );                      
         return *this;                                                   
     }                                                                       
 };

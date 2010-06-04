@@ -153,6 +153,10 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
     int num_factor = Q.x_max;    
     CTensor1D prjQ(num_factor), prjP(num_factor),prjQ_profile(num_factor);
 
+    // reserve space
+    vector<TENSOR_FLOAT> diff;
+    diff.resize( rank.size() );
+    
     dQ         = alloc_like( Q );
     dQ_profile = alloc_like( Q_profile );
     dP = alloc_like( P );
@@ -169,8 +173,16 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
 
     for( int iter = 0 ; iter < param.num_iter ; iter++ ){
         for( size_t i = 0 ; i < rank.size() ; i ++ ){
-            // encounter a new user 
+
+            // encounter a new user, start backward procedure 
             if( uid[i] != last_uid ){
+                TENSOR_FLOAT alpha = 1 / ( 1-param.profile_decay );
+                // backward procedure to calculate update
+                for( int j = ((int)i)-1; j >= 0 && uid[j] == last_uid ; j -- ){                    
+                    dQ_profile += diff[j] * dot( user_profile[j].T(), prjQ_profile ); 
+                    prjQ_profile *= ( 1+alpha );
+                    prjQ_profile -= alpha * dot( user_profile[j] , Q_profile ); 
+                }
                 prjQ_profile = 0;
             }
 
@@ -178,7 +190,7 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
             prjQ = dot( user_f[i], Q );
             prjP = dot( item_f[i], P );            
             
-            // we accumulate user profile in history
+            // we accumulate user profile in history: forward procedure
             if( update_profile[i] ){
                 prjQ_profile *= (1-param.profile_decay);
                 prjQ_profile += dot( user_profile[i] , Q_profile );            
@@ -190,15 +202,14 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
                                   tensor::sum_mul( prjP, prjQ_profile );
             // give prediction
             TENSOR_FLOAT pred   = sigmoid( energy * rank[i] );
-            TENSOR_FLOAT diff   = (1-pred) * rank[i];
-			// calculate update
+            // buffer prediction
+            diff[i]   = (1-pred) * rank[i];
 
-			dQ +=  diff * dot( user_f[i].T(), prjP );
-            dP +=  diff * dot( item_f[i].T(), prjQ );
-            dB +=  global_f[i] * diff;
-            // update of profile
-            dQ_profile += diff * dot( user_profile[i].T(), prjQ_profile ); 
-            dbias += diff;
+			// calculate update
+			dQ +=  diff[i] * dot( user_f[i].T(), prjP );
+            dP +=  diff[i] * dot( item_f[i].T(), prjQ );
+            dB +=  global_f[i] * diff[i];
+            dbias += diff[i];
             
             sum_rmse            += (1-pred)*(1-pred);
             sum_likelihood      += log( pred );
@@ -219,11 +230,11 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
                     
                     bias += dbias * param.learning_rate_bias / sample_counter;
                     
-                    
                     dQ *= param.momentum; 
                     dP *= param.momentum; 
                     dB *= param.momentum; 
                     dbias *= param.momentum;
+                    dQ_profile *= param.momentum;
                     sample_counter = 0; 
                 }                        
             }

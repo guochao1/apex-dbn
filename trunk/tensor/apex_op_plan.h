@@ -117,6 +117,14 @@ namespace apex_op_plan{
     inline apex_op_plan::ScalePlan<T,TV> operator*( TV scale, const T &a ){ \
         return apex_op_plan::ScalePlan<T,TV>( &a, scale );              \
     }                                                                   \
+
+#define APEX_ADD_SUPPORT_SCALE_DOT_OP(TA,TB,TV)                         \
+    inline apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TA,TB> ,TV> operator*( const apex_op_plan::DotPlan<TA,TB> &a, TV scale ){ \
+        return apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TA,TB> ,TV>( &a, scale ); \
+    }                                                                   \
+    inline apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TA,TB> ,TV> operator*( TV scale, const apex_op_plan::DotPlan<TA,TB> &a ){ \
+        return apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TA,TB> ,TV>( &a, scale ); \
+    }                                                                   \
         
 #define APEX_ADD_SUPPORT_SCALE_DOT_LT_OP(TA,TB,TV)                      \
     inline apex_op_plan::ScalePlan<apex_op_plan::DotLTPlan<TA,TB> ,TV> operator*( const apex_op_plan::DotLTPlan<TA,TB> &a, TV scale ){ \
@@ -125,6 +133,8 @@ namespace apex_op_plan{
     inline apex_op_plan::ScalePlan<apex_op_plan::DotLTPlan<TA,TB> ,TV> operator*( TV scale, const apex_op_plan::DotLTPlan<TA,TB> &a ){ \
         return apex_op_plan::ScalePlan<apex_op_plan::DotLTPlan<TA,TB> ,TV>( &a, scale ); \
     }                                                                   \
+
+
 
     template<typename TA,typename TB>
     struct DotPlan{
