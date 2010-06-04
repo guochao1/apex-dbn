@@ -48,6 +48,7 @@ namespace apex_tensor{
         inline CTensor1D& operator =  ( const apex_op_plan::DotPlan  <CTensor1DSparse,CTensor2D> &val );  
         inline CTensor1D& operator += ( const apex_op_plan::DotPlan  <CTensor1DSparse,CTensor2D> &val );        
         inline CTensor1D& operator -= ( const apex_op_plan::DotPlan  <CTensor1DSparse,CTensor2D> &val );        
+        inline CTensor1D& operator += ( const apex_op_plan::ScalePlan<apex_op_plan::DotPlan<CTensor1DSparse,CTensor2D>,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator -= ( const apex_op_plan::ScalePlan<apex_op_plan::DotPlan<CTensor1DSparse,CTensor2D>,TENSOR_FLOAT> &val );        
         inline CTensor1D& operator =  ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
         inline CTensor1D& operator += ( const apex_op_plan::DotPlan  <CTensor1D,CTensor2D> &val );        
@@ -286,6 +287,7 @@ namespace apex_tensor{
         void sadd__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
         void ssub__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
         // dst-= scale * dot( a, b );
+        void sadd__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale );
         void ssub__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale );
         // dst = dot( a.T , b );
         void dot_lt      ( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        

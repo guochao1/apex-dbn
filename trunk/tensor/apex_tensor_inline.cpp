@@ -376,6 +376,10 @@ namespace apex_tensor{
         return *this;                                                   
     }                                                                       
 
+    inline TT1D& TT1D::operator+= ( const apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TT1DS,TT2D>,TENSOR_FLOAT> &val ){
+        tensor::sadd__dot_scale( *this, *((val.a)->a), *((val.a)->b),  val.scale );                      
+        return *this;                                                   
+    }                                                                       
     inline TT1D& TT1D::operator-= ( const apex_op_plan::ScalePlan<apex_op_plan::DotPlan<TT1DS,TT2D>,TENSOR_FLOAT> &val ){
         tensor::ssub__dot_scale( *this, *((val.a)->a), *((val.a)->b),  val.scale );                      
         return *this;                                                   

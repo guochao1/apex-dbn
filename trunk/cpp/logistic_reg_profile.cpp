@@ -176,20 +176,18 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
 
             // encounter a new user, start backward procedure 
             if( uid[i] != last_uid ){
-                TENSOR_FLOAT alpha = 1 / ( 1-param.profile_decay );
                 // initialize prjQ 
-                prjQ = 0;
+                prjQ_profile = 0;
                 int j_start = (int)( i==0 ? rank.size()-1 : i-1 );
                 // backward procedure to calculate update                
                 for( int j = j_start; j >= 0 && uid[j] == last_uid ; j -- ){                    
                     // accumulate profile in prjQ
-                    prjQ += diff[j] * prjQ_profile;
+                    prjQ_profile += diff[j] * dot( item_f[j], P );
                     
                     if( update_profile[j] ){
-                        dQ_profile += dot( user_profile[j].T(), prjQ ); 
+                        dQ_profile += dot( user_profile[j].T(), prjQ_profile ); 
                         // recover previous profile
-                        prjQ_profile -= dot( user_profile[j] , Q_profile );
-                        prjQ_profile *= alpha;
+                        prjQ_profile *= (1-param.profile_decay);
                     }
                 }
                 prjQ_profile = 0;
@@ -238,6 +236,7 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
 			// calculate update
 			dQ +=  diff[i] * dot( user_f[i].T(), prjP );
             dP +=  diff[i] * dot( item_f[i].T(), prjQ );
+            dP +=  diff[i] * dot( item_f[i].T(), prjQ_profile );
             dB +=  global_f[i] * diff[i];
             dbias += diff[i];
             

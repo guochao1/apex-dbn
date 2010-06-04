@@ -34,16 +34,16 @@ int main( void ){
         test_pool_up( NUM_ITER );
           test_add_sparse_info( NUM_ITER );
     //    test_sample_maxpooling_2D( NUM_ITER, NUM_SAMPLE );
-    //    test_sum_2D( NUM_ITER );
-    //test_sum_2DX( NUM_ITER );        
-    //test_conv2_r_valid( NUM_ITER );
+  test_sum_2D( NUM_ITER );
+  test_sum_2DX( NUM_ITER );        
+    test_conv2_r_valid( NUM_ITER );
     
-    //    test_conv2_full( NUM_ITER );
-    //test_conv2_r_valid( NUM_ITER );
-    //    test_conv2_r_big_filter( NUM_ITER );
+    test_conv2_full( NUM_ITER );
+    test_conv2_r_valid( NUM_ITER );
+    test_conv2_r_big_filter( NUM_ITER );
        //    test_gaussian( NUM_ITER ); 
-       //	test_refill_edge_area( NUM_ITER );
-       //    test_sadd__scale( NUM_ITER );
+     	test_refill_edge_area( NUM_ITER );
+       test_sadd__scale( NUM_ITER );
     /*
 	
 
