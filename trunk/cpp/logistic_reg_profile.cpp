@@ -88,7 +88,7 @@ struct LogRegParam{
         if( !strcmp( name,"file_global_f") ) strcpy( name_global_f, val );
         if( !strcmp( name,"file_rank") )     strcpy( name_rank, val );
 
-        if( !strcmp( name,"profile_decay") )        (float)profile_decay = atof( val );
+        if( !strcmp( name,"profile_decay") )        profile_decay = (float)atof( val );
         if( !strcmp( name,"num_user_profile") )     num_user_profile = atoi( val );
         if( !strcmp( name,"file_user_profile") )    strcpy( name_user_profile, val );
         if( !strcmp( name,"qprofile_init_sigma") )  qprofile_init_sigma = (float)atof( val );
