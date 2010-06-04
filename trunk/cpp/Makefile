@@ -7,7 +7,7 @@ endif
 
 INSTALL_DIR := ../../bin
 
-BIN:= crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor logistic_reg_factor
+BIN:= crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor logistic_reg_factor logistic_reg_profile
 
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
@@ -17,6 +17,8 @@ CRBM_DIR:=$(PRJ_DIR)/crbm
 CFRBM_DIR:=$(PRJ_DIR)/cfrbm
 
 CC := g++-4.3
+CTENSOR_LIB:=apex_tensor_cpu.o
+
 ifeq ($(cpu), 1)
 	NVCC := $(CC)
 	OPTNVCC:=$(OPT) 
@@ -34,6 +36,8 @@ install:
 
 crbm: crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 
 	
+kdd : logistic_reg_factor logistic_reg_profile
+
 clean:
 	rm -f $(BIN) *.o *~ *.exe *.bmp
 
@@ -55,8 +59,11 @@ cfrbm_movielen_predict: cfrbm_movielen_predict.cpp $(TENSOR_LIB)
 cf_mf: cf_mf.cpp $(TENSOR_LIB)
 	$(NVCC) $(OPTNVCC) -o cf_mf cf_mf.cpp $(TENSOR_LIB)
 
-logistic_reg_factor: logistic_reg_factor.cpp $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o logistic_reg_factor logistic_reg_factor.cpp $(TENSOR_LIB)
+logistic_reg_factor: logistic_reg_factor.cpp $(CTENSOR_LIB)
+	$(CC) $(OPT) -o logistic_reg_factor logistic_reg_factor.cpp $(CTENSOR_LIB)
+
+logistic_reg_profile: logistic_reg_profile.cpp $(CTENSOR_LIB)
+	$(CC) $(OPT) -o logistic_reg_profile logistic_reg_profile.cpp $(CTENSOR_LIB)
 
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
 	$(CC) $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp 

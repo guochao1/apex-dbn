@@ -104,6 +104,8 @@ namespace apex_tensor{
         inline GTensor2D& operator =  ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator += ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
         inline GTensor2D& operator -= ( const apex_op_plan::ScaleAddPlan<GTensor2D,TENSOR_FLOAT> &val );        
+
+        inline GTensor2D& operator += ( const apex_op_plan::ScalePlan<apex_op_plan::DotLTPlan<GTensor1DSparse,GTensor1D>,TENSOR_FLOAT> &val );
         // support for sparse operation
         inline GTensor2D& operator =  ( const apex_op_plan::DotPlan  <GTensor2DSparse,GTensor2D> &val );        
         inline GTensor2D& operator += ( const apex_op_plan::DotPlan  <GTensor2DSparse,GTensor2D> &val );        
@@ -276,6 +278,8 @@ namespace apex_tensor{
         void dot_lt( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b );        
         void sadd__dot_lt( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b );        
         void ssub__dot_lt( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b );        
+        // dst += dot( a.T, b ) * scale
+        void sadd__dot_lt_scale( GTensor2D &dst, const GTensor1DSparse &a, const GTensor1D &b, TENSOR_FLOAT scale );        
         // dst = sum( a * b );
         TENSOR_FLOAT sum_mul( const GTensor1DSparse &a, const GTensor1D &b );        
     };
