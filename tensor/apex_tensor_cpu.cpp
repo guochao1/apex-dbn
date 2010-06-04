@@ -972,6 +972,19 @@ namespace apex_tensor{
         void ssub__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b ){
             dot_lt_template<store_method::SUB>( dst, a, b );
         }
+        
+        template<int st_m>
+        inline void dot_lt_scale_template( CTensor2D &dst , const CTensor1DSparse &W, const CTensor1D &b, TENSOR_FLOAT scale ){
+            for( unsigned int i = 0; i < W.index.length; i ++ ){
+                int y = W.index.x[i];
+                for( int x = 0 ; x < b.x_max ; x ++ )
+                    store_method::__store<st_m>( dst[y][x], W.elem[i]*b[x]*scale );                                
+            }
+        }
+        void sadd__dot_lt_scale( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b, TENSOR_FLOAT scale ){
+            dot_lt_scale_template<store_method::ADD>( dst, a, b, scale );
+        }
+        
         // dst = sum( a * b );
         TENSOR_FLOAT sum_mul( const CTensor1DSparse &a, const CTensor1D &b ){
             TENSOR_FLOAT ans = 0;
