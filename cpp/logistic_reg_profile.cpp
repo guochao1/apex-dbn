@@ -192,6 +192,27 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
                     }
                 }
                 prjQ_profile = 0;
+                last_uid = uid[i];
+
+                // only update at end of user session
+                if( sample_counter >= param.batch_size  ){
+                    // update parameter 
+                    Q += ( dQ -= param.wd*Q )   * param.learning_rate;
+                    P += ( dP -= param.wd*P )   * param.learning_rate;
+                    // differed from previous examples, we didn't divide sample_counter here
+                    B += ( dB -= param.wd_B*B ) * param.learning_rate_B; 
+                    // update of profile weight
+                    Q_profile += ( dQ_profile -= param.wd*Q_profile )   * param.learning_rate;
+                    
+                    bias += dbias * param.learning_rate_bias / sample_counter;
+                    
+                    dQ *= param.momentum; 
+                    dP *= param.momentum; 
+                    dB *= param.momentum; 
+                    dbias *= param.momentum;
+                    dQ_profile *= param.momentum;
+                    sample_counter = 0; 
+                }                                        
             }
 
             // prjQ,P : 1 * k
@@ -221,31 +242,8 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
             
             sum_rmse            += (1-pred)*(1-pred);
             sum_likelihood      += log( pred );
-
             // inc sample counter
             sample_counter ++;
-            if( uid[i] != last_uid ){
-                last_uid = uid[i];
-                // only update at end of user session
-                 if( sample_counter >= param.batch_size  ){
-                    // update parameter 
-                    Q += ( dQ -= param.wd*Q )   * param.learning_rate;
-                    P += ( dP -= param.wd*P )   * param.learning_rate;
-                    // differed from previous examples, we didn't divide sample_counter here
-                    B += ( dB -= param.wd_B*B ) * param.learning_rate_B; 
-                    // update of profile weight
-                    Q_profile += ( dQ_profile -= param.wd*Q )   * param.learning_rate;
-                    
-                    bias += dbias * param.learning_rate_bias / sample_counter;
-                    
-                    dQ *= param.momentum; 
-                    dP *= param.momentum; 
-                    dB *= param.momentum; 
-                    dbias *= param.momentum;
-                    dQ_profile *= param.momentum;
-                    sample_counter = 0; 
-                }                        
-            }
         }
         if( (iter+1) % param.print_step == 0 )
             printf("%d iter, likelihood=%lf, RMSE=%lf\n", 
