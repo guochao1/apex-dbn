@@ -179,8 +179,9 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
                 TENSOR_FLOAT alpha = 1 / ( 1-param.profile_decay );
                 // initialize prjQ 
                 prjQ = 0;
+                int j_start = (int)( i==0 ? rank.size()-1 : i-1 );
                 // backward procedure to calculate update                
-                for( int j = ((int)i)-1; j >= 0 && uid[j] == last_uid ; j -- ){                    
+                for( int j = j_start; j >= 0 && uid[j] == last_uid ; j -- ){                    
                     // accumulate profile in prjQ
                     prjQ += diff[j] * prjQ_profile;
                     
