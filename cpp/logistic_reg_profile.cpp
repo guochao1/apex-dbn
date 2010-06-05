@@ -181,14 +181,13 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
                 int j_start = (int)( i==0 ? rank.size()-1 : i-1 );
                 // backward procedure to calculate update                
                 for( int j = j_start; j >= 0 && uid[j] == last_uid ; j -- ){                    
-                    // accumulate profile in prjQ
-                    prjQ_profile += diff[j] * dot( item_f[j], P );
-                    
-                    if( update_profile[j] ){
+					if( update_profile[j] ){
                         dQ_profile += dot( user_profile[j].T(), prjQ_profile ); 
                         // recover previous profile
                         prjQ_profile *= (1-param.profile_decay);
-                    }
+                    }                
+					// accumulate profile in prjQ
+                    prjQ_profile += diff[j] * dot( item_f[j], P );
                 }
                 prjQ_profile = 0;
                 last_uid = uid[i];
@@ -217,13 +216,7 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
             // prjQ,P : 1 * k
             prjQ = dot( user_f[i], Q );
             prjP = dot( item_f[i], P );            
-            
-            // we accumulate user profile in history: forward procedure
-            if( update_profile[i] ){
-                prjQ_profile *= (1-param.profile_decay);
-                prjQ_profile += dot( user_profile[i] , Q_profile );            
-            }
-
+           
             // calculate energy
             TENSOR_FLOAT energy = tensor::sum_mul( prjP, prjQ ) +
                                   tensor::sum_mul( global_f[i], B ) + bias + 
@@ -244,7 +237,12 @@ void logistic_regression( CTensor2D &Q, CTensor2D &P, CTensor1D &B, TENSOR_FLOAT
             sum_likelihood      += log( pred );
             // inc sample counter
             sample_counter ++;
-        }
+			// we accumulate user profile in history: forward procedure
+            if( update_profile[i] ){
+                prjQ_profile *= (1-param.profile_decay);
+                prjQ_profile += dot( user_profile[i] , Q_profile );            
+            }
+		}
         if( (iter+1) % param.print_step == 0 )
             printf("%d iter, likelihood=%lf, RMSE=%lf\n", 
                    iter, 
