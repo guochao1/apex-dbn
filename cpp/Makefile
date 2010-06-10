@@ -7,7 +7,7 @@ endif
 
 INSTALL_DIR := ../../bin
 
-BIN:= crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor logistic_reg_factor logistic_reg_profile
+BIN:= crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor logistic_reg_factor logistic_reg_profile
 
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
@@ -34,7 +34,7 @@ all: $(BIN)
 install: 
 	cp -f $(BIN) $(INSTALL_DIR)	
 
-crbm: crbm_minist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 
+crbm: crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 
 	
 kdd : logistic_reg_factor logistic_reg_profile
 
@@ -74,8 +74,8 @@ apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $
 srbm_minist: srbm_minist.cpp apex_srbm.o $(TENSOR_LIB) 
 	$(NVCC) $(OPTNVCC) -o srbm_minist srbm_minist.cpp apex_srbm.o $(TENSOR_LIB)
 
-crbm_minist: crbm_minist.cpp apex_crbm.o $(TENSOR_LIB) 
-	$(NVCC) $(OPTNVCC) -o crbm_minist crbm_minist.cpp  apex_crbm.o $(TENSOR_LIB) 
+crbm_mnist: crbm_mnist.cpp apex_crbm.o $(TENSOR_LIB) 
+	$(NVCC) $(OPTNVCC) -o crbm_mnist crbm_mnist.cpp  apex_crbm.o $(TENSOR_LIB) 
 
 crbm_kyoto: crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB)  
 	$(NVCC) $(OPTNVCC) -o crbm_kyoto crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB) 
