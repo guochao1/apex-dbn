@@ -605,7 +605,7 @@ namespace apex_tensor{
                 for( int z = 0 ; z < mean.z_max ; z ++ )
                     norm_maxpooling_2D_inner( mean[z] , energy[z], pool_size );
             }
-
+            
             inline void sample_maxpooling_2D_inner( CTensor2D state, const CTensor2D mean, int pool_size ){                
                 for( int y = 0 ; y < state.y_max ; y += pool_size )
                     for( int x = 0 ; x < state.x_max ; x += pool_size ){
@@ -615,7 +615,7 @@ namespace apex_tensor{
                         for( int dy = 0 ; dy < pool_size && y+dy < state.y_max ; dy ++ )
                             for( int dx = 0 ; dx < pool_size && x+dx < state.x_max ; dx ++ ){
                                 sum += mean[y+dy][x+dx];
-                                if( !hit && sum >= rnd ){
+                                if( !hit && sum > rnd ){
                                     state[y+dy][x+dx] = 1.0f; hit = true; 
                                 }else{
                                     state[y+dy][x+dx] = 0.0f; 
@@ -624,10 +624,39 @@ namespace apex_tensor{
                     }
             }
 
+            inline void sample_maxpooling_2D_inner_B( CTensor2D state, const CTensor2D mean, int pool_size ){                
+                for( int y = 0 ; y < state.y_max ; y += pool_size )
+                    for( int x = 0 ; x < state.x_max ; x += pool_size ){
+                        double sum = 0.0f;
+                        for( int dy = 0 ; dy < pool_size && y+dy < state.y_max ; dy ++ )
+                            for( int dx = 0 ; dx < pool_size && x+dx < state.x_max ; dx ++ )
+                              sum += mean[y+dy][x+dx];
+                        
+                        if( apex_random::sample_binary( sum )){
+                            bool hit = false;
+                            double ss = 0.0;   
+                            double rnd = apex_random::next_double();
+                            for( int dy = 0 ; dy < pool_size && y+dy < state.y_max ; dy ++ )
+                                for( int dx = 0 ; dx < pool_size && x+dx < state.x_max ; dx ++ ){
+                                    ss += mean[y+dy][x+dx] / sum;
+                                    if( !hit && ss > rnd ){
+                                        state[y+dy][x+dx] = 1.0f; hit = true; 
+                                    }else{
+                                        state[y+dy][x+dx] = 0.0f; 
+                                    }                                
+                                }
+                        }else{
+                            for( int dy = 0 ; dy < pool_size && y+dy < state.y_max ; dy ++ )
+                                for( int dx = 0 ; dx < pool_size && x+dx < state.x_max ; dx ++ )
+                                    state[y+dy][x+dx] = 0.0f;
+                        }
+                    }
+            }
+
             // sample the data using 2D maxpooling 
             void sample_maxpooling_2D( CTensor3D &state, const CTensor3D &mean, int pool_size ){
                 for( int z = 0 ; z < state.z_max ; z ++ )
-                    sample_maxpooling_2D_inner( state[z], mean[z], pool_size );
+                    sample_maxpooling_2D_inner_B( state[z], mean[z], pool_size );
             }
 
             template<int st_method>
