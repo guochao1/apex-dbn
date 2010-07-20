@@ -23,15 +23,16 @@ namespace apex_tensor{
                 if( idx_y < b.y_max && threadIdx.x < b.x_max ){
                     s_b[ threadIdx.x ][ threadIdx.y ] = b[ idx_y ] [ idx_x ];
                 }
-
-                const int x = threadIdx.x + xx;
-                if( y < b.y_max && x < b.x_max  ){
+				const int x = threadIdx.x + xx;
+				
+				__syncthreads();
+                if( y < b.x_max && x < b.y_max  ){
                     s_rst[ threadIdx.y ][ threadIdx.x ] += a[ x ] * s_b[ threadIdx.y ][ threadIdx.x ];                   
-                }                   
-
+                }                  
+				__syncthreads();
             }
-            __syncthreads();
-            cuda_reduce::reduce_1D<cuda_reduce::SUM,xy_dim_bits>( s_rst );
+
+            cuda_reduce::reduce_1D<cuda_reduce::SUM,xy_dim_bits>( s_rst[threadIdx.y] );
             __syncthreads();
             if( threadIdx.x == 0 && y < ans.x_max ){
                 store_method::__store<st_m>( ans[ y ], s_rst[threadIdx.y][0] );

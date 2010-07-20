@@ -8,7 +8,7 @@
 #include <ctime>
 using namespace apex_tensor;
 
-const int NUM_ITER = 10;
+const int NUM_ITER = 1000;
 
 const int NUM_SAMPLE = 100;
 const int POOL_SIZE = 3;
@@ -33,10 +33,10 @@ const TENSOR_FLOAT sd = 1.0f;
 int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine(0);
-    test_dot( NUM_ITER );
-    test_dot_lt( NUM_ITER );
-    test_dot_rt( NUM_ITER );
-
+   
+    //test_dot_lt( NUM_ITER );
+ //test_dot_rt( NUM_ITER );
+ test_dot( NUM_ITER );
     /*
     //    test_norm_maxpooling_2D( NUM_ITER );
         test_pool_up( NUM_ITER );
