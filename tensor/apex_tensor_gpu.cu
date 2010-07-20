@@ -253,10 +253,10 @@ namespace apex_tensor{
     namespace tensor{
         using namespace cuda_tensor;
         void dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
-            dot_simple<store_method::SAVE>( ans, a, b );
+            dot_rec<store_method::SAVE>( ans, a, b );
         }
         void sadd__dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
-            dot_simple<store_method::ADD>( ans, a, b );
+            dot_rec<store_method::ADD>( ans, a, b );
         }
 
         void dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
