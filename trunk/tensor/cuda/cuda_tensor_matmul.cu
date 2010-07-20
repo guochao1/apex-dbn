@@ -18,8 +18,10 @@ namespace apex_tensor{
             for( int xx = 0 ; xx < a.x_max ; xx += (1<<block_dim_bits) ){
                 int x = xx + threadIdx.x;
                 // non coleasced read of b
-                s_rst[ x ] += a[x] * b[x][y];                
-                // no need to sync, each thread use own space
+                if( x < a.x_max ){
+                    s_rst[ threadIdx.x ] += a[x] * b[x][y];                
+                    // no need to sync, each thread use own space
+                }
             }
             __syncthreads();
             cuda_reduce::reduce_1D<cuda_reduce::SUM,block_dim_bits>( s_rst );
@@ -49,8 +51,10 @@ namespace apex_tensor{
             
             for( int xx = 0 ; xx < a.x_max ; xx += (1<<block_dim_bits) ){
                 int x = xx + threadIdx.x;
-                s_rst[ x ] += a[x] * b[y][x];                
-                // no need to sync, each thread use own space
+                if( x < a.x_max ){ 
+                    s_rst[ threadIdx.x ] += a[x] * b[y][x];                
+                    // no need to sync, each thread use own space
+                }
             }
             __syncthreads();
             cuda_reduce::reduce_1D<cuda_reduce::SUM,block_dim_bits>( s_rst );

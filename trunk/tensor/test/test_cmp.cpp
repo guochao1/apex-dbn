@@ -14,8 +14,8 @@ const int NUM_SAMPLE = 100;
 const int POOL_SIZE = 3;
 const int V_MAX   = 10;
 const int H_MAX   = 24;
-const int V_Y_MAX = 511;
-const int V_X_MAX = 499;
+const int V_Y_MAX = 5110;
+const int V_X_MAX = 4990;
 
 const int F_Y_MAX = 10;
 const int F_X_MAX = 10;
