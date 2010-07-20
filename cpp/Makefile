@@ -25,7 +25,7 @@ ifeq ($(cpu), 1)
 	TENSOR_LIB:=apex_tensor_cpu.o	
 else
 	NVCC :=nvcc
-	OPTNVCC := -arch sm_20 -Xcompiler "$(OPT)"
+	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)"
 	TENSOR_LIB:=apex_tensor_cpu.o apex_tensor_gpu.o			
 endif
 

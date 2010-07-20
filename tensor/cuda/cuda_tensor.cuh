@@ -470,4 +470,6 @@ namespace apex_tensor{
 #include "cuda_tensor_sampling.cu"
 #include "cuda_tensor_conv2.cu"
 #include "cuda_tensor_pooling.cu"
+#include "cuda_tensor_matmul.cu"
 #endif
+

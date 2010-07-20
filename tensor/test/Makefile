@@ -24,11 +24,8 @@ clean:
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
 	g++ $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp
 
-apex_tensor_xpu.o: $(TENSOR_DIR)/apex_tensor_xpu_inline.cpp
-	g++ $(OPT) -c -o apex_tensor_xpu.o  $(TENSOR_DIR)/apex_tensor_xpu_inline.cpp	
-
 apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $(TENSOR_DIR)/apex_tensor_gpu.cu $(TENSOR_DIR)/apex_tensor_inline.cpp
 	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
-test_cmp: test_cmp.cpp test_cmp.h test_stats.h apex_tensor_cpu.o apex_tensor_gpu.o  apex_tensor_xpu.o
+test_cmp: test_cmp.cpp test_cmp.h test_stats.h apex_tensor_cpu.o apex_tensor_gpu.o  
 	$(NVCC) $(OPTNVCC) -o test_cmp test_cmp.cpp apex_tensor_cpu.o apex_tensor_gpu.o  
