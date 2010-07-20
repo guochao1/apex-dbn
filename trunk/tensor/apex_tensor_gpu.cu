@@ -250,12 +250,39 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_MAP_S ( sample_binary  , sample_binary  , store_method::SAVE )
         APEX_USE_TEMPLATE_MAP_SS( sample_gaussian, sample_gaussian, store_method::SAVE )
     };
-    
+    namespace tensor{
+        using namespace cuda_tensor;
+        void dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+            dot_simple<store_method::SAVE>( ans, a, b );
+        }
+        void sadd__dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+            dot_simple<store_method::ADD>( ans, a, b );
+        }
+
+        void dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+            dot_rt_simple<store_method::SAVE>( ans, a, b );
+        }
+        void sadd__dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+            dot_rt_simple<store_method::ADD>( ans, a, b );
+        }
+
+        void dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
+            dot_lt_simple<store_method::SAVE>( ans, a, b );
+        }
+        void sadd__dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
+            dot_lt_simple<store_method::ADD>( ans, a, b );
+        }
+        void ssub__dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
+            dot_lt_simple<store_method::SUB>( ans, a, b );
+        }
+    };
+
     namespace tensor{
         using namespace cuda_tensor;
         APEX_USE_TEMPLATE_MAP_C( sadd__abs_err       , store_method::ADD, map_method_B::ABS_ERR )
         APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_rel   , store_method::ADD, map_method_B::ABS_ERR_REL   )
         APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_relT  , store_method::ADD, map_method_B::ABS_ERR_RELT  )
+        
     };
     
     // support for CRBM

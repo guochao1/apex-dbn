@@ -34,6 +34,186 @@ void test_gaussian( int num_iter ){
     tensor::free_space( tc_f );
 }
 
+void test_dot( int num_iter ){
+    TTensor1D tg_ans ( M_Y_MAX );
+    TTensor1D tg_a   ( M_X_MAX );
+    TTensor2D tg_b   ( M_X_MAX, M_Y_MAX );
+    
+    CTensor1D tc_ans  ( M_Y_MAX );
+    CTensor1D tc_ans_g( M_Y_MAX );
+    CTensor1D tc_a    ( M_X_MAX );
+    CTensor2D tc_b    ( M_X_MAX, M_Y_MAX );
+
+	tensor::alloc_space( tg_ans );
+    tensor::alloc_space( tg_a );
+    tensor::alloc_space( tg_b );
+    tensor::alloc_space( tc_ans );
+    tensor::alloc_space( tc_ans_g );
+    tensor::alloc_space( tc_a );
+    tensor::alloc_space( tc_b );
+   
+    printf("start test dot\n");
+    
+	TestStats<CTensor1D> stats( "dot_CPU","dot_GPU");
+    stats.abs_err.set_param( M_Y_MAX );
+    stats.abs_err_rel.set_param( M_Y_MAX );
+    stats.abs_err_relT.set_param( M_Y_MAX );
+    stats.init();
+
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+        fflush( stdout );
+
+		tensor::sample_gaussian( tc_a, sd ); 
+		tensor::sample_gaussian( tc_b, sd );
+
+        double c_start = clock();
+        tensor::dot( tc_ans, tc_a, tc_b );
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+
+        tensor::copy( tg_a, tc_a );
+        tensor::copy( tg_b, tc_b );        
+        
+        double g_start = clock();
+        tensor::dot( tg_ans, tg_a, tg_b );
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_ans_g, tg_ans );
+        stats.add_sample( tc_ans, tc_ans_g  );
+    } 
+    printf("\n");
+    stats.print();
+    
+	tensor::free_space( tg_ans );
+    tensor::free_space( tg_a );
+    tensor::free_space( tg_b );
+    tensor::free_space( tc_ans );
+    tensor::free_space( tc_ans_g );
+    tensor::free_space( tc_a );
+    tensor::free_space( tc_b );
+}
+
+void test_dot_rt( int num_iter ){
+    TTensor1D tg_ans ( M_X_MAX );
+    TTensor1D tg_a   ( M_Y_MAX );
+    TTensor2D tg_b   ( M_X_MAX, M_Y_MAX );
+    
+    CTensor1D tc_ans  ( M_X_MAX );
+    CTensor1D tc_ans_g( M_X_MAX );
+    CTensor1D tc_a    ( M_Y_MAX );
+    CTensor2D tc_b    ( M_X_MAX, M_Y_MAX );
+
+	tensor::alloc_space( tg_ans );
+    tensor::alloc_space( tg_a );
+    tensor::alloc_space( tg_b );
+    tensor::alloc_space( tc_ans );
+    tensor::alloc_space( tc_ans_g );
+    tensor::alloc_space( tc_a );
+    tensor::alloc_space( tc_b );
+   
+    printf("start test dot_rt\n");
+    
+	TestStats<CTensor1D> stats( "dot_rt_CPU","dot_rt_GPU");
+    stats.abs_err.set_param( M_X_MAX );
+    stats.abs_err_rel.set_param( M_X_MAX );
+    stats.abs_err_relT.set_param( M_X_MAX );
+    stats.init();
+
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+        fflush( stdout );
+
+		tensor::sample_gaussian( tc_a, sd ); 
+		tensor::sample_gaussian( tc_b, sd );
+
+        double c_start = clock();
+        tensor::dot_rt( tc_ans, tc_a, tc_b );
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+
+        tensor::copy( tg_a, tc_a );
+        tensor::copy( tg_b, tc_b );        
+        
+        double g_start = clock();
+        tensor::dot_rt( tg_ans, tg_a, tg_b );
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_ans_g, tg_ans );
+        stats.add_sample( tc_ans, tc_ans_g  );
+    } 
+    printf("\n");
+    stats.print();
+    
+	tensor::free_space( tg_ans );
+    tensor::free_space( tg_a );
+    tensor::free_space( tg_b );
+    tensor::free_space( tc_ans );
+    tensor::free_space( tc_ans_g );
+    tensor::free_space( tc_a );
+    tensor::free_space( tc_b );
+}
+
+void test_dot_lt( int num_iter ){
+    TTensor2D tg_ans ( M_X_MAX, M_Y_MAX );
+    TTensor1D tg_a   ( M_X_MAX );
+    TTensor1D tg_b   ( M_Y_MAX );
+    
+    CTensor2D tc_ans  ( M_X_MAX, M_Y_MAX );
+    CTensor2D tc_ans_g( M_X_MAX, M_Y_MAX );
+    CTensor1D tc_a    ( M_X_MAX );
+    CTensor1D tc_b    ( M_Y_MAX );
+
+	tensor::alloc_space( tg_ans );
+    tensor::alloc_space( tg_a );
+    tensor::alloc_space( tg_b );
+    tensor::alloc_space( tc_ans );
+    tensor::alloc_space( tc_ans_g );
+    tensor::alloc_space( tc_a );
+    tensor::alloc_space( tc_b );
+   
+    printf("start test dot_lt\n");
+    
+	TestStats<CTensor2D> stats( "dot_lt_CPU","dot_lt_GPU");
+    stats.abs_err.set_param( M_X_MAX, M_Y_MAX );
+    stats.abs_err_rel.set_param( M_X_MAX, M_Y_MAX );
+    stats.abs_err_relT.set_param( M_X_MAX, M_Y_MAX );
+    stats.init();
+
+    for( int i = 0 ; i < num_iter ; i ++ ){
+		printf("\r                                  \r");
+		printf("round [%8d]", i);
+        fflush( stdout );
+
+		tensor::sample_gaussian( tc_a, sd ); 
+		tensor::sample_gaussian( tc_b, sd );
+
+        double c_start = clock();
+        tensor::dot_lt( tc_ans, tc_a, tc_b );
+        stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
+
+        tensor::copy( tg_a, tc_a );
+        tensor::copy( tg_b, tc_b );        
+        
+        double g_start = clock();
+        tensor::dot_lt( tg_ans, tg_a, tg_b );
+        sync_gpu_threads();
+        stats.time_B += (clock() - g_start) / CLOCKS_PER_SEC;
+        tensor::copy( tc_ans_g, tg_ans );
+        stats.add_sample( tc_ans, tc_ans_g  );
+    } 
+    printf("\n");
+    stats.print();
+    
+	tensor::free_space( tg_ans );
+    tensor::free_space( tg_a );
+    tensor::free_space( tg_b );
+    tensor::free_space( tc_ans );
+    tensor::free_space( tc_ans_g );
+    tensor::free_space( tc_a );
+    tensor::free_space( tc_b );
+}
+
 void test_conv2_r_valid( int num_iter ){
     TTensor1D tg_hb ( H_MAX );
     TTensor3D tg_v  ( V_MAX, V_Y_MAX, V_X_MAX );
