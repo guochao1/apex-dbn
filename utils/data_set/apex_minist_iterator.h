@@ -115,7 +115,7 @@ namespace apex_utils{
             for( int i = 0 ; i < num_image ; i ++ )
                 for( int y = 0; y < height ; y ++ )
                     for( int x = 0; x < width ; x ++ ){
-						data[ i ][ y ][ x ] = (apex_tensor::TENSOR_FLOAT)(t_data[ i*pitch + y*width + x ] != 0 );
+						data[ i ][ y ][ x ] = (apex_tensor::TENSOR_FLOAT)(t_data[ i*pitch + y*width + x ] /255 );
                     }        
             delete[] t_data;        
             idx = - trunk_size;  

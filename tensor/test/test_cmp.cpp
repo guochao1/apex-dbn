@@ -34,8 +34,8 @@ int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine(0);
    
-    //test_dot_lt( NUM_ITER );
- //test_dot_rt( NUM_ITER );
+    test_dot_lt( NUM_ITER );
+ test_dot_rt( NUM_ITER );
  test_dot( NUM_ITER );
     /*
     //    test_norm_maxpooling_2D( NUM_ITER );
