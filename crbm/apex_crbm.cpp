@@ -371,12 +371,12 @@ namespace apex_rbm{
                 {
                     h_sum_mf   = h_sum_mf * h_sum_mf_grad;
                     // leave out h_size
-                    h_sum_mf  *= param.sparse_lambda;                               
+                    h_sum_mf  *= 2*param.sparse_lambda;                               
                     break;
                 } 
             case 1:
                 {
-                    h_sum_mf  *= param.sparse_lambda * param.batch_size * h_size;
+                    h_sum_mf  *= 2*param.sparse_lambda * param.batch_size * h_size;
                 }
             }
 
