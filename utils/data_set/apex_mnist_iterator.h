@@ -1,5 +1,5 @@
-#ifndef _APEX_MINIST_ITERATOR_H_
-#define _APEX_MINIST_ITERATOR_H_
+#ifndef _APEX_MNIST_ITERATOR_H_
+#define _APEX_MNIST_ITERATOR_H_
 
 #include <cstdio>
 #include <cstdlib>
@@ -10,24 +10,24 @@
 
 namespace apex_utils{
     template<typename T>
-    inline void __minist_set_param( T & m, int z_max, int y_max, int x_max, unsigned int pitch );
+    inline void __mnist_set_param( T & m, int z_max, int y_max, int x_max, unsigned int pitch );
     
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+    inline void __mnist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.y_max = z_max; m.x_max = y_max * x_max; m.pitch = pitch * y_max;
     }
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+    inline void __mnist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
     }
     template<>
-    inline void __minist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+    inline void __mnist_set_param<apex_tensor::CTensor4D>( apex_tensor::CTensor4D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
         m.h_max = z_max; m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch; 
     }
 
-    /* iterator that  iterates over the MINIST data set */
+    /* iterator that  iterates over the MNIST data set */
     template<typename T>
-    class MINISTIterator: public ITensorIterator<T>{
+    class MNISTIterator: public ITensorIterator<T>{
     private:
         int idx, max_idx;
         int pitch;
@@ -43,16 +43,16 @@ namespace apex_utils{
             if( y_max > trunk_size ) y_max = trunk_size;            
             T m; 
             m.elem  = data[ start_idx ].elem;
-            __minist_set_param<T>( m , y_max, data.y_max, data.x_max, data.pitch ); 
+            __mnist_set_param<T>( m , y_max, data.y_max, data.x_max, data.pitch ); 
             return m;
         } 
         
     public:    
-        MINISTIterator(){
+        MNISTIterator(){
             data.elem = NULL;
             max_idx   = 1 << 30;
         }
-        virtual ~MINISTIterator(){
+        virtual ~MNISTIterator(){
             if( data.elem != NULL )
                 delete [] data.elem;
         }
@@ -69,11 +69,11 @@ namespace apex_utils{
             unsigned char *t_data;
             
             if( fread(zz, 4 , 1, fi ) == 0 ){
-                apex_utils::error("load minist");
+                apex_utils::error("load mnist");
             }
             
             if( fread(zz, 4 , 1, fi ) == 0 ){
-                apex_utils::error("load minist");
+                apex_utils::error("load mnist");
             }
             
             num_image = (int)(zz[3]) 
@@ -82,7 +82,7 @@ namespace apex_utils{
                 | (((int)(zz[0])) << 24);
             
             if( fread(zz, 4 , 1, fi ) == 0 ){
-                apex_utils::error("load minist");
+                apex_utils::error("load mnist");
             }
              
             width = (int)(zz[3]) 
@@ -91,7 +91,7 @@ namespace apex_utils{
                 | (((int)(zz[0])) << 24);
             
             if( fread(zz, 4 , 1, fi ) == 0 ){
-                apex_utils::error("load minist"); 
+                apex_utils::error("load mnist"); 
             }
 
             height = (int)(zz[3]) 
@@ -103,7 +103,7 @@ namespace apex_utils{
             t_data = new unsigned char[ num_image * pitch ];
             
             if( fread( t_data, pitch*num_image , 1 , fi) == 0 ){
-                apex_utils::error("load minist");
+                apex_utils::error("load mnist");
             }        
             
             fclose( fi );
