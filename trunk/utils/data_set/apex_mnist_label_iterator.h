@@ -1,5 +1,5 @@
-#ifndef _APEX_MINIST_LABEL_ITERATOR_H_
-#define _APEX_MINIST_LABEL_ITERATOR_H_
+#ifndef _APEX_MNIST_LABEL_ITERATOR_H_
+#define _APEX_MNIST_LABEL_ITERATOR_H_
 
 #include <cstdio>
 #include <cstdlib>
@@ -11,24 +11,24 @@
 // gavinhu
 namespace apex_utils {
 	template<typename T>
-	inline void __minist_set_param(T &m, int y_max, int x_max, size_t pitch);
+	inline void __MNIST_set_param(T &m, int y_max, int x_max, size_t pitch);
 
 	template<>
-	inline void __minist_set_param<apex_tensor::CTensor2D>(apex_tensor::CTensor2D &m, int y_max, int x_max, size_t pitch) {
+	inline void __MNIST_set_param<apex_tensor::CTensor2D>(apex_tensor::CTensor2D &m, int y_max, int x_max, size_t pitch) {
 		m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
 	}
 	template<>
-	inline void __minist_set_param<apex_tensor::CTensor3D>(apex_tensor::CTensor3D &m, int y_max, int x_max, size_t pitch) {
+	inline void __MNIST_set_param<apex_tensor::CTensor3D>(apex_tensor::CTensor3D &m, int y_max, int x_max, size_t pitch) {
 		m.z_max = y_max; m.y_max = 1; m.x_max = x_max; m.pitch = pitch;
 	}
 	template<>
-	inline void __minist_set_param<apex_tensor::CTensor4D>(apex_tensor::CTensor4D &m, int y_max, int x_max, size_t pitch) {
+	inline void __MNIST_set_param<apex_tensor::CTensor4D>(apex_tensor::CTensor4D &m, int y_max, int x_max, size_t pitch) {
 		m.h_max = y_max; m.z_max = 1; m.y_max = 1; m.x_max = x_max; m.pitch = pitch;
 	}
 
-	// iterator that iterates over the minist label set.
+	// iterator that iterates over the MNIST label set.
 	template<typename T>
-	class MINISTLabelIterator: public ITensorIterator<T> {
+	class MNISTLabelIterator: public ITensorIterator<T> {
 	private:
 		int idx, max_idx;
 		int pitch;
@@ -44,17 +44,17 @@ namespace apex_utils {
 			if (y_max > trunk_size) y_max = trunk_size;
 			T m;
 			m.elem = labels[start_idx].elem;
-			__minist_set_param<T>(m, y_max, labels.x_max, labels.pitch);
+			__MNIST_set_param<T>(m, y_max, labels.x_max, labels.pitch);
 			return m;
 		}
 
 	public:
-		MINISTLabelIterator() {
+		MNISTLabelIterator() {
 			labels.elem = NULL;
 			max_idx = 1 << 30;
 		}
 
-		virtual ~MINISTLabelIterator() {
+		virtual ~MNISTLabelIterator() {
 			if (labels.elem != NULL)
 				delete[] labels.elem;
 		}
@@ -72,11 +72,11 @@ namespace apex_utils {
 			unsigned char *t_data;
 
 			if (fread(zz, 4, 1, fi) == 0) {
-				apex_utils::error("load minist label");
+				apex_utils::error("load MNIST label");
 			}
 
 			if (fread(zz, 4, 1, fi) == 0) {
-				apex_utils::error("load minist label");
+				apex_utils::error("load MNIST label");
 			}
 
             num_labels = (int)(zz[3]) 
@@ -86,7 +86,7 @@ namespace apex_utils {
 
 			t_data = new unsigned char[num_labels];
 			if (fread(t_data, num_labels, 1, fi) == 0) {
-				apex_utils::error("load minist label");
+				apex_utils::error("load MNIST label");
 			}
 
 			fclose(fi);

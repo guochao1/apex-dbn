@@ -7,7 +7,7 @@ endif
 
 INSTALL_DIR := ../../bin
 
-BIN:= crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor logistic_reg_factor logistic_reg_profile
+BIN:= crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor 
 
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
@@ -71,8 +71,8 @@ apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $
 apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $(TENSOR_DIR)/apex_tensor_gpu.cu $(TENSOR_DIR)/apex_tensor_inline.cpp
 	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
-srbm_minist: srbm_minist.cpp apex_srbm.o $(TENSOR_LIB) 
-	$(NVCC) $(OPTNVCC) -o srbm_minist srbm_minist.cpp apex_srbm.o $(TENSOR_LIB)
+srbm_mnist: srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB) 
+	$(NVCC) $(OPTNVCC) -o srbm_mnist srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB)
 
 crbm_mnist: crbm_mnist.cpp apex_crbm.o $(TENSOR_LIB) 
 	$(NVCC) $(OPTNVCC) -o crbm_mnist crbm_mnist.cpp  apex_crbm.o $(TENSOR_LIB) 
