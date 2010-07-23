@@ -3,4 +3,5 @@ this project is dbn project for APEX LAB
 external: external libraries
 tensor  : basic tensor code
 srbm    : implementation of stacked rbm
+crbm    : implementation of convolutional rbm
 utils   : basic external utils
