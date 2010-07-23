@@ -6,9 +6,9 @@
 #include <cstring>
 
 #include "apex_crbm.h"
-#include "apex_crbm_model.h"
-#include "../utils/apex_config.h"
-#include "../utils/task/apex_tensor_update_task.h"
+#include "../apex_crbm_model.h"
+#include "../../utils/apex_config.h"
+#include "../../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
 	class CRBMTrainer : public apex_utils::ITensorUpdater<apex_tensor::CTensor4D> {

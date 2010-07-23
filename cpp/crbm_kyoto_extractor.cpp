@@ -4,7 +4,7 @@
 #include "../tensor/apex_tensor.h"
 #include "../utils/data_set/apex_kyoto_iterator.h"
 #include "../utils/task/apex_tensor_update_task.h"
-#include "../crbm/apex_crbm_extractor.h"
+#include "../crbm/crbm_simple/apex_crbm_extractor.h"
 
 using namespace apex_utils;
 
