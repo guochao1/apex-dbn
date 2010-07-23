@@ -13,7 +13,7 @@ OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
 SRBM_DIR:=$(PRJ_DIR)/srbm
-CRBM_DIR:=$(PRJ_DIR)/crbm
+CRBM_DIR:=$(PRJ_DIR)/crbm/crbm_simple
 CFRBM_DIR:=$(PRJ_DIR)/cfrbm
 
 CC := g++-4.3

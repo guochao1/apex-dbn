@@ -1,9 +1,9 @@
 #ifndef _APEX_CRBM_H_
 #define _APEX_CRBM_H_
 
-#include "apex_crbm_model.h"
-#include "apex_crbm_model_stats.h"
-#include "../tensor/apex_tensor.h"
+#include "../apex_crbm_model.h"
+#include "../apex_crbm_model_stats.h"
+#include "../../tensor/apex_tensor.h"
 
 namespace apex_rbm{
     //interface of stacked rbm

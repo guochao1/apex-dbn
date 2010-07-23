@@ -5,9 +5,9 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
 #include "apex_crbm.h"
-#include "apex_crbm_model.h"
-#include "apex_crbm_model_stats.h"
-#include "../tensor/apex_tensor.h"
+#include "../apex_crbm_model.h"
+#include "../apex_crbm_model_stats.h"
+#include "../../tensor/apex_tensor.h"
 
 #include <vector>
 
