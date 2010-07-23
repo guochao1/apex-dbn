@@ -14,7 +14,7 @@
 namespace apex_rbm{
     using namespace std;
     using namespace apex_tensor;    
-    //node of SRBM
+    //node of CRBM
     class ICRBMNode{
     public:
         virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const = 0;
