@@ -8,6 +8,7 @@ namespace apex_utils{
         virtual void set_task ( const char *task ) =0;
         virtual void print_task_help( FILE *fo ) const = 0;
         virtual void run_task( void )= 0;
+    public:
         virtual ~ITask(){}
     };
     

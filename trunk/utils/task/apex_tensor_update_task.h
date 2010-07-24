@@ -26,6 +26,8 @@ namespace apex_utils{
         virtual void round_end() = 0;
         // end of all training rounds
         virtual void all_end()   =0;
+    public:
+        virtual ~ITensorUpdater(){}
     };        
 
     template<typename T>

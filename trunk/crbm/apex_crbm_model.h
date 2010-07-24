@@ -9,6 +9,13 @@
 
 namespace apex_rbm{
 
+    // type of model 
+    namespace model_type{
+        const int BINARY_MAXPOOL     = 0;
+        const int GAUSSIAN_MAXPOOL_A = 1;
+        const int GAUSSIAN_MAXPOOL_B = 2;
+    };
+
     // training parameter of srbm
     struct CRBMTrainParam{
         // maximum input size
