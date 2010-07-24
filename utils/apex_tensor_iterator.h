@@ -20,6 +20,8 @@ namespace apex_utils{
 		virtual const T validation_trunk() const = 0;
         // set before first of the item
         virtual void before_first() = 0;
+    public:
+        virtual ~ITensorIterator(){}
     };
     
 };

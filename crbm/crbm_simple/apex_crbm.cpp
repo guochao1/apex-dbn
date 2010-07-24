@@ -29,6 +29,7 @@ namespace apex_rbm{
         virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const = 0;
         // calculate sparse_regularization
         virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const = 0;
+        virtual ~ICRBMNode(){}
    };
 
     // bianry node
@@ -85,7 +86,7 @@ namespace apex_rbm{
         }
         // reget the bound of data
         virtual void reget_bound ( int &input_y_max, int &input_x_max  )const{}        
-        // reget the bound of hidden data 
+        // reget the bound of hidden data
         virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const{}
         virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const{
             tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , 1 );

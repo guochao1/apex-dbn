@@ -47,6 +47,9 @@ apex_srbm.o: $(SRBM_DIR)/apex_srbm.cpp
 apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp 
 	$(CC) $(OPT) -c -o apex_crbm.o  $(CRBM_DIR)/apex_crbm.cpp
 
+apex_crbm_light.o: $(PRJ_DIR)/crbm/crbm_light/apex_crbm.cpp 
+	$(CC) $(OPT) -c -o apex_crbm_light.o  $(PRJ_DIR)/crbm/crbm_light/apex_crbm.cpp 
+
 apex_cfrbm.o: $(CFRBM_DIR)/apex_cfrbm.cpp 
 	$(CC) $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp
 
