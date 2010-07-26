@@ -4,6 +4,7 @@
 #include "apex_op_plan.h"
 #include "apex_tensor.h"
 #include <vector>
+
 // data structure for tensor
 namespace apex_tensor{
     struct CTensor1D{
@@ -576,6 +577,7 @@ namespace apex_tensor{
         void rand_extract( CTensor3D &dst, const CTensor3D &src );
         // shuffle the h_index of data randomly
         void shuffle( CTensor4D &data );
+        void shuffle( std::vector<CTensor3D> &data );
     };
 };
 #endif

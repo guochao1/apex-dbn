@@ -194,6 +194,15 @@ namespace apex_tensor{
             }                
         }
         
+        void shuffle( std::vector<CTensor3D> &data ){
+            for( size_t i = 0 ; i < data.size() ; i ++ ){
+                int j = (int)apex_random::next_uint32( data.size() );
+                CTensor3D a = data[i];
+                data[i] = data[j]; 
+                data[j] = a;
+            }
+        }
+        
         void rand_extract( CTensor3D &dst, const CTensor3D &src ){
             int yy, xx;
 
