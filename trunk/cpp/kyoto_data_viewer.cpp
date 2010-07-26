@@ -10,6 +10,7 @@
 #include "../utils/data_set/apex_kyoto_iterator.h"
 
 using namespace apex_utils;
+using namespace apex_utils::deprecated;
 using namespace cimg_library;
 using namespace apex_tensor;
 

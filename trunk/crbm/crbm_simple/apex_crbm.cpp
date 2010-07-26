@@ -14,6 +14,7 @@
 namespace apex_rbm{
     using namespace std;
     using namespace apex_tensor;    
+
     //node of CRBM
     class ICRBMNode{
     public:

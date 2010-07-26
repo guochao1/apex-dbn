@@ -12,6 +12,7 @@
 using namespace cimg_library;
 using namespace apex_tensor;
 using namespace apex_utils;
+using namespace apex_utils::deprecated;
 
 const int MAX_NUM_PER_LINEX = 7;
 

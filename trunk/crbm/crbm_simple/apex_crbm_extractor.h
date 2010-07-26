@@ -11,7 +11,7 @@
 #include "../../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
-	class CRBMExtractor : public apex_utils::ITensorUpdater<apex_tensor::CTensor4D> {
+	class CRBMExtractor : public apex_utils::deprecated::ITensorUpdater<apex_tensor::CTensor4D> {
     private:
         // model parameter
         /* parameter for new layer */
