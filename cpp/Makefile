@@ -83,6 +83,9 @@ crbm_mnist: crbm_mnist.cpp apex_crbm.o $(TENSOR_LIB)
 crbm_kyoto: crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB)  
 	$(NVCC) $(OPTNVCC) -o crbm_kyoto crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB) 
 
+crbm_light: crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB)
+	$(NVCC) $(OPTNVCC) -o crbm_light crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB) 
+
 crbm_kyoto_gpubuf: crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB)  
 	$(NVCC) $(OPTNVCC) -o crbm_kyoto_gpubuf crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB) 
 

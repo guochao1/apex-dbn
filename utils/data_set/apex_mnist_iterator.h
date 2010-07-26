@@ -31,6 +31,7 @@ namespace apex_utils{
         class MNISTIterator: public IIterator<T>{
         private:
             int idx;
+            T dout;
             apex_tensor::CTensor3D data;
             char name_image_set[ 256 ];            
         public:    
@@ -122,8 +123,7 @@ namespace apex_utils{
             }
             
             // get current matrix 
-            virtual const T value() const{
-                T dout;
+            virtual const T &value() const{
                 dout.elem = data[ idx ].elem;
                 __mnist_set_param( dout, data[ idx ].y_max, data[idx].x_max, data[idx].pitch );
                 return dout;

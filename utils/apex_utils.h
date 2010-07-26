@@ -32,18 +32,50 @@ namespace apex_utils{
             virtual void set_param( const char *name, const char *val ) = 0;
             // initalize the iterator so that we can use the iterator
             virtual void init( void ) = 0;
-            // destroy the iterator, we can no longer use the iterator anymore
-            virtual void destroy( void ) = 0;
             // set before first of the item
             virtual void before_first() = 0;
             // move to next item
             virtual bool next() = 0;
             // get current matrix 
-            virtual const T value() const = 0;
+            virtual const T &value() const = 0;
         public:
             virtual ~IIterator(){}
         };
     };    
+
+    // iterator with limit counter
+    namespace iterator{
+        // iterator with limit counter
+        template<typename T>
+        class LimitCounterIterator:IIterator<T>{
+        private: 
+            IIterator<T> *base_itr;
+            int limit_max, counter;
+        public:            
+            LimitCounterIterator( IIterator<T> *base_itr, int limit_max ){
+                this->base_itr  = base_itr;
+                this->limit_max = limit_max;
+                this->before_first();
+            } 
+            virtual void set_param( const char *name, const char *val ){}
+            virtual void init( void ){}
+            virtual void before_first(){
+                base_itr->before_first();
+                counter = limit_max;
+            }
+            virtual bool next(){
+                if( counter > 0 ){
+                    counter -- ;
+                    return base_itr->next();
+                }else{
+                    return false;
+                }
+            }
+            virtual const T &value() const{
+                return base_itr->value();
+            }
+        };       
+    };
 };
 
 #endif
