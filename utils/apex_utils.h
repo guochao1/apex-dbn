@@ -21,7 +21,29 @@ namespace apex_utils{
 			exit( -1 );
 		}
 		return fp;
- 	}       
+ 	} 
+    
+    namespace iterator{    
+        // interface of abstract iterator
+        template<typename T>
+        class IIterator{
+        public:
+            // set the parameter
+            virtual void set_param( const char *name, const char *val ) = 0;
+            // initalize the iterator so that we can use the iterator
+            virtual void init( void ) = 0;
+            // destroy the iterator, we can no longer use the iterator anymore
+            virtual void destroy( void ) = 0;
+            // set before first of the item
+            virtual void before_first() = 0;
+            // move to next item
+            virtual bool next() = 0;
+            // get current matrix 
+            virtual const T value() const = 0;
+        public:
+            virtual ~IIterator(){}
+        };
+    };    
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include "../crbm/crbm_simple/apex_crbm_extractor.h"
 
 using namespace apex_utils;
+using namespace apex_utils::deprecated;
 
 int main( int argc, char *argv[] ){
 	apex_tensor::init_tensor_engine_cpu( 10 );
