@@ -7,11 +7,128 @@
 
 #include "../apex_utils.h"
 #include "../apex_tensor_iterator.h"
+#include "../../tensor/apex_tensor.h"
 
 // support for new iterator
 namespace apex_utils{
     namespace iterator{
+        template<typename T>
+        inline void __mnist_set_param( T & m, int y_max, int x_max, unsigned int pitch );
         
+        template<>
+        inline void __mnist_set_param<apex_tensor::CTensor1D>( apex_tensor::CTensor1D & m,  int y_max, int x_max, unsigned int pitch ){
+            m.x_max = y_max * x_max; m.pitch = pitch * y_max;
+        }
+        template<>
+        inline void __mnist_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int y_max, int x_max, unsigned int pitch ){
+            m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+        }
+        template<>
+        inline void __mnist_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int y_max, int x_max, unsigned int pitch ){
+            m.z_max = 1; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+        }
+        template<typename T>
+        class MNISTIterator: public IIterator<T>{
+        private:
+            int idx;
+            apex_tensor::CTensor3D data;
+            char name_image_set[ 256 ];            
+        public:    
+            MNISTIterator(){
+                data.elem = NULL;
+            }            
+            virtual ~MNISTIterator(){
+                this->destroy();
+            }
+            virtual void destroy(){
+                if( data.elem != NULL )
+                    delete [] data.elem;
+                data.elem = NULL;
+            }
+
+            virtual void set_param( const char *name, const char *val ){
+                if( !strcmp( name, "image_set" ) ) strcpy( name_image_set, val );        
+            }                       
+            // initialize the model
+            virtual void init( void ){
+                FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
+                unsigned char zz[4];
+                unsigned char *t_data;
+                int num_image, width, height;            
+
+                if( fread(zz, 4 , 1, fi ) == 0 ){
+                    apex_utils::error("load mnist");
+                }
+                
+                if( fread(zz, 4 , 1, fi ) == 0 ){
+                    apex_utils::error("load mnist");
+                }
+                
+                num_image = (int)(zz[3]) 
+                    | (((int)(zz[2])) << 8)
+                    | (((int)(zz[1])) << 16)
+                    | (((int)(zz[0])) << 24);
+                
+                if( fread(zz, 4 , 1, fi ) == 0 ){
+                    apex_utils::error("load mnist");
+                }
+             
+                width = (int)(zz[3]) 
+                    | (((int)(zz[2])) << 8)
+                    | (((int)(zz[1])) << 16)
+                    | (((int)(zz[0])) << 24);
+                
+                if( fread(zz, 4 , 1, fi ) == 0 ){
+                    apex_utils::error("load mnist"); 
+                }
+                
+                height = (int)(zz[3]) 
+                    | (((int)(zz[2])) << 8)
+                    | (((int)(zz[1])) << 16)
+                    | (((int)(zz[0])) << 24);
+                
+                int pitch = width * height;
+                t_data = new unsigned char[ num_image * pitch ];
+                
+                if( fread( t_data, pitch*num_image , 1 , fi) == 0 ){
+                    apex_utils::error("load mnist");
+                }        
+                
+                fclose( fi );
+                
+                data.set_param( num_image, height , width );
+                data.pitch = height * sizeof( apex_tensor::TENSOR_FLOAT );
+                data.elem  = new apex_tensor::TENSOR_FLOAT[ num_image*height*width ];
+                
+                for( int i = 0 ; i < num_image ; i ++ )
+                    for( int y = 0; y < height ; y ++ )
+                        for( int x = 0; x < width ; x ++ ){
+                            data[ i ][ y ][ x ] = (apex_tensor::TENSOR_FLOAT)(t_data[ i*pitch + y*width + x ]) /255.0f ;
+                        }        
+                delete[] t_data;        
+                before_first();
+            }
+
+            // set before first of the item
+            virtual void before_first(){
+                idx = -1;
+            }
+            
+            // move to next mat
+            virtual bool next(){
+                idx ++;
+                if( idx >= data.z_max ) return false;        
+                return true;
+            }
+            
+            // get current matrix 
+            virtual const T value() const{
+                T dout;
+                dout.elem = data[ idx ].elem;
+                __mnist_set_param( dout, data[ idx ].y_max, data[idx].x_max, data[idx].pitch );
+                return dout;
+            }                                  
+        };
     };
 };
 
