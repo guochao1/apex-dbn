@@ -118,7 +118,7 @@ namespace apex_rbm{
             if( !strcmp( name, "silent") )     silent = atoi( val );
             if( !strcmp( name, "sample_freq" ) ) sample_freq = atoi( val ); 
             if( !strcmp( name, "sample_y_max") ) sample_y_max = atoi( val ); 
-            if( !strcmp( name, "sample_x_max") ) sample_y_max = atoi( val ); 
+            if( !strcmp( name, "sample_x_max") ) sample_x_max = atoi( val ); 
             base_itr->set_param( name, val );
         }
         
