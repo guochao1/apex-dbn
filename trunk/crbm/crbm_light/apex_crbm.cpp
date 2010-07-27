@@ -522,6 +522,8 @@ namespace apex_rbm{
             TTensor3D &h_pos = layer.h_state;     
             
             int counter = 0;
+
+            data_itr->before_first();
             while( data_itr->next() ){
                 setup_input( data_itr->value() );                
 
@@ -566,6 +568,7 @@ namespace apex_rbm{
     
     class CRBMLightInferencer: public ICRBMInferencer{
     private:
+        CTensor1D top_bias_fwd;
         TTensor3D top_state;
         vector<CRBMLayer> layers;        
     public:
@@ -578,15 +581,26 @@ namespace apex_rbm{
             }
             // top state 
             top_state.set_param( model.layers.back().param.h_max, input_y_max, input_x_max );
-            tensor::alloc_space( top_state );
+            tensor::alloc_space( top_state );        
+            
+            set_bias_fwd();
         }
         ~CRBMLightInferencer(){
             for( size_t i = 0 ; i < layers.size() ; i ++ )
                 layers[i].free_space();
             layers.clear();
-
+            tensor::free_space( top_bias_fwd );
             tensor::free_space( top_state );
             destroy_tensor_engine();
+        }
+
+        inline void set_bias_fwd(){
+            TTensor1D vb;
+            vb = alloc_like( layers.back().h_bias );
+            layers.back().forward_bias( vb );
+            
+            top_bias_fwd = clone( vb );
+            tensor::free_space( vb );
         }
     public:
         virtual void set_input( const CTensor3D &data ){                                
@@ -608,12 +622,15 @@ namespace apex_rbm{
             t_y_max = top_state.y_max;
             t_x_max = top_state.x_max;
         } 
-        virtual void infer_top_layer(  CTensor3D &dout ){
+        virtual void infer_top_layer( CTensor3D &dout ){
             for( size_t i = 1 ; i < layers.size() ; i ++ ){
                 layers[i-1].feed_forward( layers[i].v_state );
             }                       
             layers.back().feed_forward( top_state );
             tensor::copy( dout, top_state );
+        }
+        virtual void forward_bias( apex_tensor::CTensor1D &v_bias_next ) const{
+            tensor::copy( v_bias_next, top_bias_fwd );
         }
     };
 

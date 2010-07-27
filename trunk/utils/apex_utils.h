@@ -9,6 +9,10 @@ namespace apex_utils{
         printf("assert error:%s\n",msg );
         exit( -1 );
     }
+    
+    inline void assert_true( bool exp, const char *msg ){
+        if( !exp ) error( msg );
+    }
 
     inline void warning( const char *msg ){
         printf("warning:%s\n",msg );
@@ -47,7 +51,7 @@ namespace apex_utils{
     namespace iterator{
         // iterator with limit counter
         template<typename T>
-        class LimitCounterIterator:IIterator<T>{
+        class LimitCounterIterator:public IIterator<T>{
         private: 
             IIterator<T> *base_itr;
             int limit_max, counter;

@@ -36,6 +36,8 @@ namespace apex_rbm{
         virtual void get_top_bound  ( int &t_z_max, int &t_y_max, int &t_x_max ) const = 0; 
         // inference top layer and store to dout
         virtual void infer_top_layer( apex_tensor::CTensor3D &dout ) = 0;    
+        // forward bias to next layer
+        virtual void forward_bias ( apex_tensor::CTensor1D &v_bias_next ) const = 0; 
     public:
         virtual ~ICRBMInferencer(){}
     };

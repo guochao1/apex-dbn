@@ -119,13 +119,13 @@ namespace apex_utils{
             virtual bool next(){
                 idx ++;
                 if( idx >= data.z_max ) return false;        
+                dout.elem = data[ idx ].elem;
+                __mnist_set_param( dout, data[ idx ].y_max, data[idx].x_max, data[idx].pitch );
                 return true;
             }
             
             // get current matrix 
             virtual const T &value() const{
-                dout.elem = data[ idx ].elem;
-                __mnist_set_param( dout, data[ idx ].y_max, data[idx].x_max, data[idx].pitch );
                 return dout;
             }                                  
         };
