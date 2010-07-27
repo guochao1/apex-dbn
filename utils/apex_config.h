@@ -26,7 +26,7 @@ namespace apex_utils{
                 switch( ch_buf ){
                 case '\\': tok[i++] = fgetc( fi ); break;
                 case '\"': tok[i++] = '\0'; 
-						return;
+						return;                        
                 case '\r':
                 case '\n': apex_utils::error("unterminated string"); break;
                 default: tok[i++] = ch_buf;
@@ -59,6 +59,7 @@ namespace apex_utils{
                 case '\r':
                 case '\n':
 					if( i == 0 ) new_line = true;
+                case '\t':
                 case ' ' :
                     ch_buf = fgetc( fi );
                     if( i > 0 ){
