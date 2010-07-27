@@ -6,7 +6,7 @@
 /* configure options */
 // architecture of cuda
 #ifndef __CUDA_ARCH__ 
-#define __CUDA_ARCH__ 200
+#define __CUDA_ARCH__ 110
 #endif
 
 // option to open GPU implementation as TTensor

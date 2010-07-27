@@ -406,7 +406,7 @@ namespace apex_rbm{
                 if( base_itr != NULL ) base_itr->set_param( cfg.name(), cfg.val() );
             }        
             if( model.layers.size() > 1 ){
-                apex_utils::assert_true( infer_created, "multiple layer must have inference iterator" );
+                apex_utils::assert_true( infer_created!=0, "multiple layer must have inference iterator" );
             }            
         }
 
