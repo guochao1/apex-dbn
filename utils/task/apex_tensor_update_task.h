@@ -74,7 +74,7 @@ namespace apex_utils{
                 updater->init();
                 
                 if( !silent ){
-                printf("initializing end, start updating\n");
+                    printf("initializing end, start updating\n");
                 }
                 clock_t start   = clock();
                 double  elapsed = 0, valid_elapsed = 0;
