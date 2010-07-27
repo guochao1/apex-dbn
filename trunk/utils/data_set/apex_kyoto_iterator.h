@@ -9,6 +9,81 @@
 #include "../apex_tensor_iterator.h"
 
 namespace apex_utils{
+    namespace iterator{
+        template<typename T>
+        inline void __kyoto_set_param( T & m, int z_max, int y_max, int x_max, unsigned int pitch );
+
+        template<>
+        inline void __kyoto_set_param<apex_tensor::CTensor1D>( apex_tensor::CTensor1D & m,  int z_max, int y_max, int x_max, unsigned int pitch ){
+             m.x_max =  y_max * x_max; m.pitch = pitch*y_max; 
+        }
+        
+        template<>
+        inline void __kyoto_set_param<apex_tensor::CTensor2D>( apex_tensor::CTensor2D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+             m.x_max = x_max; m.y_max = y_max*z_max; m.pitch = pitch; 
+        }
+        
+        template<>
+        inline void __kyoto_set_param<apex_tensor::CTensor3D>( apex_tensor::CTensor3D & m, int z_max, int y_max, int x_max, unsigned int pitch ){
+            m.z_max = z_max; m.y_max = y_max; m.x_max = x_max; m.pitch = pitch;
+        }
+        
+        template<typename T>
+        class KyotoIterator: public IIterator<T>{
+        private:
+            int silent, idx;
+            char name_image_set[ 256 ];            
+            T dout;
+            std::vector<apex_tensor::CTensor3D> data;
+        public:    
+            KyotoIterator(){
+                silent = 0;
+            }
+            virtual ~KyotoIterator(){
+                for( size_t i = 0 ; i < data.size() ; i ++ )
+                    apex_tensor::tensor::free_space( data[i] );
+                data.clear();
+            }
+            virtual void set_param( const char *name, const char *val ){
+                if( !strcmp( name, "image_set"   ) ) strcpy( name_image_set, val );        
+                if( !strcmp( name, "silent"   ) )    silent = atoi( val );
+            }
+            // initialize the model
+            virtual void init( void ){
+                int num;
+                
+                FILE *fi = apex_utils::fopen_check( name_image_set, "rb" );
+                if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
+                
+                data.resize( num );
+                for( int i = 0 ; i < num ; i ++ ){
+                    apex_tensor::tensor::load_from_file( data[i] , fi );
+                }
+                fclose( fi );
+                
+                if( silent == 0 )
+                    printf("KyotoIterator, %d images loaded\n", data.size() ); 
+                before_first();
+            }
+            virtual void before_first(){
+                idx = -1;
+            }           
+            virtual bool next(){
+                idx ++;
+                if( idx < (int)data.size() ){
+                    dout.elem = data[ idx ].elem;
+                    __kyoto_set_param( dout, data[idx].z_max, data[idx].y_max, data[idx].x_max, data[idx].pitch );                    
+                    return true;
+                } else{
+                    return false;
+                }
+            }            
+            virtual const T &value() const{
+                return dout;
+            }
+        };
+    };
+
     namespace deprecated{
         template<typename T>
         inline void __kyoto_set_param( T & m, int h_max, int z_max, int y_max, int x_max, unsigned int pitch );
