@@ -196,8 +196,7 @@ namespace apex_rbm{
         }
         
         virtual void init( void ){
-            if( base_itr != NULL ) 
-                apex_utils::error("no base iterator provided");
+            apex_utils::assert_true( base_itr != NULL ,"no base iterator provided");
 
             int counter = max_amount;
 
@@ -209,12 +208,18 @@ namespace apex_rbm{
                 buf.push_back( cl );
             }
             delete base_itr; base_itr = NULL;
-
+			
+			if( !silent ) {
+				printf("BufferIterator:max_amount=%d", max_amount );	
+			}
             if( do_shuffle ){
+				cpu_only::shuffle( buf );
                 if( !silent ) printf(" shuffle");
-                cpu_only::shuffle( buf );
+
             }
             before_first();
+			
+			if( !silent ) printf("\n");
         }
         virtual void before_first(){
             idx = 0;
@@ -359,9 +364,8 @@ namespace apex_rbm{
 
                 model.layers.push_back( md );
             }
-
             crbm_trainer = factory::create_crbm_trainer( model.layers.back(), param_train );
-            crbm_trainer->set_cd_step( cd_step );
+			crbm_trainer->set_cd_step( cd_step );
 
             // configure iterator input
             this->configure_iterator();            
@@ -407,7 +411,7 @@ namespace apex_rbm{
             }        
             if( model.layers.size() > 1 ){
                 apex_utils::assert_true( infer_created!=0, "multiple layer must have inference iterator" );
-            }            
+            }
         }
 
         inline void create_iterator( const char* itr_type ){
