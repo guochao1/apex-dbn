@@ -599,7 +599,9 @@ namespace apex_rbm{
             vb = alloc_like( layers.back().h_bias );
             layers.back().forward_bias( vb );
             
-            top_bias_fwd = clone( vb );
+            top_bias_fwd.set_param( vb.x_max );
+            tensor::alloc_space( top_bias_fwd );
+            tensor::copy( top_bias_fwd, vb );
             tensor::free_space( vb );
         }
     public:
