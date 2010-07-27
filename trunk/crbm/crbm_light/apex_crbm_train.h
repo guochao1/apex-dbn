@@ -122,9 +122,8 @@ namespace apex_rbm{
             base_itr->set_param( name, val );
         }
         
-        virtual void init( void ){
-            if( base_itr != NULL ) 
-                apex_utils::error("no base iterator provided");
+        virtual void init( void ){            
+            apex_utils::assert_true( base_itr!=NULL, "sample_itr::no base iterator provided");
             base_itr->init();
 
             if( base_itr->next() ){
