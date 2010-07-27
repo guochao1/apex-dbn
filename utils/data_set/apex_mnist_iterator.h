@@ -30,13 +30,13 @@ namespace apex_utils{
         template<typename T>
         class MNISTIterator: public IIterator<T>{
         private:
-            int idx;
+            int idx, silent;
             T dout;
             apex_tensor::CTensor3D data;
             char name_image_set[ 256 ];            
         public:    
             MNISTIterator(){
-                data.elem = NULL;
+                data.elem = NULL; silent = 0;
             }            
             virtual ~MNISTIterator(){
                 this->destroy();
@@ -49,6 +49,7 @@ namespace apex_utils{
 
             virtual void set_param( const char *name, const char *val ){
                 if( !strcmp( name, "image_set" ) ) strcpy( name_image_set, val );        
+                if( !strcmp( name, "silent"   ) )    silent = atoi( val );
             }                       
             // initialize the model
             virtual void init( void ){
@@ -108,6 +109,8 @@ namespace apex_utils{
                         }        
                 delete[] t_data;        
                 before_first();
+                if( silent == 0 )
+                    printf("MNISTIterator: %d images loaded\n", num_image );
             }
 
             // set before first of the item

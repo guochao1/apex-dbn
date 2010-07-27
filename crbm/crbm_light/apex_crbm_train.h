@@ -10,6 +10,7 @@
 #include "../../utils/apex_utils.h"
 #include "../../utils/apex_config.h"
 #include "../../tensor/apex_tensor.h"
+#include "../../utils/data_set/apex_kyoto_iterator.h"
 #include "../../utils/data_set/apex_mnist_iterator.h"
 
 namespace apex_rbm{
@@ -20,6 +21,7 @@ namespace apex_rbm{
     // preserve
     class CRBMInferIterator: public IIterator<CTensor3D>{
     private:
+        int silent;
         CTensor3D tmp_data;
         IIterator<CTensor3D> *base_itr;
         ICRBMInferencer *infer;
@@ -32,6 +34,7 @@ namespace apex_rbm{
     public:
         CRBMInferIterator( IIterator<CTensor3D> *base_itr, 
                            ICRBMInferencer *infer ){
+            this->silent = 0;
             this->base_itr = base_itr;
             this->infer    = infer;
             sync_size();
@@ -70,16 +73,21 @@ namespace apex_rbm{
             return tmp_data;
         }
         virtual void set_param( const char *name, const char *val ){
+            if( !strcmp( name, "silent") )     silent = atoi( val );
             base_itr->set_param( name, val );
         }
         virtual void init(){
             base_itr->init();
+            if( !silent ) {
+                printf("CRBMInferIterator\n");
+            } 
         }
     };
     
     // sample data out of previous data 
     class Tensor3DSampleIterator:public IIterator<CTensor3D>{
     private:        
+        int silent;
         int sample_freq;
         int sample_y_max, sample_x_max;
         CTensor3D tmp_data;
@@ -87,7 +95,7 @@ namespace apex_rbm{
         int sample_counter;
     public:
         Tensor3DSampleIterator(){ 
-            base_itr = NULL; tmp_data.elem = NULL; sample_freq = 1;
+            base_itr = NULL; tmp_data.elem = NULL; sample_freq = 1; silent = 0;
         }
         Tensor3DSampleIterator( IIterator<CTensor3D> *base_itr ){
             this->base_itr = base_itr;
@@ -107,6 +115,7 @@ namespace apex_rbm{
         }
 
         virtual void set_param( const char *name, const char *val ){
+            if( !strcmp( name, "silent") )     silent = atoi( val );
             if( !strcmp( name, "sample_freq" ) ) sample_freq = atoi( val ); 
             if( !strcmp( name, "sample_y_max") ) sample_y_max = atoi( val ); 
             if( !strcmp( name, "sample_x_max") ) sample_y_max = atoi( val ); 
@@ -125,6 +134,10 @@ namespace apex_rbm{
                 apex_utils::error("empty base iterator");
             }
             before_first();
+
+            if( silent == 0 ){
+                printf("SampleIterator: sample_freq=%d,y_max=%d,x_max=%d\n", sample_freq, sample_y_max, sample_x_max );
+            }
         }
 
         virtual void before_first(){
@@ -418,6 +431,11 @@ namespace apex_rbm{
             if( !strcmp( itr_type, "data_mnist") ){
                 apex_utils::assert_true( base_itr==NULL, "already specify base iterator" );
                 base_itr = new apex_utils::iterator::MNISTIterator<CTensor3D>();
+                return;
+            }
+            if( !strcmp( itr_type, "data_kyoto") ){
+                apex_utils::assert_true( base_itr==NULL, "already specify base iterator" );
+                base_itr = new apex_utils::iterator::KyotoIterator<CTensor3D>();
                 return;
             }
 
