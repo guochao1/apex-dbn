@@ -522,13 +522,14 @@ namespace apex_tensor{
 		APEX_CPU_SUPPORT_DOT_LT_2D( ssub__dot_lt_org, -= )
  
     };
-
+};
     /* 
        Use BLAS to speed up matrix computation 
      */
 #if __APEX_TENSOR_USE_BLAS__
-#include <cblas.h>
-    // matrix multiplication that can be optimized using BLAS    
+#include "../external/cblas.h"
+// matrix multiplication that can be optimized using BLAS    
+namespace apex_tensor{
     namespace tensor{
         inline void dot_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
 #if __APEX_TENSOR_DOUBLE_PRECISION__
