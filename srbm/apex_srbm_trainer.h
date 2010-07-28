@@ -11,7 +11,7 @@
 #include "../utils/task/apex_tensor_update_task.h"
 
 namespace apex_rbm{
-	class SRBMTrainer : public apex_utils::ITensorLabeledUpdater<apex_tensor::CTensor2D> {
+	class SRBMTrainer : public apex_utils::deprecated::ITensorLabeledUpdater<apex_tensor::CTensor2D> {
     private:
         // model parameter
         /* parameter for new layer */

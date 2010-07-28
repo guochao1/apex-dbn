@@ -1,4 +1,5 @@
-OPT= -msse2 -O3 -fno-strict-aliasing -Wall -lblas $(GPU_MACRO)
+LOPT:= -lblas -lm
+OPT := -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 
 ifeq ($(cpu), 1)
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0 
@@ -8,7 +9,7 @@ ifeq ($(cpu), 1)
 else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
 	NVCC    :=nvcc		
-	OPTNVCC = -arch sm_11 -Xcompiler "$(OPT)" $(SHOW_PTX)
+	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)" -Xlinker "$(LOPT)" $(SHOW_PTX)
 	TENSOR_LIB:= apex_tensor_cpu.o dSFMT.o apex_tensor_gpu.o	
 endif
 ifeq ($(showptx),1)
@@ -21,8 +22,6 @@ BIN= test_cmp
 
 PRJ_DIR=../..
 TENSOR_DIR=$(PRJ_DIR)/tensor
-
-
 
 CC  := gcc
 

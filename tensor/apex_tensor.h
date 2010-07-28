@@ -44,7 +44,8 @@ namespace apex_tensor{
     void destroy_stream_engine_gpu();
     void init_tensor_engine_gpu(); 
     void destroy_tensor_engine_gpu(); 
-    
+    void sync_gpu_threads();
+
     // this choose macro is defined for convinience 
     // for choosing between CPU and GPU implementation
 #if __APEX_TENSOR_USE_GPU__

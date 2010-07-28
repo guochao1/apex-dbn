@@ -107,7 +107,7 @@ void test_dot_blas( int num_iter ){
    
     printf("start test dot\n");
     
-	TestStats<CTensor1D> stats( "dot_SIMPLE","dot_BLAS");
+	TestStats<CTensor1D> stats( "dot_ORG","dot_BLAS");
     stats.abs_err.set_param( M_Y_MAX );
     stats.abs_err_rel.set_param( M_Y_MAX );
     stats.abs_err_relT.set_param( M_Y_MAX );
@@ -124,11 +124,11 @@ void test_dot_blas( int num_iter ){
         double c_start = clock();
         switch( i % 3 ){
         case 0:
-            tensor::dot_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::dot_org( tc_ans, tc_a, tc_b ); break;
         case 1:
-            tensor::sadd__dot_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::sadd__dot_org( tc_ans, tc_a, tc_b ); break;
         case 2:
-            tensor::ssub__dot_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::ssub__dot_org( tc_ans, tc_a, tc_b ); break;
         }
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         
@@ -166,7 +166,7 @@ void test_dot_blas2( int num_iter ){
    
     printf("start test dot2D \n");
     
-	TestStats<CTensor2D> stats( "dot_SIMPLE","dot_BLAS");
+	TestStats<CTensor2D> stats( "dot_ORG","dot_BLAS");
     stats.abs_err.set_param( M_Z_MAX, M_Y_MAX );
     stats.abs_err_rel.set_param( M_Z_MAX, M_Y_MAX );
     stats.abs_err_relT.set_param( M_Z_MAX, M_Y_MAX );
@@ -182,11 +182,11 @@ void test_dot_blas2( int num_iter ){
         double c_start = clock();
         switch( i%3 ){
         case 0:
-            tensor::dot_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::dot_org( tc_ans, tc_a, tc_b ); break;
         case 1:
-            tensor::sadd__dot_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::sadd__dot_org( tc_ans, tc_a, tc_b ); break;
         case 2:            
-            tensor::ssub__dot_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::ssub__dot_org( tc_ans, tc_a, tc_b ); break;
         }
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;        
         double g_start = clock();
@@ -223,7 +223,7 @@ void test_dot_rt_blas( int num_iter ){
    
     printf("start test dot_rt\n");
     
-	TestStats<CTensor1D> stats( "dot_SIMPLE","dot_BLAS");
+	TestStats<CTensor1D> stats( "dot_ORG","dot_BLAS");
     stats.abs_err.set_param( M_Y_MAX );
     stats.abs_err_rel.set_param( M_Y_MAX );
     stats.abs_err_relT.set_param( M_Y_MAX );
@@ -240,11 +240,11 @@ void test_dot_rt_blas( int num_iter ){
         double c_start = clock();
         switch( i % 3 ){
         case 0:
-            tensor::dot_rt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::dot_rt_org( tc_ans, tc_a, tc_b ); break;
         case 1:
-            tensor::sadd__dot_rt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::sadd__dot_rt_org( tc_ans, tc_a, tc_b ); break;
         case 2:
-            tensor::ssub__dot_rt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::ssub__dot_rt_org( tc_ans, tc_a, tc_b ); break;
         }
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         
@@ -281,7 +281,7 @@ void test_dot_rt_blas2( int num_iter ){
    
     printf("start test dot_rt 2D\n");
     
-	TestStats<CTensor2D> stats( "dot_SIMPLE","dot_BLAS");
+	TestStats<CTensor2D> stats( "dot_ORG","dot_BLAS");
     stats.abs_err.set_param( M_Z_MAX, M_Y_MAX );
     stats.abs_err_rel.set_param( M_Z_MAX, M_Y_MAX );
     stats.abs_err_relT.set_param( M_Z_MAX, M_Y_MAX );
@@ -298,11 +298,11 @@ void test_dot_rt_blas2( int num_iter ){
         double c_start = clock();
         switch( i % 3 ){
         case 0:
-            tensor::dot_rt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::dot_rt_org( tc_ans, tc_a, tc_b ); break;
         case 1:
-            tensor::sadd__dot_rt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::sadd__dot_rt_org( tc_ans, tc_a, tc_b ); break;
         case 2:
-            tensor::ssub__dot_rt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::ssub__dot_rt_org( tc_ans, tc_a, tc_b ); break;
         }
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         
@@ -340,7 +340,7 @@ void test_dot_lt_blas( int num_iter ){
    
     printf("start test dot_lt\n");
     
-	TestStats<CTensor2D> stats( "dot_SIMPLE","dot_BLAS");
+	TestStats<CTensor2D> stats( "dot_ORG","dot_BLAS");
     stats.abs_err.set_param( M_X_MAX, M_Y_MAX );
     stats.abs_err_rel.set_param( M_X_MAX, M_Y_MAX );
     stats.abs_err_relT.set_param( M_X_MAX, M_Y_MAX );
@@ -357,11 +357,11 @@ void test_dot_lt_blas( int num_iter ){
         double c_start = clock();
         switch( i % 3 ){
         case 0:
-            tensor::dot_lt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::dot_lt_org( tc_ans, tc_a, tc_b ); break;
         case 1:
-            tensor::sadd__dot_lt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::sadd__dot_lt_org( tc_ans, tc_a, tc_b ); break;
         case 2:
-            tensor::ssub__dot_lt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::ssub__dot_lt_org( tc_ans, tc_a, tc_b ); break;
         }
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         
@@ -399,7 +399,7 @@ void test_dot_lt_blas2( int num_iter ){
    
     printf("start test dot_lt 2D\n");
     
-	TestStats<CTensor2D> stats( "dot_SIMPLE","dot_BLAS");
+	TestStats<CTensor2D> stats( "dot_ORG","dot_BLAS");
     stats.abs_err.set_param( M_X_MAX, M_Y_MAX );
     stats.abs_err_rel.set_param( M_X_MAX, M_Y_MAX );
     stats.abs_err_relT.set_param( M_X_MAX, M_Y_MAX );
@@ -416,11 +416,11 @@ void test_dot_lt_blas2( int num_iter ){
         double c_start = clock();
         switch( i % 3 ){
         case 0:
-            tensor::dot_lt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::dot_lt_org( tc_ans, tc_a, tc_b ); break;
         case 1:
-            tensor::sadd__dot_lt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::sadd__dot_lt_org( tc_ans, tc_a, tc_b ); break;
         case 2:
-            tensor::ssub__dot_lt_simple( tc_ans, tc_a, tc_b ); break;
+            tensor::ssub__dot_lt_org( tc_ans, tc_a, tc_b ); break;
         }
         stats.time_A += (clock() - c_start) / CLOCKS_PER_SEC;
         

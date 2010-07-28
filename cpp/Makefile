@@ -9,6 +9,7 @@ INSTALL_DIR := ../../bin
 
 BIN:= crbm_light crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor 
 
+LOPT:= -lblas -lm 
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 PRJ_DIR:=..
 TENSOR_DIR:=$(PRJ_DIR)/tensor
@@ -22,11 +23,11 @@ CTENSOR_LIB:= dSFMT.o apex_tensor_cpu.o
 	
 ifeq ($(cpu), 1)
 	NVCPP := $(CPP)
-	OPTNVCPP:=$(OPT) 
+	OPTNVCPP:=$(OPT) $(LOPT) 
 	TENSOR_LIB:= $(CTENSOR_LIB)
 else
 	NVCPP :=nvcc
-	OPTNVCPP := -arch sm_11 -Xcompiler "$(OPT)"
+	OPTNVCPP := -arch sm_11 -Xcompiler "$(OPT)" -Xlinker "$(LOPT)"
 	TENSOR_LIB:= apex_tensor_gpu.o $(CTENSOR_LIB)
 endif
 
