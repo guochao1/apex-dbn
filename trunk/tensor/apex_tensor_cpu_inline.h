@@ -497,29 +497,29 @@ namespace apex_tensor{
 
 	namespace tensor{
         //support dot operation
-		APEX_CPU_SUPPORT_DOT_1D( dot_simple      , tmp += srca[j]*srcb[j][i] , =  )
-		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_simple, tmp += srca[j]*srcb[j][i] , += )
-		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_simple, tmp += srca[j]*srcb[j][i] , -= )
+		APEX_CPU_SUPPORT_DOT_1D( dot_org      , tmp += srca[j]*srcb[j][i] , =  )
+		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_org, tmp += srca[j]*srcb[j][i] , += )
+		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_org, tmp += srca[j]*srcb[j][i] , -= )
         
-        APEX_CPU_SUPPORT_DOT_2D( dot_simple )                          
-        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_simple )
-		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_simple )
+        APEX_CPU_SUPPORT_DOT_2D( dot_org )                          
+        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_org )
+		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_org )
 
-   		APEX_CPU_SUPPORT_DOT_1D( dot_rt_simple      , tmp += srca[j]*srcb[i][j] , =  )
-		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_rt_simple, tmp += srca[j]*srcb[i][j] , += )
-		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_rt_simple, tmp += srca[j]*srcb[i][j] , -= )
+   		APEX_CPU_SUPPORT_DOT_1D( dot_rt_org      , tmp += srca[j]*srcb[i][j] , =  )
+		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_rt_org, tmp += srca[j]*srcb[i][j] , += )
+		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_rt_org, tmp += srca[j]*srcb[i][j] , -= )
 
-        APEX_CPU_SUPPORT_DOT_2D( dot_rt_simple )                          
-        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_rt_simple )
-		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_rt_simple )
+        APEX_CPU_SUPPORT_DOT_2D( dot_rt_org )                          
+        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_rt_org )
+		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_rt_org )
 
-		APEX_CPU_SUPPORT_DOT_LT_1D( dot_lt_simple      , =  )
-		APEX_CPU_SUPPORT_DOT_LT_1D( sadd__dot_lt_simple, += )
-		APEX_CPU_SUPPORT_DOT_LT_1D( ssub__dot_lt_simple, -= )
+		APEX_CPU_SUPPORT_DOT_LT_1D( dot_lt_org      , =  )
+		APEX_CPU_SUPPORT_DOT_LT_1D( sadd__dot_lt_org, += )
+		APEX_CPU_SUPPORT_DOT_LT_1D( ssub__dot_lt_org, -= )
 
-		APEX_CPU_SUPPORT_DOT_LT_2D( dot_lt_simple      , =  )
-		APEX_CPU_SUPPORT_DOT_LT_2D( sadd__dot_lt_simple, += )
-		APEX_CPU_SUPPORT_DOT_LT_2D( ssub__dot_lt_simple, -= )
+		APEX_CPU_SUPPORT_DOT_LT_2D( dot_lt_org      , =  )
+		APEX_CPU_SUPPORT_DOT_LT_2D( sadd__dot_lt_org, += )
+		APEX_CPU_SUPPORT_DOT_LT_2D( ssub__dot_lt_org, -= )
  
     };
 
@@ -805,60 +805,60 @@ namespace apex_tensor{
 #else
     namespace tensor{
         inline void dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
-            dot_simple( dst, a, b );
+            dot_org( dst, a, b );
         }
         inline void dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            dot_simple( dst, a, b );
+            dot_org( dst, a, b );
         }
         inline void sadd__dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
-            sadd__dot_simple( dst, a, b );
+            sadd__dot_org( dst, a, b );
         }
         inline void sadd__dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            sadd__dot_simple( dst, a, b );
+            sadd__dot_org( dst, a, b );
         }
         inline void ssub__dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
-            ssub__dot_simple( dst, a, b );
+            ssub__dot_org( dst, a, b );
         }
         inline void ssub__dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            ssub__dot_simple( dst, a, b );
+            ssub__dot_org( dst, a, b );
         }
 
         inline void dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
-            dot_rt_simple( dst, a, b );
+            dot_rt_org( dst, a, b );
         }
         inline void dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            dot_rt_simple( dst, a, b );
+            dot_rt_org( dst, a, b );
         }
         inline void sadd__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
-            sadd__dot_rt_simple( dst, a, b );
+            sadd__dot_rt_org( dst, a, b );
         }
         inline void sadd__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            sadd__dot_rt_simple( dst, a, b );
+            sadd__dot_rt_org( dst, a, b );
         }
         inline void ssub__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
-            ssub__dot_rt_simple( dst, a, b );
+            ssub__dot_rt_org( dst, a, b );
         }
         inline void ssub__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            ssub__dot_rt_simple( dst, a, b );
+            ssub__dot_rt_org( dst, a, b );
         }
         
         lnline void dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
-            dot_lt_simple( dst, a, b );
+            dot_lt_org( dst, a, b );
         }
         inline void dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            dot_lt_simple( dst, a, b );
+            dot_lt_org( dst, a, b );
         }
         inline void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
-            sadd__dot_lt_simple( dst, a, b );
+            sadd__dot_lt_org( dst, a, b );
         }
         inline void sadd__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            sadd__dot_lt_simple( dst, a, b );
+            sadd__dot_lt_org( dst, a, b );
         }
         inline void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
-            ssub__dot_lt_simple( dst, a, b );
+            ssub__dot_lt_org( dst, a, b );
         }
         inline void ssub__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
-            ssub__dot_lt_simple( dst, a, b );
+            ssub__dot_lt_org( dst, a, b );
         }
     };
 #endif

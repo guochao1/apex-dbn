@@ -19,7 +19,7 @@
 #define  __CUDA_CONV2_USE_OPT__ 1
 
 // the precision of tensor
-#define __APEX_TENSOR_DOUBLE_PRECISION__ 1
+#define __APEX_TENSOR_DOUBLE_PRECISION__ 0
 
 // whether to use BLAS to speed up matrix computation
 #define __APEX_TENSOR_USE_BLAS__   1
