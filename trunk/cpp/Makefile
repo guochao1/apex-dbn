@@ -1,4 +1,4 @@
-# build apex tensor and rbm
+# Build apex tensor and rbm
 ifeq ($(cpu), 1)
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0 
 else
@@ -16,17 +16,18 @@ SRBM_DIR:=$(PRJ_DIR)/srbm
 CRBM_DIR:=$(PRJ_DIR)/crbm/crbm_simple
 CFRBM_DIR:=$(PRJ_DIR)/cfrbm
 
-CC := g++-4.3
+CC  := gcc
+CPP := g++
 CTENSOR_LIB:=apex_tensor_cpu.o
 
 ifeq ($(cpu), 1)
-	NVCC := $(CC)
-	OPTNVCC:=$(OPT) 
-	TENSOR_LIB:=apex_tensor_cpu.o	
+	NVCPP := $(CPP)
+	OPTNVCPP:=$(OPT) 
+	TENSOR_LIB:=apex_tensor_cpu.o dSFMT.o
 else
-	NVCC :=nvcc
-	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)"
-	TENSOR_LIB:=apex_tensor_cpu.o apex_tensor_gpu.o			
+	NVCPP :=nvcc
+	OPTNVCPP := -arch sm_11 -Xcompiler "$(OPT)"
+	TENSOR_LIB:=apex_tensor_cpu.o apex_tensor_gpu.o	dSFMT.o		
 endif
 
 all: $(BIN)
@@ -41,74 +42,77 @@ kdd : logistic_reg_factor logistic_reg_profile
 clean:
 	rm -f $(BIN) *.o *~ *.exe *.bmp
 
-apex_srbm.o: $(SRBM_DIR)/apex_srbm.cpp 
-	$(CC) $(OPT) -c -o apex_srbm.o  $(SRBM_DIR)/apex_srbm.cpp
+dSFMT.o: $(PRJ_DIR)/external/dSFMT/dSFMT.c
+	$(CC) $(OPT) -c -o dSFMT.o $(PRJ_DIR)/external/dSFMT/dSFMT.c
+
+apex_srbm.o  : $(SRBM_DIR)/apex_srbm.cpp 
+	$(CPP) $(OPT) -c -o apex_srbm.o  $(SRBM_DIR)/apex_srbm.cpp
 
 apex_crbm.o: $(CRBM_DIR)/apex_crbm.cpp 
-	$(CC) $(OPT) -c -o apex_crbm.o  $(CRBM_DIR)/apex_crbm.cpp
+	$(CPP) $(OPT) -c -o apex_crbm.o  $(CRBM_DIR)/apex_crbm.cpp
 
 apex_crbm_light.o: $(PRJ_DIR)/crbm/crbm_light/apex_crbm.cpp 
-	$(CC) $(OPT) -c -o apex_crbm_light.o  $(PRJ_DIR)/crbm/crbm_light/apex_crbm.cpp 
+	$(CPP) $(OPT) -c -o apex_crbm_light.o  $(PRJ_DIR)/crbm/crbm_light/apex_crbm.cpp 
 
 apex_cfrbm.o: $(CFRBM_DIR)/apex_cfrbm.cpp 
-	$(CC) $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp
+	$(CPP) $(OPT) -c -o apex_cfrbm.o  $(CFRBM_DIR)/apex_cfrbm.cpp
 
 cfrbm_movielen_train: cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o cfrbm_movielen_train cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
+	$(NVCPP) $(OPTNVCPP) -o cfrbm_movielen_train cfrbm_movielen.cpp apex_cfrbm.o $(TENSOR_LIB)
 
 cfrbm_movielen_predict: cfrbm_movielen_predict.cpp $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o cfrbm_movielen_predict cfrbm_movielen_predict.cpp $(TENSOR_LIB)
+	$(NVCPP) $(OPTNVCPP) -o cfrbm_movielen_predict cfrbm_movielen_predict.cpp $(TENSOR_LIB)
 
 cf_mf: cf_mf.cpp $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o cf_mf cf_mf.cpp $(TENSOR_LIB)
+	$(NVCPP) $(OPTNVCPP) -o cf_mf cf_mf.cpp $(TENSOR_LIB)
 
 logistic_reg_factor: logistic_reg_factor.cpp $(CTENSOR_LIB)
-	$(CC) $(OPT) -o logistic_reg_factor logistic_reg_factor.cpp $(CTENSOR_LIB)
+	$(CPP) $(OPT) -o logistic_reg_factor logistic_reg_factor.cpp $(CTENSOR_LIB)
 
 logistic_reg_profile: logistic_reg_profile.cpp $(CTENSOR_LIB)
-	$(CC) $(OPT) -o logistic_reg_profile logistic_reg_profile.cpp $(CTENSOR_LIB)
+	$(CPP) $(OPT) -o logistic_reg_profile logistic_reg_profile.cpp $(CTENSOR_LIB)
 
 apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $(TENSOR_DIR)/apex_tensor_cpu.cpp $(TENSOR_DIR)/apex_tensor_inline.cpp
-	$(CC) $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp 
+	$(CPP) $(OPT) -c -o apex_tensor_cpu.o  $(TENSOR_DIR)/apex_tensor_cpu.cpp 
 
 apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $(TENSOR_DIR)/apex_tensor_gpu.cu $(TENSOR_DIR)/apex_tensor_inline.cpp
-	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
+	$(NVCPP) $(OPTNVCPP) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
 srbm_mnist: srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB) 
-	$(NVCC) $(OPTNVCC) -o srbm_mnist srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB)
+	$(NVCPP) $(OPTNVCPP) -o srbm_mnist srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB)
 
 crbm_mnist: crbm_mnist.cpp apex_crbm.o $(TENSOR_LIB) 
-	$(NVCC) $(OPTNVCC) -o crbm_mnist crbm_mnist.cpp  apex_crbm.o $(TENSOR_LIB) 
+	$(NVCPP) $(OPTNVCPP) -o crbm_mnist crbm_mnist.cpp  apex_crbm.o $(TENSOR_LIB) 
 
 crbm_kyoto: crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB)  
-	$(NVCC) $(OPTNVCC) -o crbm_kyoto crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB) 
+	$(NVCPP) $(OPTNVCPP) -o crbm_kyoto crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB) 
 
 crbm_light: crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o crbm_light crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB) 
+	$(NVCPP) $(OPTNVCPP) -o crbm_light crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB) 
 
 crbm_kyoto_gpubuf: crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB)  
-	$(NVCC) $(OPTNVCC) -o crbm_kyoto_gpubuf crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB) 
+	$(NVCPP) $(OPTNVCPP) -o crbm_kyoto_gpubuf crbm_kyoto_gpubuf.cpp apex_crbm.o $(TENSOR_LIB) 
 
 crbm_kyoto_extractor: crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB)  
-	$(NVCC) $(OPTNVCC) -o crbm_kyoto_extractor crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB) 
+	$(NVCPP) $(OPTNVCPP) -o crbm_kyoto_extractor crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB) 
 
 srbm_model_drawer: srbm_model_drawer.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -lpthread -lX11  -o srbm_model_drawer srbm_model_drawer.cpp apex_tensor_cpu.o
 
 crbm_model_drawer: crbm_model_drawer.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -lpthread -lX11  -o crbm_model_drawer crbm_model_drawer.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -lpthread -lX11  -o crbm_model_drawer crbm_model_drawer.cpp apex_tensor_cpu.o
 
 crbm_filter_drawer: crbm_filter_drawer.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -lpthread -lX11  -o crbm_filter_drawer crbm_filter_drawer.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -lpthread -lX11  -o crbm_filter_drawer crbm_filter_drawer.cpp apex_tensor_cpu.o
 
 crbm_model_dumper: crbm_model_dumper.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -o crbm_model_dumper crbm_model_dumper.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -o crbm_model_dumper crbm_model_dumper.cpp apex_tensor_cpu.o
 
 crbm_model_swaper: crbm_model_swaper.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -o crbm_model_swaper crbm_model_swaper.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -o crbm_model_swaper crbm_model_swaper.cpp apex_tensor_cpu.o
 
 crbm_model_modify: crbm_model_modify.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -o crbm_model_modify crbm_model_modify.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -o crbm_model_modify crbm_model_modify.cpp apex_tensor_cpu.o
 
 kyoto_data_viewer: kyoto_data_viewer.cpp apex_tensor_cpu.o  
-	$(CC) $(OPT) -lpthread -lX11 -I/usr/X11R6/include -o kyoto_data_viewer kyoto_data_viewer.cpp apex_tensor_cpu.o
+	$(CPP) $(OPT) -lpthread -lX11 -I/usr/X11R6/include -o kyoto_data_viewer kyoto_data_viewer.cpp apex_tensor_cpu.o
