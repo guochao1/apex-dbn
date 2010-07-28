@@ -9,7 +9,7 @@
 using namespace std;
 
 int main( int argc, char *argv[] ){
-
+    
 	apex_tensor::init_tensor_engine_cpu( 10 );
    	FILE *training_file = apex_utils::fopen_check( argv[3], "r" );
 	FILE *model_file = apex_utils::fopen_check( argv[4], "wb" );

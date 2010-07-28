@@ -1,7 +1,10 @@
 #ifndef _APEX_TENSOR_GPU_CU_
 #define _APEX_TENSOR_GPU_CU_
 
+#define _APEX_GPU_COMPILE_MODE_
 #include "apex_tensor.h"
+#undef _APEX_GPU_COMPILE_MODE_
+
 #include "cuda/cuda_tensor.cuh"
 
 // GPU implementation of tensor functions

@@ -3,10 +3,11 @@
 
 /*   generate random number using Mersene Twister */
 
+#ifndef _APEX_GPU_COMPILE_MODE_
+// avoid CUDA so see this piece of code 
 extern "C"{
 #include "dSFMT/dSFMT.h"
 }
-
 #include <cmath>
 
 /*
@@ -33,17 +34,38 @@ namespace apex_random{
 	inline double next_double(){
 		return dsfmt_gv_genrand_close_open();
 	}
-
-	/* return a random number in n */
-	inline uint32_t next_uint32( uint32_t n ){
-		return (uint32_t) ( next_double() * n ) ;
-	}
-   
-	/* return a real numer uniform in (0,1) */
+    /* return a real numer uniform in (0,1) */
     inline double next_double2(){
         return dsfmt_gv_genrand_open_open();
     }
+};
+#else
+typedef unsigned int uint32_t;
+#include "../utils/apex_utils.h"
+namespace apex_random{
+	/*-------interface code------*/
+	inline void seed( uint32_t seed ){
+        apex_utils::error("no PRNG");
+    }		
+	inline uint32_t next_uint32(){		
+        apex_utils::error("no PRNG");
+        return 0;
+    }	
+	inline double next_double(){
+        apex_utils::error("no PRNG");
+        return 0.0;
+	}
+    inline double next_double2(){
+        return 0.0;
+    }
+};
+#endif
 
+namespace apex_random{
+	/* return a random number in n */
+	inline uint32_t next_uint32( uint32_t n ){
+		return (uint32_t) ( next_double() * n ) ;
+	}  
 	/* return  x~N(0,1) */
 	inline double sample_normal(){
 		double x,y,s;

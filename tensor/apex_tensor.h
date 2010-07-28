@@ -106,7 +106,7 @@ namespace apex_tensor{
 #define TSIDX1D CSparseIndex1D
 #define TSIDX2D CSparseIndex2D
 
-#include "apex_tensor_inline.cpp"
+#include "apex_tensor_inline.h"
 #undef TT1D 
 #undef TT2D 
 #undef TT3D 
@@ -125,7 +125,7 @@ namespace apex_tensor{
 #define TT2DS GTensor2DSparse
 #define TSIDX1D GSparseIndex1D
 #define TSIDX2D GSparseIndex2D
-#include "apex_tensor_inline.cpp"
+#include "apex_tensor_inline.h"
 #undef TT1D 
 #undef TT2D 
 #undef TT3D 
