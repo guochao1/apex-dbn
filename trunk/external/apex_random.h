@@ -25,20 +25,20 @@ namespace apex_random{
 		
 	/* return a 32 bit random number */
 	inline uint32_t next_uint32(){
-		return dsfmt_gv_init_gen_rand();
+		return dsfmt_gv_genrand_uint32();
 	}
 	
 	/*-------------------------------*/
+    /* return a real number uniform in [0,1) */
+	inline double next_double(){
+		return dsfmt_gv_genrand_close_open();
+	}
 
 	/* return a random number in n */
 	inline uint32_t next_uint32( uint32_t n ){
 		return (uint32_t) ( next_double() * n ) ;
 	}
-	
-	/* return a real number uniform in [0,1) */
-	inline double next_double(){
-		return dsfmt_gv_genrand_close_open();
-	}
+   
 	/* return a real numer uniform in (0,1) */
     inline double next_double2(){
         return dsfmt_gv_genrand_open_open();
