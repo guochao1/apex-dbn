@@ -22,6 +22,7 @@ namespace apex_tensor{
             this->name_A = name_A;
             this->name_B = name_B;
             this->sample_counter = 0;
+            time_A = time_B = 0.0f;
         }
         
         void init(){

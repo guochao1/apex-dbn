@@ -4,6 +4,7 @@
 #include <cstring>
 #include "../external/apex_random.h"
 
+
 namespace apex_tensor{
     namespace async{
         inline void set_dependecy( CTensor1D &ts, int stream_id ){}
@@ -480,7 +481,7 @@ namespace apex_tensor{
             }                                                           \
 		}                                                               \
 
-#define APEX_CPU_SUPPORT_DOT_LT_2D(func_name,op)                               						\
+#define APEX_CPU_SUPPORT_DOT_LT_2D(func_name,op)                        \
         inline void func_name( CTensor2D &dst, const CTensor2D &srca, const CTensor2D &srcb ){ \
             for( int i = 0; i < cpu_template::num_line( dst ); i ++){   \
 				for( int j = 0; j < dst.x_max; j ++) {                  \
@@ -496,31 +497,371 @@ namespace apex_tensor{
 
 	namespace tensor{
         //support dot operation
-		APEX_CPU_SUPPORT_DOT_1D( dot      , tmp += srca[j]*srcb[j][i] , =  )
-		APEX_CPU_SUPPORT_DOT_1D( sadd__dot, tmp += srca[j]*srcb[j][i] , += )
-		APEX_CPU_SUPPORT_DOT_1D( ssub__dot, tmp += srca[j]*srcb[j][i] , -= )
+		APEX_CPU_SUPPORT_DOT_1D( dot_simple      , tmp += srca[j]*srcb[j][i] , =  )
+		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_simple, tmp += srca[j]*srcb[j][i] , += )
+		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_simple, tmp += srca[j]*srcb[j][i] , -= )
         
-        APEX_CPU_SUPPORT_DOT_2D( dot )                          
-        APEX_CPU_SUPPORT_DOT_2D( sadd__dot )
-		APEX_CPU_SUPPORT_DOT_2D( ssub__dot )
+        APEX_CPU_SUPPORT_DOT_2D( dot_simple )                          
+        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_simple )
+		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_simple )
 
-   		APEX_CPU_SUPPORT_DOT_1D( dot_rt      , tmp += srca[j]*srcb[i][j] , =  )
-		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_rt, tmp += srca[j]*srcb[i][j] , += )
-		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_rt, tmp += srca[j]*srcb[i][j] , -= )
+   		APEX_CPU_SUPPORT_DOT_1D( dot_rt_simple      , tmp += srca[j]*srcb[i][j] , =  )
+		APEX_CPU_SUPPORT_DOT_1D( sadd__dot_rt_simple, tmp += srca[j]*srcb[i][j] , += )
+		APEX_CPU_SUPPORT_DOT_1D( ssub__dot_rt_simple, tmp += srca[j]*srcb[i][j] , -= )
 
-        APEX_CPU_SUPPORT_DOT_2D( dot_rt )                          
-        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_rt )
-		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_rt )
+        APEX_CPU_SUPPORT_DOT_2D( dot_rt_simple )                          
+        APEX_CPU_SUPPORT_DOT_2D( sadd__dot_rt_simple )
+		APEX_CPU_SUPPORT_DOT_2D( ssub__dot_rt_simple )
 
-		APEX_CPU_SUPPORT_DOT_LT_1D( dot_lt      , =  )
-		APEX_CPU_SUPPORT_DOT_LT_1D( sadd__dot_lt, += )
-		APEX_CPU_SUPPORT_DOT_LT_1D( ssub__dot_lt, -= )
+		APEX_CPU_SUPPORT_DOT_LT_1D( dot_lt_simple      , =  )
+		APEX_CPU_SUPPORT_DOT_LT_1D( sadd__dot_lt_simple, += )
+		APEX_CPU_SUPPORT_DOT_LT_1D( ssub__dot_lt_simple, -= )
 
-		APEX_CPU_SUPPORT_DOT_LT_2D( dot_lt      , =  )
-		APEX_CPU_SUPPORT_DOT_LT_2D( sadd__dot_lt, += )
-		APEX_CPU_SUPPORT_DOT_LT_2D( ssub__dot_lt, -= )
+		APEX_CPU_SUPPORT_DOT_LT_2D( dot_lt_simple      , =  )
+		APEX_CPU_SUPPORT_DOT_LT_2D( sadd__dot_lt_simple, += )
+		APEX_CPU_SUPPORT_DOT_LT_2D( ssub__dot_lt_simple, -= )
  
     };
+
+    /* 
+       Use BLAS to speed up matrix computation 
+     */
+#if __APEX_TENSOR_USE_BLAS__
+#include <cblas.h>
+    // matrix multiplication that can be optimized using BLAS    
+    namespace tensor{
+        inline void dot_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemv( CblasRowMajor, CblasTrans, b.y_max, b.x_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0, dst.elem, 1 );
+#else
+            cblas_sgemv( CblasRowMajor, CblasTrans, b.y_max, b.x_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0f,dst.elem, 1 );
+#endif
+        }
+        inline void sadd__dot_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemv( CblasRowMajor, CblasTrans, b.y_max, b.x_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0 ,dst.elem, 1 );
+#else
+            cblas_sgemv( CblasRowMajor, CblasTrans, b.y_max, b.x_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f,dst.elem, 1 );
+#endif
+        }
+        inline void ssub__dot_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemv( CblasRowMajor, CblasTrans, b.y_max, b.x_max, -1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0 , dst.elem, 1 );
+#else
+            cblas_sgemv( CblasRowMajor, CblasTrans, b.y_max, b.x_max, -1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f, dst.elem, 1 );
+#endif
+        }
+        inline void dot_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                         a.y_max, b.x_max, a.x_max, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                         a.y_max, b.x_max, a.x_max, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void sadd__dot_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                         a.y_max, b.x_max, a.x_max, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                         a.y_max, b.x_max, a.x_max, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void ssub__dot_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                         a.y_max, b.x_max, a.x_max, -1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+                         a.y_max, b.x_max, a.x_max, -1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        inline void dot_rt_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemv( CblasRowMajor, CblasNoTrans, b.y_max, b.x_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0, dst.elem, 1 );
+#else
+            cblas_sgemv( CblasRowMajor, CblasNoTrans, b.y_max, b.x_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0f,dst.elem, 1 );
+#endif
+        }
+
+        inline void sadd__dot_rt_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemv( CblasRowMajor, CblasNoTrans, b.y_max, b.x_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0, dst.elem, 1 );
+#else
+            cblas_sgemv( CblasRowMajor, CblasNoTrans, b.y_max, b.x_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f,dst.elem, 1 );
+#endif
+        }
+        inline void ssub__dot_rt_blas( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemv( CblasRowMajor, CblasNoTrans, b.y_max, b.x_max, -1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0, dst.elem, 1 );
+#else
+            cblas_sgemv( CblasRowMajor, CblasNoTrans, b.y_max, b.x_max, -1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f,dst.elem, 1 );
+#endif
+        }
+        inline void dot_rt_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasTrans, 
+                         a.y_max, b.y_max, a.x_max, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasNoTrans, CblasTrans, 
+                         a.y_max, b.y_max, a.x_max, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void sadd__dot_rt_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasTrans, 
+                         a.y_max, b.y_max, a.x_max, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasNoTrans, CblasTrans, 
+                         a.y_max, b.y_max, a.x_max, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void ssub__dot_rt_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasNoTrans, CblasTrans, 
+                         a.y_max, b.y_max, a.x_max, -1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasNoTrans, CblasTrans, 
+                         a.y_max, b.y_max, a.x_max, -1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        inline void dot_lt_blas( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, 1, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, 1, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }                
+        inline void sadd__dot_lt_blas( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dger( CblasRowMajor, a.x_max, b.x_max, 1.0 , a.elem, 1, b.elem, 1, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sger( CblasRowMajor, a.x_max, b.x_max, 1.0f, a.elem, 1, b.elem, 1, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void ssub__dot_lt_blas( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dger( CblasRowMajor, a.x_max, b.x_max, -1.0 , a.elem, 1, b.elem, 1, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sger( CblasRowMajor, a.x_max, b.x_max, -1.0f, a.elem, 1, b.elem, 1, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        inline void dot_lt_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, b.y_max, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, b.y_max, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void sadd__dot_lt_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, b.y_max, 1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, b.y_max, 1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        inline void ssub__dot_lt_blas( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cblas_dgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, b.y_max, -1.0 , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cblas_sgemm( CblasRowMajor, CblasTrans, CblasNoTrans, 
+                         a.x_max, b.x_max, b.y_max, -1.0f , 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, dst.elem, dst.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+    };
+#endif
+    /*----------------------------------------------------------------------*/
+#if __APEX_TENSOR_USE_BLAS__
+    namespace tensor{
+        inline void dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            dot_blas( dst, a, b );
+        }
+        inline void dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            dot_blas( dst, a, b );
+        }
+        inline void sadd__dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            sadd__dot_blas( dst, a, b );
+        }
+        inline void sadd__dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            sadd__dot_blas( dst, a, b );
+        }
+        inline void ssub__dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            ssub__dot_blas( dst, a, b );
+        }
+        inline void ssub__dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            ssub__dot_blas( dst, a, b );
+        }
+        
+        inline void dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            dot_rt_blas( dst, a, b );
+        }
+        inline void dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            dot_rt_blas( dst, a, b );
+        }
+        inline void sadd__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            sadd__dot_rt_blas( dst, a, b );
+        }
+        inline void sadd__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            sadd__dot_rt_blas( dst, a, b );
+        }
+        inline void ssub__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            ssub__dot_rt_blas( dst, a, b );
+        }
+        inline void ssub__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            ssub__dot_rt_blas( dst, a, b );
+        }
+        
+        inline void dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+            dot_lt_blas( dst, a, b );
+        }
+        inline void dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            dot_lt_blas( dst, a, b );
+        }
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+            sadd__dot_lt_blas( dst, a, b );
+        }
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            sadd__dot_lt_blas( dst, a, b );
+        }
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+            ssub__dot_lt_blas( dst, a, b );
+        }
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            ssub__dot_lt_blas( dst, a, b );
+        }
+    };
+#else
+    namespace tensor{
+        inline void dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            dot_simple( dst, a, b );
+        }
+        inline void dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            dot_simple( dst, a, b );
+        }
+        inline void sadd__dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            sadd__dot_simple( dst, a, b );
+        }
+        inline void sadd__dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            sadd__dot_simple( dst, a, b );
+        }
+        inline void ssub__dot( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            ssub__dot_simple( dst, a, b );
+        }
+        inline void ssub__dot( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            ssub__dot_simple( dst, a, b );
+        }
+
+        inline void dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            dot_rt_simple( dst, a, b );
+        }
+        inline void dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            dot_rt_simple( dst, a, b );
+        }
+        inline void sadd__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            sadd__dot_rt_simple( dst, a, b );
+        }
+        inline void sadd__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            sadd__dot_rt_simple( dst, a, b );
+        }
+        inline void ssub__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b ){
+            ssub__dot_rt_simple( dst, a, b );
+        }
+        inline void ssub__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            ssub__dot_rt_simple( dst, a, b );
+        }
+        
+        lnline void dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+            dot_lt_simple( dst, a, b );
+        }
+        inline void dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            dot_lt_simple( dst, a, b );
+        }
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+            sadd__dot_lt_simple( dst, a, b );
+        }
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            sadd__dot_lt_simple( dst, a, b );
+        }
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+            ssub__dot_lt_simple( dst, a, b );
+        }
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
+            ssub__dot_lt_simple( dst, a, b );
+        }
+    };
+#endif
 
     namespace tensor{
         inline TENSOR_FLOAT sum_mul( const CTensor1D &a, const CTensor1D &b ){

@@ -68,6 +68,9 @@ namespace apex_tensor{
     inline void destroy_stream_engine(){
         destroy_stream_engine_gpu();
     }
+    inline void sync_threads(){
+        sync_gpu_threads();
+    }
 #else
 
     typedef CTensor1D  TTensor1D;
@@ -89,6 +92,7 @@ namespace apex_tensor{
     }
     inline void init_stream_engine( int num_stream ){}
     inline void destroy_stream_engine(){}
+    inline void sync_threads(){}
 #endif    
 };
 
