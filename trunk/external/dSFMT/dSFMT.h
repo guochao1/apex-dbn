@@ -246,7 +246,7 @@ inline static uint32_t dsfmt_genrand_uint32(dsfmt_t *dsfmt) {
 	dsfmt_gen_rand_all(dsfmt);
 	dsfmt->idx = 0;
     }
-    r = (uint_32)(psfmt64[dsfmt->idx++] & 0xffffffffU);
+    r = (uint32_t)(psfmt64[dsfmt->idx++] & 0xffffffffU);
     return r;
 }
 
