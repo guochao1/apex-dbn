@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_DEPRECATE
 
+#include "../external/apex_random.h"
 #include "../crbm/crbm_light/apex_crbm_train.h"
 
 int main( int argc, char *argv[] ){

@@ -240,7 +240,7 @@ namespace apex_tensor{
         sparse tensor
      */
     struct CTensor1DSparse{
-        CSparseIndex1D  index;
+       CSparseIndex1D  index;
         TENSOR_FLOAT   *elem;        
         CTensor1DSparse(){}
 
@@ -259,214 +259,213 @@ namespace apex_tensor{
         inline CTensor2DSparse & operator = ( const apex_op_plan::DotRTPlan  <CTensor2D,CTensor2D> &val );      
         inline CTensor2DSparse & operator+= ( const apex_op_plan::DotRTPlan  <CTensor2D,CTensor2D> &val );      
     };
-    
+
     namespace tensor{
         // allocate space for index 
-        void alloc_space_index( CSparseIndex2D &index ); 
+        inline void alloc_space_index( CSparseIndex2D &index ); 
         // allocate space using setting of index
-        CTensor2DSparse alloc_space_data( CSparseIndex2D index );                 
+        inline CTensor2DSparse alloc_space_data( CSparseIndex2D index );                 
         // free the index space 
-        void free_space_index( CSparseIndex2D  &index );
+        inline void free_space_index( CSparseIndex2D  &index );
         // free data space of tensor
-        void free_space_data ( CTensor2DSparse &ts );
+        inline void free_space_data ( CTensor2DSparse &ts );
         // copy index from cpu to cpu
-        void copy_index ( CSparseIndex2D &dst , const CSparseIndex2D &a );
+        inline void copy_index ( CSparseIndex2D &dst , const CSparseIndex2D &a );
         // copy from cpu to cpu
-        void copy_data  ( CTensor2DSparse &dst, const CTensor2DSparse &a );                
+        inline void copy_data  ( CTensor2DSparse &dst, const CTensor2DSparse &a );                
     };
 
     // functions related to sparse tensor 
     namespace tensor{
         // free space 
-        void free_space( CTensor1DSparse &sps );
+        inline void free_space( CTensor1DSparse &sps );
         // create sparse matrix by vector
-        CTensor1DSparse create_sparse( const std::vector<int> &idx, const std::vector<TENSOR_FLOAT> &vals );
+        inline CTensor1DSparse create_sparse( const std::vector<int> &idx, const std::vector<TENSOR_FLOAT> &vals );
         // dst += a * scale
-        void sadd__mul( CTensor1D &dst , const CTensor1DSparse &a, TENSOR_FLOAT val );
+        inline void sadd__mul( CTensor1D &dst , const CTensor1DSparse &a, TENSOR_FLOAT val );
         // dst = dot( a   , b );
-        void dot      ( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
-        void sadd__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
-        void ssub__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
+        inline void dot      ( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
+        inline void sadd__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
+        inline void ssub__dot( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b );
         // dst-= scale * dot( a, b );
-        void sadd__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale );
-        void ssub__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale );
+        inline void sadd__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale );
+        inline void ssub__dot_scale( CTensor1D &dst, const CTensor1DSparse &a, const CTensor2D &b, TENSOR_FLOAT scale );
         // dst = dot( a.T , b );
-        void dot_lt      ( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
-        void sadd__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
-        void ssub__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
+        inline void dot_lt      ( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b );        
         // dst += dot( a.T , b ) *scale
-        void sadd__dot_lt_scale( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b, TENSOR_FLOAT scale );        
+        inline void sadd__dot_lt_scale( CTensor2D &dst, const CTensor1DSparse &a, const CTensor1D &b, TENSOR_FLOAT scale );        
         // dst = sum( a * b );
-        TENSOR_FLOAT sum_mul( const CTensor1DSparse &a, const CTensor1D &b );        
+        inline TENSOR_FLOAT sum_mul( const CTensor1DSparse &a, const CTensor1D &b );        
     };
 
     namespace tensor{
         // dst = a + b;
-        void add   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b );
+        inline void add   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b );
         // dst = a - b;
-        void sub   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b );        
+        inline void sub   ( CTensor2DSparse &dst , const CTensor2DSparse &a, const CTensor2DSparse &b );        
         
         // dst = dot( a, b.T );
-        void dot_rt( CTensor2DSparse &dst , const CTensor2D &a , const CTensor2D &b );
-        void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a, const CTensor2D &b );      
+        inline void dot_rt( CTensor2DSparse &dst , const CTensor2D &a , const CTensor2D &b );
+        inline void sadd__dot_rt( CTensor2DSparse &dst , const CTensor2D &a, const CTensor2D &b );      
         // dst = dot( W, P )
-        void dot       ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );
-        void sadd__dot ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
+        inline void dot       ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );
+        inline void sadd__dot ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
         // dst = dot( W.T,P )
-        void dot_lt      ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
-        void sadd__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
-        void ssub__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
+        inline void dot_lt      ( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
+        inline void sadd__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
+        inline void ssub__dot_lt( CTensor2D &dst , const CTensor2DSparse &W, const CTensor2D &P );        
     };
     /*-------------------------------------*/
 
     
     // functions defined for tensor
 
-    // intialize the tensor engine for use, seed is 
-    // the seed for random number generator
+    // intialize the tensor engine for use
     void init_tensor_engine_cpu( int seed );
     // this function is called when the program exits
     void destroy_tensor_engine_cpu(); 
     
     namespace async{
-        void set_dependecy( CTensor1D &ts, int stream_id );
-        void set_dependecy( CTensor2D &ts, int stream_id );
-        void set_dependecy( CTensor3D &ts, int stream_id );
-        void set_dependecy( CTensor4D &ts, int stream_id );
+        inline void set_dependecy( CTensor1D &ts, int stream_id );
+        inline void set_dependecy( CTensor2D &ts, int stream_id );
+        inline void set_dependecy( CTensor3D &ts, int stream_id );
+        inline void set_dependecy( CTensor4D &ts, int stream_id );
     };
     
     namespace tensor{        
         // allocate space for given tensor
-        void alloc_space( CTensor1D &ts );
-        void alloc_space( CTensor2D &ts );
-        void alloc_space( CTensor3D &ts );
-        void alloc_space( CTensor4D &ts );
+        inline void alloc_space( CTensor1D &ts );
+        inline void alloc_space( CTensor2D &ts );
+        inline void alloc_space( CTensor3D &ts );
+        inline void alloc_space( CTensor4D &ts );
         
         // free space for given tensor
-        void free_space( CTensor1D &ts );
-        void free_space( CTensor2D &ts );
-        void free_space( CTensor3D &ts );
-        void free_space( CTensor4D &ts );
+        inline void free_space( CTensor1D &ts );
+        inline void free_space( CTensor2D &ts );
+        inline void free_space( CTensor3D &ts );
+        inline void free_space( CTensor4D &ts );
         
         // fill the tensor with real value
-        void fill( CTensor1D &ts, TENSOR_FLOAT val );
-        void fill( CTensor2D &ts, TENSOR_FLOAT val );
-        void fill( CTensor3D &ts, TENSOR_FLOAT val );
-        void fill( CTensor4D &ts, TENSOR_FLOAT val );
+        inline void fill( CTensor1D &ts, TENSOR_FLOAT val );
+        inline void fill( CTensor2D &ts, TENSOR_FLOAT val );
+        inline void fill( CTensor3D &ts, TENSOR_FLOAT val );
+        inline void fill( CTensor4D &ts, TENSOR_FLOAT val );
         
         // save tensor to file
-        void save_to_file( const CTensor1D &ts, FILE *dst );
-        void save_to_file( const CTensor2D &ts, FILE *dst );
-        void save_to_file( const CTensor3D &ts, FILE *dst );
-        void save_to_file( const CTensor4D &ts, FILE *dst );      
+        inline void save_to_file( const CTensor1D &ts, FILE *dst );
+        inline void save_to_file( const CTensor2D &ts, FILE *dst );
+        inline void save_to_file( const CTensor3D &ts, FILE *dst );
+        inline void save_to_file( const CTensor4D &ts, FILE *dst );      
         
         // load tensor from file 
-        void load_from_file( CTensor1D &ts, FILE *src );
-        void load_from_file( CTensor2D &ts, FILE *src );
-        void load_from_file( CTensor3D &ts, FILE *src );
-        void load_from_file( CTensor4D &ts, FILE *src );      
+        inline void load_from_file( CTensor1D &ts, FILE *src );
+        inline void load_from_file( CTensor2D &ts, FILE *src );
+        inline void load_from_file( CTensor3D &ts, FILE *src );
+        inline void load_from_file( CTensor4D &ts, FILE *src );      
         
         // copy data from another tensor
-        void copy( CTensor1D &dst, const CTensor1D &src );
-        void copy( CTensor2D &dst, const CTensor2D &src );
-        void copy( CTensor3D &dst, const CTensor3D &src );
-        void copy( CTensor4D &dst, const CTensor4D &src );
+        inline void copy( CTensor1D &dst, const CTensor1D &src );
+        inline void copy( CTensor2D &dst, const CTensor2D &src );
+        inline void copy( CTensor3D &dst, const CTensor3D &src );
+        inline void copy( CTensor4D &dst, const CTensor4D &src );
     };    
     
     //mapping functions 
     namespace tensor{
-        void sigmoid( CTensor1D &mean, const CTensor1D &energy );
-        void sigmoid( CTensor2D &mean, const CTensor2D &energy );
-        void sigmoid( CTensor3D &mean, const CTensor3D &energy );
-        void sigmoid( CTensor4D &mean, const CTensor4D &energy );
+        inline void sigmoid( CTensor1D &mean, const CTensor1D &energy );
+        inline void sigmoid( CTensor2D &mean, const CTensor2D &energy );
+        inline void sigmoid( CTensor3D &mean, const CTensor3D &energy );
+        inline void sigmoid( CTensor4D &mean, const CTensor4D &energy );
     };
 
     // sampling functions 
     namespace tensor{
         // sample binary distribution
-        void sample_binary  ( CTensor1D &state, const CTensor1D &prob );
-        void sample_binary  ( CTensor2D &state, const CTensor2D &prob );
-        void sample_binary  ( CTensor3D &state, const CTensor3D &prob );
-        void sample_binary  ( CTensor4D &state, const CTensor4D &prob );
+        inline void sample_binary  ( CTensor1D &state, const CTensor1D &prob );
+        inline void sample_binary  ( CTensor2D &state, const CTensor2D &prob );
+        inline void sample_binary  ( CTensor3D &state, const CTensor3D &prob );
+        inline void sample_binary  ( CTensor4D &state, const CTensor4D &prob );
         
         // sample gaussian distribution with certain sd
-        void sample_gaussian( CTensor1D &state, const CTensor1D &mean, TENSOR_FLOAT sd );
-        void sample_gaussian( CTensor2D &state, const CTensor2D &mean, TENSOR_FLOAT sd );
-        void sample_gaussian( CTensor3D &state, const CTensor3D &mean, TENSOR_FLOAT sd );
-        void sample_gaussian( CTensor4D &state, const CTensor4D &mean, TENSOR_FLOAT sd );
+        inline void sample_gaussian( CTensor1D &state, const CTensor1D &mean, TENSOR_FLOAT sd );
+        inline void sample_gaussian( CTensor2D &state, const CTensor2D &mean, TENSOR_FLOAT sd );
+        inline void sample_gaussian( CTensor3D &state, const CTensor3D &mean, TENSOR_FLOAT sd );
+        inline void sample_gaussian( CTensor4D &state, const CTensor4D &mean, TENSOR_FLOAT sd );
         
         // sample gaussian distribution with certain mean sd
-        void sample_gaussian( CTensor1D &state, TENSOR_FLOAT sd );        
-        void sample_gaussian( CTensor2D &state, TENSOR_FLOAT sd ); 
-        void sample_gaussian( CTensor3D &state, TENSOR_FLOAT sd );        
-        void sample_gaussian( CTensor4D &state, TENSOR_FLOAT sd );                
+        inline void sample_gaussian( CTensor1D &state, TENSOR_FLOAT sd );        
+        inline void sample_gaussian( CTensor2D &state, TENSOR_FLOAT sd ); 
+        inline void sample_gaussian( CTensor3D &state, TENSOR_FLOAT sd );        
+        inline void sample_gaussian( CTensor4D &state, TENSOR_FLOAT sd );                
     };
 
     // arithmetic operations
     namespace tensor{
         // dst = a + b
-        void add      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
-        void add      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
-        void add      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
-        void add      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );                
+        inline void add      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        inline void add      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        inline void add      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        inline void add      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );                
         // dst = a * b, elementwise
-        void mul      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
-        void mul      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
-        void mul      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
-        void mul      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );                
+        inline void mul      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        inline void mul      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        inline void mul      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        inline void mul      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );                
         // dst = a*sa + b*sb
-        void scale_add( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
-        void scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
-        void scale_add( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
-        void scale_add( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+        inline void scale_add( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        inline void scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        inline void scale_add( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        inline void scale_add( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
 
         // dst += a*sa + b*sb
-        void sadd__scale_add( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
-        void sadd__scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
-        void sadd__scale_add( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
-        void sadd__scale_add( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
+        inline void sadd__scale_add( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        inline void sadd__scale_add( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        inline void sadd__scale_add( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );
+        inline void sadd__scale_add( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b, TENSOR_FLOAT sa, TENSOR_FLOAT sb );                
 
         // dst = a - b
-        void sub      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
-        void sub      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
-        void sub      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
-        void sub      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+        inline void sub      ( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        inline void sub      ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        inline void sub      ( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        inline void sub      ( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
         // dst = a + val
-        void add      ( CTensor1D &dst, const CTensor1D &a, TENSOR_FLOAT val );
-        void add      ( CTensor2D &dst, const CTensor2D &a, TENSOR_FLOAT val );
-        void add      ( CTensor3D &dst, const CTensor3D &a, TENSOR_FLOAT val );
-        void add      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
+        inline void add      ( CTensor1D &dst, const CTensor1D &a, TENSOR_FLOAT val );
+        inline void add      ( CTensor2D &dst, const CTensor2D &a, TENSOR_FLOAT val );
+        inline void add      ( CTensor3D &dst, const CTensor3D &a, TENSOR_FLOAT val );
+        inline void add      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
 
         // dst = a * val
-        void mul      ( CTensor1D &dst, const CTensor1D &a, TENSOR_FLOAT val );
-        void mul      ( CTensor2D &dst, const CTensor2D &a, TENSOR_FLOAT val );
-        void mul      ( CTensor3D &dst, const CTensor3D &a, TENSOR_FLOAT val );
-        void mul      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
+        inline void mul      ( CTensor1D &dst, const CTensor1D &a, TENSOR_FLOAT val );
+        inline void mul      ( CTensor2D &dst, const CTensor2D &a, TENSOR_FLOAT val );
+        inline void mul      ( CTensor3D &dst, const CTensor3D &a, TENSOR_FLOAT val );
+        inline void mul      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
 
         // dst += a * val
-        void sadd__mul      ( CTensor1D &dst, const CTensor1D &a, TENSOR_FLOAT val );
-        void sadd__mul      ( CTensor2D &dst, const CTensor2D &a, TENSOR_FLOAT val );
-        void sadd__mul      ( CTensor3D &dst, const CTensor3D &a, TENSOR_FLOAT val );
-        void sadd__mul      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
+        inline void sadd__mul      ( CTensor1D &dst, const CTensor1D &a, TENSOR_FLOAT val );
+        inline void sadd__mul      ( CTensor2D &dst, const CTensor2D &a, TENSOR_FLOAT val );
+        inline void sadd__mul      ( CTensor3D &dst, const CTensor3D &a, TENSOR_FLOAT val );
+        inline void sadd__mul      ( CTensor4D &dst, const CTensor4D &a, TENSOR_FLOAT val );
 
         // matrix multiplication
         // dst   = dot( a, b ) 
         // note: the 1D tensor is treated as 1 * n matrix 
-        void dot        ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
-        void dot        ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );            
+        inline void dot        ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
+        inline void dot        ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );            
         // dst  += dot( a, b  ) 
-        void sadd__dot  ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
-        void sadd__dot  ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );                    
+        inline void sadd__dot  ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
+        inline void sadd__dot  ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );                    
         // dst  = dot( a   ,  b.T )
-        void dot_rt     ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
-        void dot_rt     ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
+        inline void dot_rt     ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
+        inline void dot_rt     ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
         // dst += dot( a, b.T )
-        void sadd__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
-        void sadd__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
+        inline void sadd__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
+        inline void sadd__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
         // dst  = dot( a.T , b )
-        void dot_lt      ( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
-        void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
-        void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
+        inline void dot_lt      ( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
     };
     
     namespace tensor{
@@ -476,110 +475,113 @@ namespace apex_tensor{
 
     // support for error esimtation
     namespace tensor{
-        void sadd__abs_err( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
-        void sadd__abs_err( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
-        void sadd__abs_err( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
-        void sadd__abs_err( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+        inline void sadd__abs_err( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        inline void sadd__abs_err( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        inline void sadd__abs_err( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        inline void sadd__abs_err( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
 
-        void sadd__abs_err_rel( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
-        void sadd__abs_err_rel( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
-        void sadd__abs_err_rel( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
-        void sadd__abs_err_rel( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+        inline void sadd__abs_err_rel( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        inline void sadd__abs_err_rel( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        inline void sadd__abs_err_rel( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        inline void sadd__abs_err_rel( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
 
         // calculate relative error ,ignore the case when x <= 1e-5
-        void sadd__abs_err_relT( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
-        void sadd__abs_err_relT( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
-        void sadd__abs_err_relT( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
-        void sadd__abs_err_relT( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
+        inline void sadd__abs_err_relT( CTensor1D &dst, const CTensor1D &a, const CTensor1D &b );
+        inline void sadd__abs_err_relT( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );
+        inline void sadd__abs_err_relT( CTensor3D &dst, const CTensor3D &a, const CTensor3D &b );
+        inline void sadd__abs_err_relT( CTensor4D &dst, const CTensor4D &a, const CTensor4D &b );
     };
     // support for convolutional RBM
     namespace tensor{
         namespace crbm{
             // normalize by maxpooling 2D
-            void norm_maxpooling_2D( CTensor3D &mean, const CTensor3D &energy, int pool_size );
+            inline void norm_maxpooling_2D( CTensor3D &mean, const CTensor3D &energy, int pool_size );
 
             // sample the data using 2D maxpooling 
-            void sample_maxpooling_2D( CTensor3D &state, const CTensor3D &mean, int pool_size );
+            inline void sample_maxpooling_2D( CTensor3D &state, const CTensor3D &mean, int pool_size );
 
             // fit the last two dimension of src into dst's size, copy the fitted part into dst
-            void copy_fit( CTensor2D &dst, const CTensor2D &src );
-            void copy_fit( CTensor3D &dst, const CTensor3D &src );
+            inline void copy_fit( CTensor2D &dst, const CTensor2D &src );
+            inline void copy_fit( CTensor3D &dst, const CTensor3D &src );
             
             // fill the edge of dest by values in src
-            void refill_edge_area( CTensor3D &dst, const CTensor3D &src, int edge_y_len, int edge_x_len );
+            inline void refill_edge_area( CTensor3D &dst, const CTensor3D &src, int edge_y_len, int edge_x_len );
             
             // pool up
-            void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ); 
+            inline void pool_up( CTensor3D &dst , const CTensor3D &src, int pool_size ); 
                             
             // 2D convolution with bias
             // convolution, leaves the valid area
             // dst = (~a) (*)  filter + bias 
-            void conv2_r_valid     ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias );
+            inline void conv2_r_valid     ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias );
             
             // dst = ( a) (*) filter + bias
-            void conv2_full        ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias );
+            inline void conv2_full        ( CTensor3D &dst, const CTensor3D &a, const CTensor4D &filter, const CTensor1D &bias );
             
             // convolution with big filter
-            void sadd__conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b );
-            void ssub__conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b );
+            inline void sadd__conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b );
+            inline void ssub__conv2_r_big_filter( CTensor4D &dst, const CTensor3D &a, const CTensor3D &b );
             
             // sum over last two dimension
-            void sadd__sum_2D( CTensor1D &dst, const CTensor3D &src );
-            void ssub__sum_2D( CTensor1D &dst, const CTensor3D &src );
+            inline void sadd__sum_2D( CTensor1D &dst, const CTensor3D &src );
+            inline void ssub__sum_2D( CTensor1D &dst, const CTensor3D &src );
 
             // sum over last two dimension
-            void sum_2D    ( CTensor2D &dst, const CTensor4D &src );            
-            void sadd__scale( CTensor4D &dst, const CTensor2D &src, TENSOR_FLOAT scale_src );
+            inline void sum_2D    ( CTensor2D &dst, const CTensor4D &src );            
+            inline void sadd__scale( CTensor4D &dst, const CTensor2D &src, TENSOR_FLOAT scale_src );
             
             // calculate information of sparse regularization
-            void add_sparse_info( CTensor1D &sum_mf, CTensor1D &sum_mf_grad, const CTensor3D &src, int pool_size );
+            inline void add_sparse_info( CTensor1D &sum_mf, CTensor1D &sum_mf_grad, const CTensor3D &src, int pool_size );
         };        
     };
 
     // host only code
     namespace cpu_only{
         // average value
-        TENSOR_FLOAT sum( const CTensor1D &a );
-        TENSOR_FLOAT sum( const CTensor2D &a );
-        TENSOR_FLOAT sum( const CTensor3D &a );
-        TENSOR_FLOAT sum( const CTensor4D &a );
+        inline TENSOR_FLOAT sum( const CTensor1D &a );
+        inline TENSOR_FLOAT sum( const CTensor2D &a );
+        inline TENSOR_FLOAT sum( const CTensor3D &a );
+        inline TENSOR_FLOAT sum( const CTensor4D &a );
         
         // average value
-        TENSOR_FLOAT avg( const CTensor1D &a );
-        TENSOR_FLOAT avg( const CTensor2D &a );
-        TENSOR_FLOAT avg( const CTensor3D &a );
-        TENSOR_FLOAT avg( const CTensor4D &a );
+        inline TENSOR_FLOAT avg( const CTensor1D &a );
+        inline TENSOR_FLOAT avg( const CTensor2D &a );
+        inline TENSOR_FLOAT avg( const CTensor3D &a );
+        inline TENSOR_FLOAT avg( const CTensor4D &a );
 
         // variance
-        TENSOR_FLOAT var( const CTensor1D &a );
-        TENSOR_FLOAT var( const CTensor2D &a );
-        TENSOR_FLOAT var( const CTensor3D &a );
-        TENSOR_FLOAT var( const CTensor4D &a );
+        inline TENSOR_FLOAT var( const CTensor1D &a );
+        inline TENSOR_FLOAT var( const CTensor2D &a );
+        inline TENSOR_FLOAT var( const CTensor3D &a );
+        inline TENSOR_FLOAT var( const CTensor4D &a );
         
         // standard variance
-        TENSOR_FLOAT std_var( const CTensor1D &a );
-        TENSOR_FLOAT std_var( const CTensor2D &a );
-        TENSOR_FLOAT std_var( const CTensor3D &a );
-        TENSOR_FLOAT std_var( const CTensor4D &a );
+        inline TENSOR_FLOAT std_var( const CTensor1D &a );
+        inline TENSOR_FLOAT std_var( const CTensor2D &a );
+        inline TENSOR_FLOAT std_var( const CTensor3D &a );
+        inline TENSOR_FLOAT std_var( const CTensor4D &a );
         
         // min value
-        TENSOR_FLOAT min_value( const CTensor1D &a );
-        TENSOR_FLOAT min_value( const CTensor2D &a );
-        TENSOR_FLOAT min_value( const CTensor3D &a );
-        TENSOR_FLOAT min_value( const CTensor4D &a );
+        inline TENSOR_FLOAT min_value( const CTensor1D &a );
+        inline TENSOR_FLOAT min_value( const CTensor2D &a );
+        inline TENSOR_FLOAT min_value( const CTensor3D &a );
+        inline TENSOR_FLOAT min_value( const CTensor4D &a );
         // max value
-        TENSOR_FLOAT max_value( const CTensor1D &a );
-        TENSOR_FLOAT max_value( const CTensor2D &a );
-        TENSOR_FLOAT max_value( const CTensor3D &a );
-        TENSOR_FLOAT max_value( const CTensor4D &a );
+        inline TENSOR_FLOAT max_value( const CTensor1D &a );
+        inline TENSOR_FLOAT max_value( const CTensor2D &a );
+        inline TENSOR_FLOAT max_value( const CTensor3D &a );
+        inline TENSOR_FLOAT max_value( const CTensor4D &a );
 
         // random extract a region from src
-        void rand_extract( CTensor3D &dst, const CTensor3D &src );
+        inline void rand_extract( CTensor3D &dst, const CTensor3D &src );
         // shuffle the h_index of data randomly
-        void shuffle( CTensor4D &data );
-        void shuffle( std::vector<CTensor3D> &data );
+        inline void shuffle( CTensor4D &data );
+        inline void shuffle( std::vector<CTensor3D> &data );
     };
 };
+
+#include "apex_tensor_cpu_inline.h"
+
 #endif
 
 
