@@ -18,6 +18,12 @@
 // use optimized convolution method for special masks
 #define  __CUDA_CONV2_USE_OPT__ 1
 
+// the precision of tensor
+#define __APEX_TENSOR_DOUBLE_PRECISION__ 1
+
+// whether to use BLAS to speed up matrix computation
+#define __APEX_TENSOR_USE_BLAS__   1
+
 // use kahan sum in GPU convolution
 //#define __CUDA_CONV2_USE_KAHAN_SUM__
 
@@ -27,7 +33,11 @@
 
 // accuracy of tensor float
 namespace apex_tensor{
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+    typedef double TENSOR_FLOAT;
+#else
     typedef float TENSOR_FLOAT;
+#endif
 };
 #endif
 

@@ -8,7 +8,7 @@
 #include <ctime>
 using namespace apex_tensor;
 
-const int NUM_ITER = 1000;
+const int NUM_ITER = 10;
 
 const int NUM_SAMPLE = 100;
 const int POOL_SIZE = 3;
@@ -24,19 +24,25 @@ const int H_X_MAX = V_X_MAX - F_X_MAX + 1;
 const int P_Y_MAX = H_Y_MAX / POOL_SIZE;
 const int P_X_MAX = H_X_MAX / POOL_SIZE;
 const int M_Y_MAX = 500;
-const int M_X_MAX = 500;
+const int M_X_MAX = 499;
+const int M_Z_MAX = 101;
 
-const TENSOR_FLOAT sd = 1.0f;
+const TENSOR_FLOAT sd = 2.0f;
 
 #include "test_cmp.h"
 
 int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine(0);
-   
-    test_dot_lt( NUM_ITER );
- test_dot_rt( NUM_ITER );
- test_dot( NUM_ITER );
+
+    test_dot_lt_blas( NUM_ITER* M_Z_MAX );
+    test_dot_lt_blas2( NUM_ITER );
+    
+    test_dot_blas( NUM_ITER*M_Z_MAX );
+    test_dot_blas2( NUM_ITER );
+    test_dot_rt_blas( NUM_ITER*M_Z_MAX );
+    test_dot_rt_blas2( NUM_ITER );
+    
     /*
     //    test_norm_maxpooling_2D( NUM_ITER );
         test_pool_up( NUM_ITER );
