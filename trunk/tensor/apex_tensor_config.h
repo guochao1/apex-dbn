@@ -24,6 +24,9 @@
 // whether to use BLAS to speed up matrix computation
 #define __APEX_TENSOR_USE_BLAS__   1
 
+// use cuBLAS to speed up GPU computation
+#define __APEX_TENSOR_USE_CUBLAS__ 1
+
 // use kahan sum in GPU convolution
 //#define __CUDA_CONV2_USE_KAHAN_SUM__
 

@@ -5,35 +5,48 @@
 #include "apex_tensor.h"
 #undef _APEX_GPU_COMPILE_MODE_
 
+#if __APEX_TENSOR_USE_CUBLAS__
+#include "cublas.h"
+#endif
+
 #include "cuda/cuda_tensor.cuh"
 
 // GPU implementation of tensor functions
 namespace apex_tensor{    
-
+    static int engine_ref_counter = 0;
     void init_tensor_engine_gpu( void ){
-        int device_count = 0;
-        if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
-            cuda_tensor::error("can't get device information about cuda\n");
-        }else{
-            if( device_count == 0 ){
-                cuda_tensor::error("There is no device supporting CUDA.\n");
-            }else{                
-                int dev;                    
-                if( cudaGetDevice( &dev ) != cudaSuccess )
-                    cuda_tensor::error("can't get device to run CUDA\n");                    
-
-                cudaDeviceProp device_prop;
-                cudaGetDeviceProperties( &device_prop, dev );
-                if( device_prop.major == 9999 && device_prop.minor == 9999 )
-                    cuda_tensor::error("There is no device availiable supporting CUDA.\n");
+        if ( engine_ref_counter == 0 ){
+            ++ engine_ref_counter;
+            int device_count = 0;
+            if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
+                cuda_tensor::error("can't get device information about cuda\n");
+            }else{
+                if( device_count == 0 ){
+                    cuda_tensor::error("There is no device supporting CUDA.\n");
+                }else{                
+                    int dev;                    
+                    if( cudaGetDevice( &dev ) != cudaSuccess )
+                        cuda_tensor::error("can't get device to run CUDA\n");                    
+                    
+                    cudaDeviceProp device_prop;
+                    cudaGetDeviceProperties( &device_prop, dev );
+                    if( device_prop.major == 9999 && device_prop.minor == 9999 )
+                        cuda_tensor::error("There is no device availiable supporting CUDA.\n");
+                }            
             }            
+            cuda_rand::rand_init();
+#if __APEX_TENSOR_USE_CUBLAS__
+            cublasInit();
+#endif
         }
-        
-        cuda_rand::rand_init();
     }
-    
     void destroy_tensor_engine_gpu(){
-        cuda_rand::rand_destroy();
+        if( --engine_ref_counter <= 0 ){
+            cuda_rand::rand_destroy();
+#if __APEX_TENSOR_USE_CUBLAS__
+            cublasInit();
+#endif
+        }
     }
 
     void sync_gpu_threads(){
@@ -253,6 +266,19 @@ namespace apex_tensor{
         APEX_USE_TEMPLATE_MAP_S ( sample_binary  , sample_binary  , store_method::SAVE )
         APEX_USE_TEMPLATE_MAP_SS( sample_gaussian, sample_gaussian, store_method::SAVE )
     };
+
+#if __APEX_TENSOR_USE_CUBLAS__
+#include "cublas.h"
+    namespace tensor{
+        void dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemv( 'N', b.x_max, b.y_max, 1   , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0 , ans.elem, 1 );
+#else
+            cublasSgemv( 'N', b.x_max, b.y_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0f, ans.elem, 1 );
+#endif
+        }
+    };
+#else
     namespace tensor{
         using namespace cuda_tensor;
         void dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
@@ -279,6 +305,7 @@ namespace apex_tensor{
             dot_lt_simple<store_method::SUB>( ans, a, b );
         }
     };
+#endif
 
     namespace tensor{
         using namespace cuda_tensor;
