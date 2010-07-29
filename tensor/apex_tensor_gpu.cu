@@ -268,16 +268,209 @@ namespace apex_tensor{
     };
 
 #if __APEX_TENSOR_USE_CUBLAS__
-#include "cublas.h"
     namespace tensor{
         void dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
 #if __APEX_TENSOR_DOUBLE_PRECISION__
-            cublasDgemv( 'N', b.x_max, b.y_max, 1   , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0 , ans.elem, 1 );
+            cublasDgemv( 'N', b.x_max, b.y_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0 , ans.elem, 1 );
 #else
             cublasSgemv( 'N', b.x_max, b.y_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0f, ans.elem, 1 );
 #endif
         }
+        void sadd__dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemv( 'N', b.x_max, b.y_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0 , ans.elem, 1 );
+#else
+            cublasSgemv( 'N', b.x_max, b.y_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f, ans.elem, 1 );
+#endif
+        }
+        void ssub__dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemv( 'N', b.x_max, b.y_max, -1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0 , ans.elem, 1 );
+#else
+            cublasSgemv( 'N', b.x_max, b.y_max, -1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f, ans.elem, 1 );
+#endif
+        }
+
+        void dot( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'N', 'N', 
+                         b.x_max, a.y_max, b.y_max, 1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'N', 'N', 
+                         b.x_max, a.y_max, b.y_max, 1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        void sadd__dot( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'N', 'N', 
+                         b.x_max, a.y_max, b.y_max, 1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'N', 'N', 
+                         b.x_max, a.y_max, b.y_max, 1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        void ssub__dot( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'N', 'N', 
+                         b.x_max, a.y_max, b.y_max, -1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'N', 'N', 
+                         b.x_max, a.y_max, b.y_max, -1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        void dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemv( 'T', b.x_max, b.y_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0 , ans.elem, 1 );
+#else
+            cublasSgemv( 'T', b.x_max, b.y_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 0.0f, ans.elem, 1 );
+#endif
+        }
+        void sadd__dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemv( 'N', b.x_max, b.y_max, 1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0 , ans.elem, 1 );
+#else
+            cublasSgemv( 'T', b.x_max, b.y_max, 1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f, ans.elem, 1 );
+#endif
+        }
+        void ssub__dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemv( 'T', b.x_max, b.y_max, -1.0 , b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0 , ans.elem, 1 );
+#else
+            cublasSgemv( 'T', b.x_max, b.y_max, -1.0f, b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), a.elem, 1, 1.0f, ans.elem, 1 );
+#endif
+        }                
+
+        void dot_rt( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'T', 'N', 
+                         b.y_max, a.y_max, b.x_max, 1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'T', 'N', 
+                         b.y_max, a.y_max, b.x_max, 1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        void sadd__dot_rt( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'T', 'N', 
+                         b.y_max, a.y_max, b.x_max, 1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'T', 'N', 
+                         b.y_max, a.y_max, b.x_max, 1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        void ssub__dot_rt( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'T', 'N', 
+                         b.y_max, a.y_max, b.x_max, -1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'T', 'N', 
+                         b.y_max, a.y_max, b.x_max, -1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        void dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
+            dot_lt_simple<store_method::SAVE>( ans, a, b );
+        }
+        void sadd__dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDger( b.x_max, a.x_max, 1.0 , b.elem, 1, a.elem, 1, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSger( b.x_max, a.x_max, 1.0 , b.elem, 1, a.elem, 1, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        void ssub__dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDger( b.x_max, a.x_max, -1.0 , b.elem, 1, a.elem, 1, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSger( b.x_max, a.x_max, -1.0 , b.elem, 1, a.elem, 1, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+
+        void dot_lt( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'N', 'T', 
+                         b.x_max, a.x_max, b.y_max, 1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'N', 'T', 
+                         b.x_max, a.x_max, b.y_max, 1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         0.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        void sadd__dot_lt( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'N', 'T', 
+                         b.x_max, a.x_max, b.y_max, 1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'N', 'T', 
+                         b.x_max, a.x_max, b.y_max, 1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
+        void ssub__dot_lt( GTensor2D &ans, const GTensor2D &a, const GTensor2D &b ){
+#if __APEX_TENSOR_DOUBLE_PRECISION__
+            cublasDgemm( 'N', 'T', 
+                         b.x_max, a.x_max, b.y_max, -1.0 , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#else
+            cublasSgemm( 'N', 'T', 
+                         b.x_max, a.x_max, b.y_max, -1.0f , 
+                         b.elem, b.pitch/(sizeof(TENSOR_FLOAT)), 
+                         a.elem, a.pitch/(sizeof(TENSOR_FLOAT)), 
+                         1.0f, ans.elem, ans.pitch/(sizeof(TENSOR_FLOAT)) );
+#endif
+        }
     };
+    
 #else
     namespace tensor{
         using namespace cuda_tensor;
@@ -287,12 +480,18 @@ namespace apex_tensor{
         void sadd__dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
             dot_rec<store_method::ADD>( ans, a, b );
         }
+        void ssub__dot( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+            dot_rec<store_method::SUB>( ans, a, b );
+        }
 
         void dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
             dot_rt_simple<store_method::SAVE>( ans, a, b );
         }
         void sadd__dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
             dot_rt_simple<store_method::ADD>( ans, a, b );
+        }
+        void ssub__dot_rt( GTensor1D &ans, const GTensor1D &a, const GTensor2D &b ){
+            dot_rt_simple<store_method::SUB>( ans, a, b );
         }
 
         void dot_lt( GTensor2D &ans, const GTensor1D &a, const GTensor1D &b ){
@@ -307,6 +506,7 @@ namespace apex_tensor{
     };
 #endif
 
+
     namespace tensor{
         using namespace cuda_tensor;
         APEX_USE_TEMPLATE_MAP_C( sadd__abs_err       , store_method::ADD, map_method_B::ABS_ERR )
@@ -319,20 +519,20 @@ namespace apex_tensor{
     namespace tensor{
         namespace crbm{
             using namespace cuda_tensor;
-            void copy_fit( GTensor2D &dst, const CTensor2D &src ){
-                    copy_template<GTensor2D,CTensor2D,cudaMemcpyHostToDevice>( dst, src );
+            void copy_fit( GTensor2D &ans, const CTensor2D &src ){
+                    copy_template<GTensor2D,CTensor2D,cudaMemcpyHostToDevice>( ans, src );
             } 
-            void copy_fit( GTensor3D &dst, const CTensor3D &src ){
-                for( int i = 0 ; i < dst.z_max ; i ++ )
-                    copy_template<GTensor2D,CTensor2D,cudaMemcpyHostToDevice>( dst[i], src[i] );
+            void copy_fit( GTensor3D &ans, const CTensor3D &src ){
+                for( int i = 0 ; i < ans.z_max ; i ++ )
+                    copy_template<GTensor2D,CTensor2D,cudaMemcpyHostToDevice>( ans[i], src[i] );
             } 
-            void copy_fit( GTensor3D &dst, const GTensor3D &src ){
-                for( int i = 0 ; i < dst.z_max ; i ++ )
-                    copy_template<GTensor2D,GTensor2D,cudaMemcpyDeviceToDevice>( dst[i], src[i] );
+            void copy_fit( GTensor3D &ans, const GTensor3D &src ){
+                for( int i = 0 ; i < ans.z_max ; i ++ )
+                    copy_template<GTensor2D,GTensor2D,cudaMemcpyDeviceToDevice>( ans[i], src[i] );
             } 
-            void copy_fit( CTensor3D &dst, const GTensor3D &src ){
-                for( int i = 0 ; i < dst.z_max ; i ++ )
-                    copy_template<CTensor2D,GTensor2D,cudaMemcpyDeviceToHost>( dst[i], src[i] );
+            void copy_fit( CTensor3D &ans, const GTensor3D &src ){
+                for( int i = 0 ; i < ans.z_max ; i ++ )
+                    copy_template<CTensor2D,GTensor2D,cudaMemcpyDeviceToHost>( ans[i], src[i] );
             } 
             
             void sample_maxpooling_2D( GTensor3D &state, const GTensor3D &mean, int pool_size ){
@@ -343,44 +543,44 @@ namespace apex_tensor{
                 cuda_tensor::norm_maxpooling<store_method::SAVE>( mean, energy, pool_size );
             }
             
-            void conv2_r_valid( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
-                cuda_tensor::conv2_r_valid<store_method::SAVE>( dst, a, filter, bias );
+            void conv2_r_valid( GTensor3D &ans, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
+                cuda_tensor::conv2_r_valid<store_method::SAVE>( ans, a, filter, bias );
             }
             
-            void conv2_full   ( GTensor3D &dst, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
-                cuda_tensor::conv2_full<store_method::SAVE>( dst, a, filter, bias );
+            void conv2_full   ( GTensor3D &ans, const GTensor3D &a, const GTensor4D &filter, const GTensor1D &bias ){
+                cuda_tensor::conv2_full<store_method::SAVE>( ans, a, filter, bias );
             }
 
-            void sadd__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &filter ){
-                cuda_tensor::conv2_r_big_filter<store_method::ADD>( dst, a, filter );
+            void sadd__conv2_r_big_filter( GTensor4D &ans, const GTensor3D &a, const GTensor3D &filter ){
+                cuda_tensor::conv2_r_big_filter<store_method::ADD>( ans, a, filter );
             }
 
-            void ssub__conv2_r_big_filter( GTensor4D &dst, const GTensor3D &a, const GTensor3D &filter ){
-                cuda_tensor::conv2_r_big_filter<store_method::SUB>( dst, a, filter );
+            void ssub__conv2_r_big_filter( GTensor4D &ans, const GTensor3D &a, const GTensor3D &filter ){
+                cuda_tensor::conv2_r_big_filter<store_method::SUB>( ans, a, filter );
             }
             
-            void sadd__sum_2D( GTensor1D &dst, const GTensor3D &src ){
-                cuda_tensor::tensor_sum_2D<store_method::ADD,map_method_A::IDENTITY>( dst, src );
+            void sadd__sum_2D( GTensor1D &ans, const GTensor3D &src ){
+                cuda_tensor::tensor_sum_2D<store_method::ADD,map_method_A::IDENTITY>( ans, src );
             }
 
-            void ssub__sum_2D( GTensor1D &dst, const GTensor3D &src ){
-                cuda_tensor::tensor_sum_2D<store_method::SUB,map_method_A::IDENTITY>( dst, src );
+            void ssub__sum_2D( GTensor1D &ans, const GTensor3D &src ){
+                cuda_tensor::tensor_sum_2D<store_method::SUB,map_method_A::IDENTITY>( ans, src );
             }
             
-            void sum_2D( GTensor2D &dst, const GTensor4D &src ){
-                cuda_tensor::tensor_sum_2D<store_method::SAVE,map_method_A::IDENTITY>( dst, src );
+            void sum_2D( GTensor2D &ans, const GTensor4D &src ){
+                cuda_tensor::tensor_sum_2D<store_method::SAVE,map_method_A::IDENTITY>( ans, src );
             }
 
-            void sadd__scale( GTensor4D &dst, const GTensor2D &src, TENSOR_FLOAT scale_src ){
-                cuda_tensor::map_E<store_method::ADD,map_method_B::MUL>( dst, src, scale_src );
+            void sadd__scale( GTensor4D &ans, const GTensor2D &src, TENSOR_FLOAT scale_src ){
+                cuda_tensor::map_E<store_method::ADD,map_method_B::MUL>( ans, src, scale_src );
             }
              
-            void refill_edge_area( GTensor3D &dst, const GTensor3D &src, int edge_y_len, int edge_x_len ){
-                cuda_tensor::map_A_edge<store_method::SAVE,map_method_A::IDENTITY>( dst, src, edge_y_len, edge_x_len );
+            void refill_edge_area( GTensor3D &ans, const GTensor3D &src, int edge_y_len, int edge_x_len ){
+                cuda_tensor::map_A_edge<store_method::SAVE,map_method_A::IDENTITY>( ans, src, edge_y_len, edge_x_len );
             }
 
-            void pool_up( GTensor3D &dst , const GTensor3D &src, int pool_size ){
-                cuda_tensor::pool_up<store_method::SAVE,map_method_A::IDENTITY>( dst, src, pool_size );
+            void pool_up( GTensor3D &ans , const GTensor3D &src, int pool_size ){
+                cuda_tensor::pool_up<store_method::SAVE,map_method_A::IDENTITY>( ans, src, pool_size );
             }
             
             void add_sparse_info( GTensor1D &sum_mf, GTensor1D &sum_mf_grad, const GTensor3D &src, int pool_size ){

@@ -1,15 +1,15 @@
 # Build apex tensor and rbm
 ifeq ($(cpu), 1)
-	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0 
+	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0
 else
-	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
+	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1 -D__CUDA_ARCH__=200
 endif
 
 INSTALL_DIR := ../../bin
 
 BIN:= crbm_light crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor 
 
-LD_PATH:= -L/usr/local/cuda/lib
+LD_PATH:= -L/usr/local/cuda/lib64
 LD_OPT := $(LD_PATH) -lblas -lm -lcublas 
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 
@@ -22,14 +22,13 @@ CFRBM_DIR:=$(PRJ_DIR)/cfrbm
 CC  := gcc
 CPP := g++
 CTENSOR_LIB:= dSFMT.o apex_tensor_cpu.o
-	
 ifeq ($(cpu), 1)
 	NVCC := $(CPP)
 	OPTNVCC:=$(OPT) 
 	TENSOR_LIB:= $(CTENSOR_LIB)
 else
 	NVCC :=nvcc
-	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)" 
+	OPTNVCC := -arch sm_20 -Xcompiler "$(OPT)" 
 	TENSOR_LIB:= apex_tensor_gpu.o $(CTENSOR_LIB)
 endif
 
@@ -38,8 +37,7 @@ all: $(BIN)
 install: 
 	cp -f $(BIN) $(INSTALL_DIR)	
 
-crbm: crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 
-	
+crbm: crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 	
 kdd : logistic_reg_factor logistic_reg_profile
 
 clean:
@@ -79,7 +77,7 @@ apex_tensor_cpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_cpu.h $
 	$(CPP) $(OPT) -c -o apex_tensor_cpu.o $(TENSOR_DIR)/apex_tensor_cpu.cpp
 
 apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $(TENSOR_DIR)/apex_tensor_gpu.cu $(TENSOR_DIR)/apex_tensor_inline.h
-	$(CPP) $(OPT) $(LD_OPT) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
+	$(NVCC) $(OPTNVCC)  -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
 srbm_mnist: srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB) 
 	$(CPP) $(OPT) $(LD_OPT) -o srbm_mnist srbm_mnist.cpp apex_srbm.o $(TENSOR_LIB)
@@ -92,6 +90,7 @@ crbm_kyoto: crbm_kyoto.cpp apex_crbm.o $(TENSOR_LIB)
 
 crbm_light: crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB)
 	$(CPP) $(OPT) $(LD_OPT) -o crbm_light crbm_light.cpp apex_crbm_light.o $(TENSOR_LIB) 
+
 
 crbm_kyoto_extractor: crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB)  
 	$(CPP) $(OPT) $(LD_OPT) -o crbm_kyoto_extractor crbm_kyoto_extractor.cpp apex_crbm.o $(TENSOR_LIB) 

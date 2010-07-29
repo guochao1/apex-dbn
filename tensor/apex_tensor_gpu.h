@@ -457,16 +457,23 @@ namespace apex_tensor{
         // dst  += dot( a, b  ) 
         void sadd__dot  ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
         void sadd__dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );                    
+        void ssub__dot  ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void ssub__dot  ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );                    
         // dst  = dot( a   ,  b.T )
         void dot_rt    ( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
         void dot_rt    ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
         // dst += dot( a, b.T )
         void sadd__dot_rt( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
         void sadd__dot_rt( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
+        void ssub__dot_rt( GTensor1D &dst, const GTensor1D &a, const GTensor2D &b );    
+        void ssub__dot_rt( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
         // dst  = dot( a.T , b )
         void dot_lt      ( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
         void sadd__dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
         void ssub__dot_lt( GTensor2D &dst, const GTensor1D &a, const GTensor1D &b );    
+        void dot_lt      ( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
+        void sadd__dot_lt( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
+        void ssub__dot_lt( GTensor2D &dst, const GTensor2D &a, const GTensor2D &b );    
     };
 
     // support for error esimtate

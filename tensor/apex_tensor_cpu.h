@@ -456,16 +456,22 @@ namespace apex_tensor{
         // dst  += dot( a, b  ) 
         inline void sadd__dot  ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
         inline void sadd__dot  ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );                    
+        inline void ssub__dot  ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
+        inline void ssub__dot  ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );                    
         // dst  = dot( a   ,  b.T )
         inline void dot_rt     ( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
         inline void dot_rt     ( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
         // dst += dot( a, b.T )
         inline void sadd__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
         inline void sadd__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
+        inline void ssub__dot_rt( CTensor1D &dst, const CTensor1D &a, const CTensor2D &b );    
+        inline void ssub__dot_rt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
         // dst  = dot( a.T , b )
         inline void dot_lt      ( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         inline void sadd__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
         inline void ssub__dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b );    
+        inline void sadd__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
+        inline void ssub__dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b );    
     };
     
     namespace tensor{

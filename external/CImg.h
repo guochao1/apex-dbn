@@ -12422,7 +12422,7 @@ namespace cimg_library {
         for (char *s = se2; s>ss; --s) if (*s==';' && level[s-expr._data]==clevel) { compile(ss,s); _cimg_mp_return(compile(s+1,se)); }
         for (char *s = ss1, *ps = ss, *ns = ss2; s<se1; ++s, ++ps, ++ns)
            if (*s=='=' && *ns!='=' && *ps!='=' && *ps!='>' && *ps!='<' && *ps!='!' && level[s-expr._data]==clevel) {
-             CImg<charT> variable_name((unsigned int)ss,(unsigned int)(s-ss+1)); variable_name.back() = 0;
+             CImg<charT> variable_name( ss,(s-ss+1)); variable_name.back() = 0;
              bool is_valid_name = true;
              if ((*ss>='0' && *ss<='9') ||
                  (s==ss+1 && (*ss=='x' || *ss=='y' || *ss=='z' || *ss=='c' ||

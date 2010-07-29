@@ -1,8 +1,8 @@
-LOPT:= -lblas -lm -lpthread
+LD_OPT:= -L/usr/local/cuda/lib64 -lblas -lm -lpthread -lcublas
 ifeq ($(cpu), 1)
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0 
 else
-	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1
+	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1 -D__CUDA_ARCH__=200
 endif
 
 OPT := -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
@@ -12,7 +12,7 @@ ifeq ($(cpu), 1)
 	TENSOR_LIB:= apex_tensor_cpu.o dSFMT.o
 else
 	NVCC    :=nvcc		
-	OPTNVCC := -arch sm_11 -Xcompiler "$(OPT)" -Xlinker "$(LOPT)" $(SHOW_PTX)
+	OPTNVCC := -arch sm_20 -Xcompiler "$(OPT)" $(SHOW_PTX)
 	TENSOR_LIB:= apex_tensor_cpu.o dSFMT.o apex_tensor_gpu.o	
 endif
 ifeq ($(showptx),1)
@@ -44,7 +44,7 @@ apex_tensor_gpu.o: $(TENSOR_DIR)/apex_tensor.h $(TENSOR_DIR)/apex_tensor_gpu.h $
 	$(NVCC) $(OPTNVCC) -c -o apex_tensor_gpu.o $(TENSOR_DIR)/apex_tensor_gpu.cu
 
 test_cmp: test_cmp.cpp test_cmp.h test_stats.h $(TENSOR_LIB)
-	$(NVCC) $(OPTNVCC) -o test_cmp test_cmp.cpp $(TENSOR_LIB)
+	g++ $(OPT) $(LD_OPT) -o test_cmp test_cmp.cpp $(TENSOR_LIB)
 
 test_cmp_goto: test_cmp.cpp test_cmp.h test_stats.h ../../external/libgoto.a apex_tensor_cpu.o dSFMT.o 
 	g++ $(OPT) -o test_cmp_goto test_cmp.cpp apex_tensor_cpu.o ../../external/libgoto.a  dSFMT.o -lpthread

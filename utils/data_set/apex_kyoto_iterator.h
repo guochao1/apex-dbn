@@ -62,7 +62,7 @@ namespace apex_utils{
                 fclose( fi );
                 
                 if( silent == 0 )
-                    printf("KyotoIterator, %d images loaded\n", data.size() ); 
+                    printf("KyotoIterator, %d images loaded\n", (int)data.size() ); 
                 before_first();
             }
             virtual void before_first(){
