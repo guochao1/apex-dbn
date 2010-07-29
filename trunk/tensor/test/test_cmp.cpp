@@ -14,7 +14,7 @@ const int NUM_SAMPLE = 100;
 const int POOL_SIZE = 3;
 const int V_MAX   = 10;
 const int H_MAX   = 24;
-const int V_Y_MAX = 5110;
+const int V_Y_MAX = 511;
 const int V_X_MAX = 4990;
 
 const int F_Y_MAX = 10;
@@ -23,18 +23,25 @@ const int H_Y_MAX = V_Y_MAX - F_Y_MAX + 1;
 const int H_X_MAX = V_X_MAX - F_X_MAX + 1; 
 const int P_Y_MAX = H_Y_MAX / POOL_SIZE;
 const int P_X_MAX = H_X_MAX / POOL_SIZE;
-const int M_Y_MAX = 500;
-const int M_X_MAX = 499;
-const int M_Z_MAX = 101;
+const int M_Y_MAX = 1000;
+const int M_X_MAX = 4111;
+const int M_Z_MAX = 10;
 
-const TENSOR_FLOAT sd = 2.0f;
+const TENSOR_FLOAT sd = 1.0f;
 
 #include "test_cmp.h"
 
 int main( void ){
     init_tensor_engine_cpu(0);
     init_tensor_engine(0);
-
+    test_dot2D( NUM_ITER );
+    test_dot_rt2D( NUM_ITER );
+    test_dot_lt2D( NUM_ITER );
+    /*
+    test_dot_lt(NUM_ITER*M_Z_MAX);
+    test_dot(NUM_ITER*M_Z_MAX);
+    test_dot_rt(NUM_ITER*M_Z_MAX);
+    
     test_dot_lt_blas( NUM_ITER* M_Z_MAX );
     test_dot_lt_blas2( NUM_ITER );
     
@@ -42,7 +49,7 @@ int main( void ){
     test_dot_blas2( NUM_ITER );
     test_dot_rt_blas( NUM_ITER*M_Z_MAX );
     test_dot_rt_blas2( NUM_ITER );
-    
+    */
     /*
     //    test_norm_maxpooling_2D( NUM_ITER );
         test_pool_up( NUM_ITER );

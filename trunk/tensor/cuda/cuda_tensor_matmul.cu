@@ -128,9 +128,11 @@ namespace apex_tensor{
             }
             __syncthreads();
 
-            for( int xx = 0 ; xx < a.x_max ; xx += (1<<block_dim_bits) ){
+            for( int xx = 0 ; xx < b.x_max ; xx += (1<<block_dim_bits) ){
                 int x = xx + threadIdx.x;                
-                store_method::__store<st_m>( ans[ y ][ x ], s_scale * b[ x ] );
+                if( x < b.x_max ){
+                    store_method::__store<st_m>( ans[ y ][ x ], s_scale * b[ x ] );
+                }
             }
         }
 
