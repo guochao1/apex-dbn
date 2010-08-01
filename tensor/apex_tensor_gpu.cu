@@ -3,20 +3,19 @@
 
 #define _APEX_GPU_COMPILE_MODE_
 #include "apex_tensor.h"
+
+#include "cuda/cuda_tensor.cuh"
 #undef _APEX_GPU_COMPILE_MODE_
 
 #if __APEX_TENSOR_USE_CUBLAS__
 #include "cublas.h"
 #endif
 
-#include "cuda/cuda_tensor.cuh"
-
 // GPU implementation of tensor functions
 namespace apex_tensor{    
     static int engine_ref_counter = 0;
     void init_tensor_engine_gpu( void ){
-        if ( engine_ref_counter == 0 ){
-            ++ engine_ref_counter;
+        if ( engine_ref_counter++ == 0 ){
             int device_count = 0;
             if( cudaGetDeviceCount( &device_count ) != cudaSuccess ){
                 cuda_tensor::error("can't get device information about cuda\n");

@@ -211,18 +211,21 @@ namespace apex_rbm{
             apex_utils::assert_true( base_itr != NULL ,"no base iterator provided");
 
             int counter = max_amount;
-
+            int z_max=0,y_max=0,x_max=0;
             // buffer data into buffer 
             base_itr->init();
             while( base_itr->next() && counter-- > 0 ){
                 CTensor3D cl;
                 cl = clone( base_itr->value() );
                 buf.push_back( cl );
+                if( cl.z_max > z_max ) z_max = cl.z_max;
+                if( cl.y_max > y_max ) y_max = cl.y_max;
+                if( cl.x_max > x_max ) x_max = cl.x_max;
             }
             delete base_itr; base_itr = NULL;
 			
 			if( !silent ) {
-				printf("BufferIterator:max_amount=%d", max_amount );	
+				printf("BufferIterator:max_amount=%d,count=%d,z_max=%d,y_max=%d,x_max=%d", max_amount,(int)buf.size(),z_max,y_max,x_max );	
 			}
             if( do_shuffle ){
 				cpu_only::shuffle( buf );

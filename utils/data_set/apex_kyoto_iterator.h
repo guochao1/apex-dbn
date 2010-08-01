@@ -56,13 +56,17 @@ namespace apex_utils{
                 if( fread( &num, sizeof(int) , 1 , fi ) <= 0 ) apex_utils::error("load num image");
                 
                 data.resize( num );
+                int z_max=0, y_max=0,x_max=0;
                 for( int i = 0 ; i < num ; i ++ ){
                     apex_tensor::tensor::load_from_file( data[i] , fi );
+                    if( data[i].z_max > z_max ) z_max = data[i].z_max;
+                    if( data[i].y_max > y_max ) y_max = data[i].y_max;
+                    if( data[i].x_max > x_max ) x_max = data[i].x_max;
                 }
                 fclose( fi );
                 
                 if( silent == 0 )
-                    printf("KyotoIterator, %d images loaded\n", (int)data.size() ); 
+                    printf("KyotoIterator, %d images loaded:z_max=%d,y_max=%d,x_max=%d\n", (int)data.size(),z_max,y_max,x_max ); 
                 before_first();
             }
             virtual void before_first(){
