@@ -1,4 +1,4 @@
-function mk_kyoto_from_rgb_zoom( fname, lst, z_len, zoom_x )
+function mk_kyoto_from_rgb_zoom( fname, lst, z_len, zoom_shorter )
 % parse mat file and save them into a binary formatted file first
 % designed for Kyoto Dataset, the binary file can be read by a iterator
 % of RBM to do training
@@ -13,7 +13,8 @@ for i = [ 1 : length(lst) ]
     A =  rgb2gray( imread(nm) );
     
     [yy_max,xx_max] = size( A );
-    if zoom_x == 1
+        
+    if zoom_shorter + (yy_max<=xx_max) == 1
         yy_max = floor( yy_max * z_len / xx_max );
         xx_max = z_len;
     else
