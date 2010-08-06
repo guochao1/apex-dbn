@@ -191,14 +191,17 @@ namespace apex_rbm{
         }
 
         // refit the node size to input size, the size must not exceed max size 
-        inline void refit_node_size( int input_y_max, int input_x_max ){
+        // whether the input size is invalid
+        inline bool refit_node_size( int input_y_max, int input_x_max ){
             if( input_y_max != v_state.y_max || input_x_max != v_state.x_max ){
                 int h_y_max = input_y_max - W.y_max + 1;
                 int h_x_max = input_x_max - W.x_max + 1;
                 h_node->reget_hidden_bound( h_y_max, h_x_max );
+                if( h_y_max <= 0 || h_x_max <=0 ) return false;
                 v_state.set_param( v_state.z_max, h_y_max+W.y_max-1, h_x_max+W.x_max-1 );
                 h_state.set_param( h_state.z_max, h_y_max, h_x_max );
             }
+            return true;
         }
 
         inline void forward_bias( TTensor1D &v_bias_next ) const{
@@ -456,9 +459,12 @@ namespace apex_rbm{
         }        
     private:
         inline void setup_input( const CTensor3D &data ){
-            layer.refit_node_size( data.y_max, data.x_max );
-            this->sync_size_to_layer();
-            tensor::crbm::copy_fit( layer.v_state, data );            
+            if( layer.refit_node_size( data.y_max, data.x_max ) ) {
+                this->sync_size_to_layer();
+                tensor::crbm::copy_fit( layer.v_state, data );            
+            }else{
+                apex_utils::error("invalid input size");
+            }
         }
         
     private:
@@ -612,8 +618,11 @@ namespace apex_rbm{
             if( y_max != layers[0].v_state.y_max || 
                 x_max != layers[0].v_state.x_max ){
                 for( size_t i = 0; i < layers.size() ; i ++ ){
-                    layers[i].refit_node_size( y_max, x_max );
-                    layers[i].reget_bound( y_max, x_max );
+                    if( layers[i].refit_node_size( y_max, x_max ) ){ 
+                        layers[i].reget_bound( y_max, x_max );
+                    }else{
+                        apex_utils::error("invalid node size");
+                    }
                 } 
                 top_state.set_param( top_state.z_max, y_max, x_max );
             }            

@@ -845,7 +845,7 @@ namespace apex_tensor{
             ssub__dot_rt_org( dst, a, b );
         }
         
-        lnline void dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
+        inline void dot_lt( CTensor2D &dst, const CTensor1D &a, const CTensor1D &b ){
             dot_lt_org( dst, a, b );
         }
         inline void dot_lt( CTensor2D &dst, const CTensor2D &a, const CTensor2D &b ){
