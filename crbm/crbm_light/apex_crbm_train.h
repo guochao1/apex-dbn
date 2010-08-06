@@ -83,7 +83,62 @@ namespace apex_rbm{
             } 
         }
     };
-    
+    // Filter the data to limit mininum size
+    class Tensor3DFilterIterator:public IIterator<CTensor3D>{
+    private:        
+        int silent;
+        int filter_y_min, filter_x_min;
+        IIterator<CTensor3D> *base_itr;
+    public:
+        Tensor3DFilterIterator(){ 
+            base_itr = NULL; silent = 0;
+        }
+        Tensor3DFilterIterator( IIterator<CTensor3D> *base_itr ){
+            this->base_itr = base_itr;
+        }
+        virtual ~Tensor3DFilterIterator(){
+            if( base_itr != NULL ) {
+                delete base_itr; base_itr = NULL;
+            }
+        }
+                
+        inline void set_base_itr( IIterator<CTensor3D> *base_itr ){
+            this->base_itr = base_itr;
+        }
+
+        virtual void set_param( const char *name, const char *val ){
+            if( !strcmp( name, "silent") )     silent = atoi( val );
+            if( !strcmp( name, "filter_y_min") ) filter_y_min = atoi( val ); 
+            if( !strcmp( name, "filter_x_min") ) filter_x_min = atoi( val ); 
+            base_itr->set_param( name, val );
+        }
+        
+        virtual void init( void ){            
+            apex_utils::assert_true( base_itr!=NULL, "sample_itr::no base iterator provided");
+            base_itr->init();
+            before_first();
+
+            if( silent == 0 ){
+                printf("FilterIterator: y_min=%d,x_min=%d\n", filter_y_min, filter_x_min );
+            }
+        }
+
+        virtual void before_first(){
+            base_itr->before_first();
+        }
+        virtual bool next(){
+            while( base_itr->next() ){
+                if( base_itr->value().y_max >= filter_y_min &&
+                    base_itr->value().x_max >= filter_x_min ){
+                    return true;
+                }
+            }
+            return false;
+        }
+        virtual const CTensor3D &value() const{
+            return base_itr->value();
+        }
+    };
     // sample data out of previous data 
     class Tensor3DSampleIterator:public IIterator<CTensor3D>{
     private:        
@@ -444,6 +499,10 @@ namespace apex_rbm{
             apex_utils::assert_true( base_itr!=NULL, "must specify base iterator" );
             if( !strcmp( itr_type, "proc_sample") ){
                 base_itr = new Tensor3DSampleIterator( base_itr ); 
+                return;
+            }
+            if( !strcmp( itr_type, "proc_filter") ){
+                base_itr = new Tensor3DFilterIterator( base_itr ); 
                 return;
             }
             if( !strcmp( itr_type, "proc_buffer") ){

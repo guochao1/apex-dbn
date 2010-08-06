@@ -463,6 +463,7 @@ namespace apex_rbm{
                 this->sync_size_to_layer();
                 tensor::crbm::copy_fit( layer.v_state, data );            
             }else{
+                printf("\ninvalid input size:y_max=%d,x_max=%d\n", data.y_max, data.x_max );
                 apex_utils::error("invalid input size");
             }
         }
