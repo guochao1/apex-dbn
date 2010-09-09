@@ -36,6 +36,7 @@ all: $(BIN)
 
 install: 
 	cp -f $(BIN) $(INSTALL_DIR)	
+	cp -f ../python/* $(INSTALL_DIR)
 
 crbm: crbm_mnist crbm_kyoto crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer 	
 kdd : logistic_reg_factor logistic_reg_profile
