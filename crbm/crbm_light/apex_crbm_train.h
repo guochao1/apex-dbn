@@ -4,6 +4,7 @@
 #include <vector>
 #include <ctime>
 #include <cstring>
+#include <climits>
 
 #include "apex_crbm.h"
 #include "../../utils/apex_task.h"
@@ -232,13 +233,13 @@ namespace apex_rbm{
         Tensor3DBufferIterator(){ 
             base_itr = NULL; 
             do_shuffle = 0; 
-            max_amount = 1 << 31;
+            max_amount = INT_MAX;
             buf.clear();             
         }
         Tensor3DBufferIterator( IIterator<CTensor3D> *base_itr ){ 
             this->base_itr = base_itr; 
             do_shuffle = 0; 
-            max_amount = 1 << 31;
+            max_amount = INT_MAX;
             buf.clear();             
         }
 
@@ -350,7 +351,11 @@ namespace apex_rbm{
             strcpy( name_model_out_folder, "models" );            
             strcpy( name_summary_log, "summary.log.txt" );           
             strcpy( name_detail_log , "detail.log.txt"  );            
-            cd_step = 1; 
+            cd_step = 1;  
+            print_step = 1;
+            train_repeat = 1;
+            validation_amount = 0;
+            num_round = 10;            
             task = silent = start_counter = 0; do_validation = 0;
         }
     public:
