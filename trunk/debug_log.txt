@@ -1,0 +1,4 @@
+2010-09-09:
+        After running report Floating Point Exception
+        problem lies in the wrong default parameter set to 0
+ 
