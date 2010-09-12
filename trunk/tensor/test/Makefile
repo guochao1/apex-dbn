@@ -48,3 +48,6 @@ test_cmp: test_cmp.cpp test_cmp.h test_stats.h $(TENSOR_LIB)
 
 test_cmp_goto: test_cmp.cpp test_cmp.h test_stats.h ../../external/libgoto.a apex_tensor_cpu.o dSFMT.o 
 	g++ $(OPT) -o test_cmp_goto test_cmp.cpp apex_tensor_cpu.o ../../external/libgoto.a  dSFMT.o -lpthread
+
+tensor_example: tensor_example.cpp $(TENSOR_LIB)
+	g++ $(OPT) $(LD_OPT) -o tensor_example tensor_example.cpp $(TENSOR_LIB)
