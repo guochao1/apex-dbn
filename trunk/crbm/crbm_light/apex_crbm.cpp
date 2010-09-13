@@ -240,8 +240,9 @@ namespace apex_rbm{
         int sample_counter, state_counter;
     private:
         TTensor4D d_W;
+        TTensor2D reg_group_W;
         TTensor1D d_h_bias, d_v_bias;
-        TTensor1D h_sum_mf, h_sum_mf_grad;
+        TTensor1D h_sum_mf, h_sum_mf_grad, v_sum_mf;
     private:
         CRBMLayer layer;
         TTensor3D v_neg,  h_neg;
@@ -263,18 +264,23 @@ namespace apex_rbm{
         }
         inline void init_data( const CRBMModel & model ){
             validation_init = false; 
+            
             d_W      = clone( model.d_W );
             d_h_bias = clone( model.d_h_bias );
             d_v_bias = clone( model.d_v_bias );
 
             h_sum_mf      = alloc_like( d_h_bias );
+            v_sum_mf      = alloc_like( d_v_bias );
             h_sum_mf_grad = alloc_like( d_h_bias );
             v_neg         = alloc_like( layer.v_state );
             h_neg         = alloc_like( layer.h_state );
             
             sample_counter = 0; state_counter = 0; 
-            h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;            
+            h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f; v_sum_mf = 0.0f;
 
+            reg_group_W.set_param( model.param.v_max, model.param.h_max );
+            tensor::alloc_space( reg_group_W );
+            
             this->sync_size_to_layer( true );
         }
         // initialize the asynchronize 
@@ -307,10 +313,12 @@ namespace apex_rbm{
             tensor::free_space( d_h_bias );
             tensor::free_space( d_v_bias );
             tensor::free_space( d_W );
+            tensor::free_space( v_sum_mf );
             tensor::free_space( h_sum_mf );
             tensor::free_space( h_sum_mf_grad );
             tensor::free_space( v_neg );
             tensor::free_space( h_neg );
+            tensor::free_space( reg_group_W );
             destroy_validation_data();
 
             // destroy the tensor engine
@@ -362,15 +370,20 @@ namespace apex_rbm{
             h_sum_mf  += -param.sparse_level;                
 
             switch( param.sparse_reg_method  ){
-            case 0 :
+            case sparse_loss::L2_LOSS :
             default:
                 {
                     h_sum_mf   = h_sum_mf * h_sum_mf_grad;
                     // leave out h_size
                     h_sum_mf  *= 2*param.sparse_lambda;                               
                     break;
-                }                 
-            }
+                }
+            case sparse_loss::KL_LOSS :
+                {
+                    h_sum_mf  *= param.sparse_lambda;                               
+                    break;
+                }                   
+            }            
         }
 
         // update the weight 
@@ -381,20 +394,30 @@ namespace apex_rbm{
 
             const float eta   = param.learning_rate/(param.batch_size*h_size);
 
-            if( param.chg_hidden_bias ){
+            if( param.chg_hidden_bias ){                                
+                {// recover sparse histogram 
+                    h_sum_mf *= (1.0f-param.sparse_mem_ratio); 
+                    h_sum_mf_grad *= (1.0f-param.sparse_mem_ratio);                    
+                }
                 // calculate sparse grad
                 cal_sparse();
-
-                // add sparse regularization and weight decay, we remember both in momentum
-                if( param.use_sparse_momentum ){
-                    h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * (eta * param.h_learning_rate);
-				}else{
-                    h_bias += ( d_h_bias -= h_bias * param.wd_h ) * (eta * param.h_learning_rate);
-                    h_bias += h_sum_mf * ( - eta * param.h_learning_rate );
+                
+                h_bias += ( d_h_bias -= h_bias * param.wd_h + h_sum_mf * 1.0f ) * (eta * param.h_learning_rate);                
+                d_h_bias *= param.momentum;                
+                
+                if( param.sparse_reg_edge ){
+                    v_sum_mf *= 1.0f / (param.batch_size*v_size);
+                    // add sparse panelty to edge 
+                    reg_group_W = dot( v_sum_mf.T(), h_sum_mf );
+                    tensor::crbm::sadd__scale( d_W, reg_group_W, -1.0f );
+                    // reset v_sum_mf
+                    v_sum_mf = 0.0f;
                 }
 
-                d_h_bias *= param.momentum;                
-                h_sum_mf = 0.0f; h_sum_mf_grad = 0.0f;
+                {// change of sparse histogram 
+                    h_sum_mf *= param.sparse_mem_ratio / (1.0f-param.sparse_mem_ratio); 
+                    h_sum_mf_grad *= param.sparse_mem_ratio / (1.0f-param.sparse_mem_ratio);
+                }
             }
 
             if( param.chg_visible_bias ){
@@ -407,9 +430,9 @@ namespace apex_rbm{
                 }
                 d_v_bias *= param.momentum;
             }
- 
+                        
             W   += ( d_W -= W * param.wd_W ) * eta;                        
-            d_W *= param.momentum;
+            d_W *= param.momentum;           
         }
 
         // update in training
@@ -422,12 +445,15 @@ namespace apex_rbm{
 			cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp, this->cd_step );
             start_from_neg = ( param.persistent_cd !=0 );
 
+            // if we need to regularize edge sparsity, we need this information
+            if( param.sparse_reg_edge ) v_sum_mf += sum_2D( v_pos );
+
             // this is not necessary, we add it anyway 
             if( state_counter ){
                 if( param.chg_hidden_bias ){
                     d_h_bias += sum_2D( h_pos );
                     d_h_bias -= sum_2D( h_neg );         
-                    layer.sparse_reg( h_sum_mf, h_sum_mf_grad );
+                    layer.sparse_reg( h_sum_mf, h_sum_mf_grad );                                        
                 }
                 if( param.chg_visible_bias ){
                     d_v_bias += sum_2D( v_pos );

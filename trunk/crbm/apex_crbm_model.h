@@ -15,6 +15,11 @@ namespace apex_rbm{
         const int GAUSSIAN_MAXPOOL_A = 1;
         const int GAUSSIAN_MAXPOOL_B = 2;
     };
+    
+    namespace sparse_loss{
+        const int L2_LOSS = 0;
+        const int KL_LOSS = 1;
+    };
 
     // training parameter of srbm
     struct CRBMTrainParam{
@@ -44,12 +49,15 @@ namespace apex_rbm{
 
         // whether do we fix the bias of the model
         int chg_visible_bias, chg_hidden_bias;        
-
+        
         // sparse regularization parameter
         float sparse_level, sparse_lambda;
-
+        // whether to memorize previous sparse ratio 
+        // to help current estimation
+        float sparse_mem_ratio;
+        
         // method of sparse regularization
-        int sparse_reg_method;
+        int sparse_reg_method, sparse_reg_edge;
         
         // use group regularization
         int use_group_reg;
@@ -87,7 +95,8 @@ namespace apex_rbm{
             wd_h = wd_v = wd_W= 0.0f;
             input_x_max = input_y_max = 28;
             chg_visible_bias = chg_hidden_bias = 1;
-            sparse_lambda = 5.0f; sparse_level = 0.005f; 
+            sparse_reg_edge = 0;
+            sparse_lambda = 5.0f; sparse_level = 0.005f; sparse_mem_ratio = 0.0f;
             persistent_cd = 0; v_average = 0; forward_bias = 1;
             sample_v_neg = 1; sparse_reg_method = 0; use_group_reg = 0;
             refill_edge_area = 0; num_non_sparse_node = 0; num_light_node = 0;
@@ -108,8 +117,10 @@ namespace apex_rbm{
             if( !strcmp("chg_hidden_bias", name ) )  chg_hidden_bias  = atoi( val );
             if( !strcmp("persistent_cd", name ) )    persistent_cd  = atoi( val );
             if( !strcmp("sparse_level", name )  )    sparse_level  = (float)atof( val );
+            if( !strcmp("sparse_reg_edge", name ) )  sparse_reg_edge =  atoi( val );
             if( !strcmp("sparse_lambda", name ) )    sparse_lambda = (float)atof( val );
-            if( !strcmp("sparse_reg_method", name ) )sparse_reg_method = atoi( val );
+            if( !strcmp("sparse_mem_ratio", name ) ) sparse_mem_ratio = (float)atof( val );
+            if( !strcmp("sparse_reg_method", name ) )sparse_reg_method = atoi( val );            
             if( !strcmp("v_average", name ) )        v_average     = atoi( val );
             if( !strcmp("forward_bias", name ) )     forward_bias  = atoi( val );
             if( !strcmp("sample_v_neg", name ) )     sample_v_neg  = atoi( val );
