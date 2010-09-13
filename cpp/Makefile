@@ -1,8 +1,10 @@
 # Build apex tensor and rbm
 ifeq ($(cpu), 1)
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=0
+	LD_CUBLAS:= 
 else
 	GPU_MACRO:= -D__APEX_TENSOR_USE_GPU__=1 -D__CUDA_ARCH__=200
+	LD_CUBLAS:=-lcublas
 endif
 
 INSTALL_DIR := ../../bin
@@ -10,7 +12,7 @@ INSTALL_DIR := ../../bin
 BIN:= crbm_light crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor 
 
 LD_PATH:= -L/usr/local/cuda/lib64
-LD_OPT := $(LD_PATH) -lblas -lm -lcublas 
+LD_OPT := $(LD_PATH) -lblas -lm $(LD_CUBLAS)
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 
 PRJ_DIR:=..
