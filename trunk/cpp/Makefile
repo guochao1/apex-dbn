@@ -11,7 +11,7 @@ INSTALL_DIR := ../../bin
 
 BIN:= crbm_light crbm_model_drawer crbm_model_dumper crbm_model_swaper kyoto_data_viewer crbm_filter_drawer crbm_model_modify crbm_kyoto_extractor 
 
-LD_PATH:= -L/usr/local/cuda/lib64
+LD_PATH:= -L$(LD_LIBRARY_PATH)
 LD_OPT := $(LD_PATH) -lblas -lm $(LD_CUBLAS)
 OPT:= -msse2 -O3 -fno-strict-aliasing -Wall $(GPU_MACRO)
 
