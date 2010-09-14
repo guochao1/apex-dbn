@@ -386,8 +386,8 @@ namespace apex_rbm{
                     break;
                 }
             case sparse_loss::KL_LOSS :
-                {
-                    d_h_sparse *= param.sparse_lambda;                               
+                {// remember h_size will be devided by h gradient
+                    d_h_sparse *= param.sparse_lambda * param.batch_size * h_size;                               
                     break;
                 }                   
             }            
