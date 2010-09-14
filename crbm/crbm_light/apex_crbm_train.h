@@ -549,7 +549,9 @@ namespace apex_rbm{
                     clock_t valid_start = clock();
                     this->run_validation();
                     valid_elapsed += (double)(clock() - valid_start)/CLOCKS_PER_SEC; 
-                }
+                }               
+                // save initial model 
+                this->round_end();
                 for( int j = 0; j < train_repeat; j ++ ){ 
                     base_itr->before_first();
                     while( base_itr->next() ){
@@ -566,9 +568,9 @@ namespace apex_rbm{
                 }
                 elapsed = (double)(clock() - start)/CLOCKS_PER_SEC; 
                 // end of a round
-                this->round_end();
             }
             
+            this->round_end();
             this->all_end();
             if( !silent ){
                 printf("\nupdating end, %lf sec in all, %lf for validation\n", elapsed , valid_elapsed );
