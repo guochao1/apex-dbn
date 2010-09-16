@@ -62,11 +62,29 @@ namespace apex_exp_template{
         const int ADD  = 1;
         const int SUB  = 3;
         const int MUL  = 5;
+        const int DIV  = 7;        
     };
     namespace func_impl{
-        // dst = s 
+        // unary operators
         template<typename T> 
         inline void scalar( int store_op, T &dst, double s );
+        template<typename T,typename TA>
+        inline void unary ( int store_op, T &dst, const TA &src );
+        template<typename T,typename TA>
+        inline void scale ( int store_op, T &dst, const TA &src, double s );
+        // binary operators
+        template<typename T,typename TA,typename TB>
+        inline void add   ( int store_op, T &dst, const TA &a, const TB &b );
+        template<typename T,typename TA,typename TB>
+        inline void sub   ( int store_op, T &dst, const TA &a, const TB &b );
+        template<typename T,typename TA,typename TB>
+        inline void mul   ( int store_op, T &dst, const TA &a, const TB &b );
+        template<typename T,typename TA,typename TB>
+        inline void div   ( int store_op, T &dst, const TA &a, const TB &b );
+        template<typename T,typename TA,typename TB>
+        inline void dot   ( int store_op, T &dst, const TA &a, const TB &b, bool transposeA, bool transposeB );
+        template<typename T,typename TA,typename TB>
+        inline void conv2 ( int store_op, T &dst, const TA &a, const TB &b, bool reverseA, bool reverseB, char option );        
     };
 };
 
@@ -95,7 +113,109 @@ namespace apex_exp_template{
     // container that can be assigned to values
     template<typename Elem>
     struct ContainerExp: public Exp< Elem, ContainerExp<Elem> >{
-        // inline implementation to make some function easier       
+    private:
+        inline Elem & __self(){
+            return *static_cast<Elem*>( this );            
+        }
+        // inline implementation to make some function easier         
+    public:
+        // d = scalar
+        inline Elem & __assign( double s ){
+            func_impl::scalar<Elem>( store_method::SAVE, __self(), s );
+            return __self();
+        }
+        inline Elem & operator+=( double s ){
+            func_impl::scalar<Elem>( store_method::ADD, __self(), s );
+            return __self();
+        }
+        inline Elem & operator-=( double s ){
+            func_impl::scalar<Elem>( store_method::ADD, __self(), -s );
+            return __self();
+        }
+        inline Elem & operator*=( double s ){
+            func_impl::scalar<Elem>( store_method::MUL, __self(), s );
+            return __self();
+        }
+        inline Elem & operator/=( double s ){
+            func_impl::scalar<Elem>( store_method::MUL, __self(), 1.0/s );
+            return __self();
+        }
+        // d = src
+        template<typename T>
+        inline Elem & operator+=( const ContainerExp<T> &e ){
+            func_impl::unary<Elem,T>( store_method::ADD, __self(), e.__name() );
+            return __self();
+        }
+        template<typename T>
+        inline Elem & operator-=( const ContainerExp<T> &e ){
+            func_impl::unary<Elem,T>( store_method::SUB, __self(), e.__name() );
+            return __self();
+        }
+        template<typename T>
+        inline Elem & operator*=( const ContainerExp<T> &e ){
+            func_impl::unary<Elem,T>( store_method::MUL, __self(), e.__name() );
+            return __self();
+        }
+        template<typename T>
+        inline Elem & operator/=( const ContainerExp<T> &e ){
+            func_impl::unary<Elem,T>( store_method::DIV, __self(), e.__name() );
+            return __self();
+        }        
+    public:
+        // push every thing to function assign
+        template<typename T>
+        inline Elem & __assign( const CompositeExp<T> & e){
+            return __assign( store_method::SAVE, e.__name() );
+        }
+        template<typename T>
+        inline Elem & operator+=( const CompositeExp<T> & e){
+            return __assign( store_method::ADD, e.__name() );
+        }
+        template<typename T>
+        inline Elem & operator-=( const CompositeExp<T> & e){
+            return __assign( store_method::SUB, e.__name() );
+        }
+        template<typename T>
+        inline Elem & operator*=( const CompositeExp<T> & e){
+            return __assign( store_method::MUL, e.__name() );
+        }
+        template<typename T>
+        inline Elem & operator/=( const CompositeExp<T> & e){
+            return __assign( store_method::DIV, e.__name() );
+        }
+    public :
+        // d = src * s
+        template<typename T>
+        inline Elem & __assign( int op, const ScaleExp< ContainerExp<T>, double > &e ){
+            func_impl::scale<Elem,T>( op, __self(), e.e.__name(), e.as_double() );
+            return __self();
+        }                
+        template<typename T>
+        inline Elem & __assign( const ScaleExp< CompositeExp<T>, double > &e ){
+            __self()  = e.e.__name();
+            __self() *= e.as_double();
+            return __self();
+        } 
+        template<typename T>
+        inline Elem & operator*=( const ScaleExp< CompositeExp<T>, double > &e ){
+            __self() *= e.e.__name();
+            __self() *= e.as_double();
+            return __self();
+        }
+        template<typename T>
+        inline Elem & operator/=( const ScaleExp< CompositeExp<T>, double > &e ){
+            __self() /= e.e.__name();
+            __self() /= e.as_double();
+            return __self();
+        }
+        // d = a + b
+        template<typename TA, typename TB>
+        inline Elem & __assign( int op, const AddExp< ContainerExp<TA>, ContainerExp<TB> > &e ){
+            func_impl::add<Elem,TA,TB>( op, __self(), e.a.__name(), e.b.__name() );
+            return __self();
+        }        
+        
+        
     };
 };
 
@@ -212,7 +332,7 @@ namespace apex_exp_template{
     struct ScaleExp:public CompositeExp< ScaleExp<T,TV> >{
         const T &e;
         TV s;
-        ScaleExp( const T &exp, const TV &es ):e(exp),s(es){}
+        ScaleExp( const T &exp, TV es ):e(exp),s(es){}
         inline float as_float()const{
             return (float)s;
         }
@@ -224,15 +344,15 @@ namespace apex_exp_template{
     namespace operators{
         // use double precision for safety concern
         template<typename T,typename TT>
-        inline const ScaleExp<T,double> operator*( const Exp<T,TT> &a, double s ){
-            return ScaleExp<T,double>( a.__alias(), s );
+        inline const ScaleExp<TT,double> operator*( const Exp<T,TT> &a, double s ){
+            return ScaleExp<TT,double>( a.__alias(), s );
         }
         template<typename T,typename TT>
-        inline const ScaleExp<T,double> operator*( double s, const Exp<T,TT> &a ){
+        inline const ScaleExp<TT,double> operator*( double s, const Exp<T,TT> &a ){
             return a * s;
         }
         template<typename T,typename TT>
-        inline const ScaleExp<T,double> operator/( const Exp<T,TT> &a, double s ){
+        inline const ScaleExp<TT,double> operator/( const Exp<T,TT> &a, double s ){
             return a * (1.0/s);
         }
         template<typename T>
