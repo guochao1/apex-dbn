@@ -3,36 +3,18 @@
 
 #include <cstdio>
 namespace test{
-    namespace _at = apex_exp_template;       
 
-    struct TT:public _at::Tensor<TT>{
+    struct TT:public apex_exp_template::ContainerExp<TT>{
         float a;
         TT( float a ){
             this->a = a;
         }   
-        
-        inline TT& __assign( const TT &a ){
-            this->a = a.a;
+        inline TT& operator=( double s ){
+            return __assign( s );
         }
-
-        inline TT&operator=( const _at::Tensor<TT> &a ){
-            return __assign( a.__exp() );
-        }
-
-        inline TT&operator=( const _at::TransposeExp<TT> &e ){
-            a = e.e.a;
-            return *this;
-        }
-        inline TT&operator=( const _at::MulExp<TT,TT > &e ){
-            a = e.a.a+e.b.a;
-            return *this;
-        }
-        inline TT&operator=( const _at::ScaleExp<TT,double > &e ){
-            a = e.e.a * e.s;
-            return *this;
-        }
-        inline TT&operator=( const _at::SampleBinaryExp<TT> &e ){
-            a = e.e.a*10;
+        template<typename Elem>
+        inline TT& operator=( const apex_exp_template::CompositeExp<Elem> &a ){
+            return __assign( a.__name() );
         }
     };    
     using namespace apex_exp_template::operators;
@@ -51,7 +33,7 @@ using namespace apex_exp_template::operators;
 
 int main( void ){
     test::TT a(1),b(200),c(3);
-    c = b;
+    //c = b;
     //c = conv2( a, b.R(), 'V' );
     printf("c=%f\n", c.a );
     return 0;    
