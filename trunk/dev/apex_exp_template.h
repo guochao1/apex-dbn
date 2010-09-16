@@ -29,7 +29,7 @@ Less Common:
 
 namespace apex_exp_template{
     // all class names 
-    template<typename Elem>
+    template<typename Name,typename Alias>
     struct Exp;
     template<typename Elem>
     struct ReverseExp;
@@ -72,50 +72,37 @@ namespace apex_exp_template{
 
 namespace apex_exp_template{            
     // basic value, and some rules for template evaluation
-    template<typename Elem>
+    template<typename Name, typename Alias>
     struct Exp{
-        inline const Elem & __exp()const{
-            return *static_cast<const Elem*>( this );            
-        }        
-        inline const TransposeExp<Elem> T() const{
-            return TransposeExp<Elem>( __exp() );
+        inline const Name &  __name()const{
+            return *static_cast<const Name*>( this );            
         }
-        inline const ReverseExp<Elem> R() const{
-            return ReverseExp<Elem>( __exp() );
+        inline const Alias & __alias()const{
+            return *static_cast<const Alias*>( this );            
+        }
+        inline const TransposeExp<Alias> T()const{
+            return TransposeExp<Alias>( __alias() );
+        }
+        inline const ReverseExp<Alias> R()const{
+            return ReverseExp<Alias>( __alias() );
         }        
     };  
-    template<typename Elem>
     
+    template<typename Elem>
+    struct CompositeExp: public Exp< Elem, CompositeExp<Elem> >{
+    };
+
     // container that can be assigned to values
     template<typename Elem>
-    struct ContainerExp: public Exp<Elem>{
+    struct ContainerExp: public Exp< Elem, ContainerExp<Elem> >{
         // inline implementation to make some function easier       
-        template<typename TT>
-        inline Elem &operator += ( const TT &exp ){
-            return __assign( store_method::ADD, exp );
-        }
-        template<typename TT>
-        inline Elem &operator -= ( const TT &exp ){
-            return __assign( store_method::SUB, exp );
-        }
-        template<typename TT>
-        inline Elem &operator *= ( const TT &exp ){
-            return __assign( store_method::MUL, exp );
-        }
-        
-        // some convention implementations
-        inline Elem &__assign( int st_op, double &s ){
-            Elem *self = static_cast<Elem*>( this );
-            func_impl::scalar<Elem>( st_op, *self, s );
-            return self;
-        }
     };
 };
 
 namespace apex_exp_template{
     // e.R : a.R[k][i][j] = a[k][-i][-j]
     template<typename Elem>
-    struct ReverseExp:public Exp< ReverseExp<Elem> >{
+    struct ReverseExp:public CompositeExp< ReverseExp<Elem> >{
         const Elem &e;
         ReverseExp( const Elem &exp ):e(exp){}
         // transpose of a transpose is orignal value
@@ -126,7 +113,7 @@ namespace apex_exp_template{
 
     // e.T 
     template<typename Elem>
-    struct TransposeExp:public Exp< TransposeExp<Elem> >{
+    struct TransposeExp:public CompositeExp< TransposeExp<Elem> >{
         const Elem &e;
         TransposeExp( const Elem &exp ):e(exp){}
         // transpose of a transpose is orignal value
@@ -137,92 +124,92 @@ namespace apex_exp_template{
 
     // a + b 
     template<typename TA,typename TB>
-    struct AddExp:public Exp< AddExp<TA,TB> >{
+    struct AddExp:public CompositeExp< AddExp<TA,TB> >{
         const TA &a;
         const TB &b;
         AddExp( const TA &ea, const TB &eb ):a(ea),b(eb){}
     };  
     namespace operators{
-        template<typename TA,typename TB>
-        inline const AddExp<TA,TB> operator+( const Exp<TA> &a, const Exp<TB> &b ){
-            return AddExp<TA,TB>( a.__exp(), b.__exp() );
+        template<typename TA,typename TB,typename TAA, typename TBB>
+        inline const AddExp<TAA,TBB> operator+( const Exp<TA,TAA> &a, const Exp<TB,TBB> &b ){
+            return AddExp<TAA,TBB>( a.__alias(), b.__alias() );
         }
     };
 
     // a - b 
     template<typename TA,typename TB>
-    struct SubExp:public Exp< SubExp<TA,TB> >{
+    struct SubExp:public CompositeExp< SubExp<TA,TB> >{
         const TA &a;
         const TB &b;
         SubExp( const TA &ea, const TB &eb ):a(ea),b(eb){}
     };  
     namespace operators{
-        template<typename TA,typename TB>
-        inline const SubExp<TA,TB> operator-( const Exp<TA> &a, const Exp<TB> &b ){
-            return SubExp<TA,TB>( a.__exp(), b.__exp() );
+        template<typename TA,typename TB,typename TAA, typename TBB>
+        inline const SubExp<TAA,TBB> operator-( const Exp<TA,TAA> &a, const Exp<TB,TBB> &b ){
+            return SubExp<TAA,TBB>( a.__alias(), b.__alias() );
         }
     };
 
     // a * b 
     template<typename TA,typename TB>
-    struct MulExp:public Exp< MulExp<TA,TB> >{
+    struct MulExp:public CompositeExp< MulExp<TA,TB> >{
         const TA &a;
         const TB &b;
         MulExp( const TA &ea, const TB &eb ):a(ea),b(eb){}
     };  
     namespace operators{
-        template<typename TA,typename TB>
-        inline const MulExp<TA,TB> operator*( const Exp<TA> &a, const Exp<TB> &b ){
-            return MulExp<TA,TB>( a.__exp(), b.__exp() );
+        template<typename TA,typename TB,typename TAA, typename TBB>
+        inline const MulExp<TAA,TBB> operator*( const Exp<TA,TAA> &a, const Exp<TB,TBB> &b ){
+            return MulExp<TAA,TBB>( a.__alias(), b.__alias() );
         }
     };
 
     // a / b 
     template<typename TA,typename TB>
-    struct DivExp:public Exp< DivExp<TA,TB> >{
+    struct DivExp:public CompositeExp< DivExp<TA,TB> >{
         const TA &a;
         const TB &b;
         DivExp( const TA &ea, const TB &eb ):a(ea),b(eb){}
     };
     namespace operators{
-        template<typename TA,typename TB>
-        inline const DivExp<TA,TB> operator/( const Exp<TA> &a, const Exp<TB> &b ){
-            return DivExp<TA,TB>( a.__exp(), b.__exp() );
+        template<typename TA,typename TB,typename TAA, typename TBB>
+        inline const DivExp<TAA,TBB> operator/( const Exp<TA,TAA> &a, const Exp<TB,TBB> &b ){
+            return DivExp<TAA,TBB>( a.__alias(), b.__alias() );
         }
     };
 
     // dot(a,b)
     template<typename TA,typename TB>
-    struct DotExp:public Exp< DotExp<TA,TB> >{
+    struct DotExp:public CompositeExp< DotExp<TA,TB> >{
         const TA &a;
         const TB &b;
         DotExp( const TA &ea, const TB &eb ):a(ea),b(eb){}
     };       
     namespace operators{
-        template<typename TA,typename TB>
-        inline const DotExp<TA,TB> dot( const Exp<TA> &a, const Exp<TB> &b ){
-            return DotExp<TA,TB>( a.__exp(), b.__exp() );
+        template<typename TA,typename TB,typename TAA, typename TBB>
+        inline const DotExp<TAA,TBB> dot( const Exp<TA,TAA> &a, const Exp<TB,TBB> &b ){
+            return DotExp<TAA,TBB>( a.__alias(), b.__alias() );
         }
     };       
 
     // conv2(a,b,'V') conv2(a,b,'F') conv2(a,b,'E')
     template<typename TA,typename TB>
-    struct Conv2Exp:public Exp< Conv2Exp<TA,TB> >{
+    struct Conv2Exp:public CompositeExp< Conv2Exp<TA,TB> >{
         const TA &a;
         const TB &b;
         char  op;
         Conv2Exp( const TA &ea, const TB &eb, char option ):a(ea),b(eb),op(option){}
     };       
     namespace operators{
-        template<typename TA,typename TB>
-        inline const Conv2Exp<TA,TB> conv2( const Exp<TA> &a, const Exp<TB> &b, char option ){
-            return Conv2Exp<TA,TB>( a.__exp(), b.__exp(), option );
-        }
+        template<typename TA,typename TB,typename TAA, typename TBB>
+        inline const Conv2Exp<TAA,TBB> conv2( const Exp<TA,TAA> &a, const Exp<TB,TBB> &b, char option ){
+            return Conv2Exp<TAA,TBB>( a.__alias(), b.__alias(), option );
+        }                        
     };       
 
     // e * s
     template<typename T,typename TV>
-    struct ScaleExp:public Exp< ScaleExp<T,TV> >{
+    struct ScaleExp:public CompositeExp< ScaleExp<T,TV> >{
         const T &e;
         TV s;
         ScaleExp( const T &exp, const TV &es ):e(exp),s(es){}
@@ -236,16 +223,16 @@ namespace apex_exp_template{
 
     namespace operators{
         // use double precision for safety concern
-        template<typename T>
-        inline const ScaleExp<T,double> operator*( const Exp<T> &a, double s ){
-            return ScaleExp<T,double>( a.__exp(), s );
+        template<typename T,typename TT>
+        inline const ScaleExp<T,double> operator*( const Exp<T,TT> &a, double s ){
+            return ScaleExp<T,double>( a.__alias(), s );
         }
-        template<typename T>
-        inline const ScaleExp<T,double> operator*( double s, const Exp<T> &a ){
+        template<typename T,typename TT>
+        inline const ScaleExp<T,double> operator*( double s, const Exp<T,TT> &a ){
             return a * s;
         }
-        template<typename T>
-        inline const ScaleExp<T,double> operator/( const Exp<T> &a, double s ){
+        template<typename T,typename TT>
+        inline const ScaleExp<T,double> operator/( const Exp<T,TT> &a, double s ){
             return a * (1.0/s);
         }
         template<typename T>
