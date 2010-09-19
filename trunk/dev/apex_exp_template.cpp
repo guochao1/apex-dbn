@@ -29,6 +29,12 @@ namespace apex_exp_template{
                 printf("%s %s %s %s %lf\n", dst.name, ST::str, src.name, OP::str, scalar );
             }
         };
+        template<typename ST>
+        struct ScaleAddSolver<ST,XVar,double>{
+            static inline void eval( XVar &dst, const XVar &a, const XVar &b, double sa, double sb ){
+                printf("%s %s %s*%lf+%s*%lf\n", dst.name, ST::str, a.name, sa, b.name, sb );
+            }
+        };
 
         template<typename ST,typename OP>
         struct BinaryMapSolver<ST,OP,XVar,XVar,XVar>{
@@ -50,6 +56,19 @@ namespace apex_exp_template{
                 printf("%s %s conv2( %s%s, %s%s, '%s' )\n", dst.name,ST::str, a.name, ta?".R":"" , b.name, tb?".R":"", CT::str );
             }
         };
+
+        template<>
+        struct CloneSolver<XVar,XVar>{
+            static inline void eval( XVar &dst, const XVar &src ){
+                printf("%s=clone(%s)\n", dst.name, src.name );
+            }
+        };
+        template<>
+        struct AllocLikeSolver<XVar,XVar>{
+            static inline void eval( XVar &dst, const XVar &src ){
+                printf("%s=alloc_like(%s)\n", dst.name, src.name );
+            }
+        };
     };
 };
 
@@ -60,5 +79,10 @@ int main( void ){
     a /= conv2( a.R(), b, Valid::op );
     a = ((a - b)/3-2+1)*10;
     a = dot( a, b.T())*3;    
+    a = a*2+b*3;
+    a = a- b*3;
+    a = a*3-b;
+    a= clone(b);
+    a= alloc_like( b );
     return 0;
 }
