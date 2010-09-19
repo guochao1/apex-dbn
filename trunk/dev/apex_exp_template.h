@@ -3,8 +3,7 @@
 /*!
  * \file apex_exp_template.h
  * \brief expression template to do lazy evaluation
- * \author Tianqi Chen
- * \email  tqchen@apex.sjtu.edu.cn
+ * \author Tianqi Chen: tqchen@apex.sjtu.edu.cn
  */
 
 /*! \brief namespace of expression template */
@@ -47,9 +46,9 @@ namespace apex_exp_template{
         private:
             AddTo(){}
         public:
+            /*! \brief singleton of AddTo */
             const static AddTo  op;
         };
-        /*! \brief singleton of AddTo */
         const AddTo AddTo::op = AddTo();
         
         /*! \brief operator-= */
@@ -57,9 +56,9 @@ namespace apex_exp_template{
         private:
             SubTo(){}
         public:
+            /*! \brief singleton of SubTo */
             const static SubTo  op;
         };
-        /*! \brief singleton of SubTo */
         const SubTo SubTo::op = SubTo();
         
         /*! \brief operator*= */
@@ -67,9 +66,9 @@ namespace apex_exp_template{
         private:
             MulTo(){}
         public:
+            /*! \brief singleton of MulTo */
             const static MulTo  op;
         };
-        /*! \brief singleton of MulTo */
         const MulTo MulTo::op = MulTo();
         
         /*! \brief operator/= */
@@ -77,10 +76,54 @@ namespace apex_exp_template{
         private:
             DivTo(){}
         public:
+            /*! \brief singleton of MulTo */
             const static DivTo  op;
         };
-        /*! \brief singleton of MulTo */
-        const DivTo DivTo::op = DivTo();
+        const DivTo DivTo::op = DivTo();                
+    };
+    namespace enums{
+        /*! \brief operator of binary operation */
+        template<typename Derived>
+        class BinaryOperator{
+        protected:
+            BinaryOperator(){}
+        };    
+        /*! \brief operator+ */
+        class Add : public BinaryOperator<Add>{
+        private:
+            Add(){}
+        public:
+            /*! \brief singleton of Add */
+            const static Add  op;
+        };
+        const Add Add::op = Add();                
+        /*! \brief operator- */
+        class Sub : public BinaryOperator<Sub>{
+        private:
+            Sub(){}
+        public:
+            /*! \brief singleton of Add */
+            const static Sub  op;
+        };
+        const Sub Sub::op = Sub();                
+        /*! \brief operator* */
+        class Mul : public BinaryOperator<Mul>{
+        private:
+            Mul(){}
+        public:
+            /*! \brief singleton of Add */
+            const static Mul  op;
+        };
+        const Mul Mul::op = Mul();                
+        /*! \brief operator/ */
+        class Div : public BinaryOperator<Div>{
+        private:
+            Div(){}
+        public:
+            /*! \brief singleton of Add */
+            const static Div  op;
+        };
+        const Div Div::op = Div();                
     };
 };
 
@@ -197,12 +240,14 @@ namespace apex_exp_template{
 };
 
 namespace apex_exp_template{
-    /*! transpose of a expression*/
+    /*! \brief transpose of a expression*/
     template<typename Elem>
     class TransposeExp: public CompositeExp< TransposeExp<Elem> >{
     public:
+        /*! \brief expression to be transposed */
         const Elem &exp;
-        TransposeExp( const Elem &e ):exp(e){}
+        /*! \brief constructor */
+        TransposeExp( const Elem &e ):exp(e){}        
         inline const Elem & T() const{
             return exp;
         }
@@ -211,7 +256,9 @@ namespace apex_exp_template{
     template<typename Elem>
     class ReverseExp: public CompositeExp< TransposeExp<Elem> >{
     public:
+        /*! \brief expression to be reversed */
         const Elem &exp;
+        /*! \brief constructor */
         ReverseExp( const Elem &e ):exp(e){}
         inline const Elem & R() const{
             return exp;
@@ -227,13 +274,15 @@ namespace apex_exp_template{
     template<typename Derived,typename Src>
     class MapExp: public CompositeExp<Derived>{        
     public:
+        /*! expression to be mapped */
         const Src &exp;
+        /*! \brief constructor */
         MapExp( const Src &e ):exp(e){} 
         /*! \brief rule specialization, in a map chain, use dst as temporary storage */
         template<typename Dst, typename T>
-        inline void __eval( const enums::SaveTo &s, Dst &dst, const MapExp< CompositeExp<T>, Src > &src ) const{
-            dst = src.exp;
-            dst = Derived( ContainerExp<Dst>(dst) );
+        inline void __eval( const enums::SaveTo &s, Dst &dst, const MapExp< Derived, CompositeExp<T> > &src ) const{
+            //dst = src.exp;
+            //dst = Derived( ContainerExp<Dst>(dst) );
         }
     };
 };
@@ -244,45 +293,141 @@ namespace apex_exp_template{
          * \brief solver interface to solve scale problem 
          * user must specialize the class to create specific solvers of types to support
          */
-        template<typename ST,typename T, typename TV>
-        struct ScaleSolver{
+        template<typename ST,typename OP,typename T, typename TV>
+        struct ScalarMapSolver{
             /*! \brief implement dst = src*scalar */
             static inline void eval( T &dst, const T &src, TV scalar );
         };
     };
-    /*! \brief scale expression which represent exp* scalar */
-    template<typename Elem,typename TValue>
-    class ScaleExp: public MapExp< ScaleExp<Elem,TValue>, Elem >{
+    /*! \brief scale expression which represent exp op scalar */
+    template<typename OP,typename Elem,typename TValue>
+    class ScalarMapExp: public MapExp< ScalarMapExp<OP,Elem,TValue>, Elem >{
     public:        
+        /*! scale scalar */
         TValue scalar;
-        ScaleExp( const Elem &e, TValue s ):MapExp<ScaleExp<Elem,TValue>, Elem>(e),scalar(s){}
-        /*! \brief rule specialization, combine scale together */
-        template<typename Dst, typename T>
-        inline void __eval( const enums::SaveTo &s, Dst &dst, const ScaleExp< CompositeExp< ScaleExp<T,double> >, double > &src ) const{
-            dst = ScaleExp<T,double>( src.exp.__name_const().exp, src.scalar * src.exp.__name_const().scalar );
-        }        
+        /*! \brief constructor */
+        ScalarMapExp( const Elem &e, TValue s ):MapExp<ScalarMapExp<OP,Elem,TValue>, Elem>(e),scalar(s){}
         /*! \brief basic specialization of scale */
-        template<typename ST,typename T,typename TV>
-        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, const ScaleExp< ContainerExp<T>, TV > &src ) const{
-            solver_impl::ScaleSolver<ST,T,TV>::eval( dst, src.exp.__name_const(), src.scalar );
+        template<typename ST,typename T>
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, const ScalarMapExp< OP,ContainerExp<T>, TValue > &src ) const{
+            solver_impl::ScalarMapSolver<ST,OP,T,TValue>::eval( dst, src.exp.__name_const(), src.scalar );
         }
     };
     namespace operators{
         /*! \brief operator overload for scale */
         template<typename T,typename TT>
-        inline ScaleExp<TT,double> operator*( const Exp<T,TT> &exp, double scalar ){
-            return ScaleExp<TT,double>( exp.__alias_const(), scalar ); 
+        inline const ScalarMapExp<enums::Mul,TT,double> operator*( const Exp<T,TT> &exp, double scalar ){
+            return ScalarMapExp<enums::Mul,TT,double>( exp.__alias_const(), scalar ); 
         }
         /*! \brief operator overload for scale */
         template<typename T,typename TT>
-        inline ScaleExp<TT,double> operator*( double scalar, const Exp<T,TT> &exp ){
+        inline const ScalarMapExp<enums::Mul,TT,double> operator*( double scalar, const Exp<T,TT> &exp ){
             return exp *  scalar;
         }
         /*! \brief operator overload for scale */
         template<typename T,typename TT>
-        inline ScaleExp<TT,double> operator/( const Exp<T,TT> &exp, double scalar ){
-            return ScaleExp<TT,double>( exp.__alias_const(), 1.0/scalar ); 
+        inline const ScalarMapExp<enums::Mul,TT,double> operator/( const Exp<T,TT> &exp, double scalar ){
+            return exp * (1.0/scalar); 
+        }
+        /*! \brief operator overload for scale */
+        template<typename TT>
+        inline const ScalarMapExp<enums::Mul,TT,double> operator*( const ScalarMapExp<enums::Mul,TT,double> &exp, double scalar ){
+            return ScalarMapExp<enums::Mul,TT,double>( exp.exp, exp.scalar * scalar ); 
+        }
+        /*! \brief operator overload for scale */
+        template<typename TT>
+        inline const ScalarMapExp<enums::Mul,TT,double> operator*( double scalar, const ScalarMapExp<enums::Mul,TT,double> &exp ){
+            return exp * scalar;
+        }
+        /*! \brief operator overload for scale */
+        template<typename TT>
+        inline const ScalarMapExp<enums::Mul,TT,double> operator/( const ScalarMapExp<enums::Mul,TT,double> &exp, double scalar ){
+            return exp * (1.0/scalar);
+        }
+       
+        /*! \brief operator overload for scale */
+        template<typename T,typename TT>
+        inline const ScalarMapExp<enums::Add,TT,double> operator+( const Exp<T,TT> &exp, double scalar ){
+            return ScalarMapExp<enums::Add,TT,double>( exp.__alias_const(), scalar ); 
+        }
+        /*! \brief operator overload for scale */
+        template<typename T,typename TT>
+        inline const ScalarMapExp<enums::Add,TT,double> operator+( double scalar, const Exp<T,TT> &exp ){
+            return exp +  scalar;
+        }
+        /*! \brief operator overload for scale */
+        template<typename T,typename TT>
+        inline const ScalarMapExp<enums::Add,TT,double> operator-( const Exp<T,TT> &exp, double scalar ){
+            return exp + (-scalar); 
+        }        
+        /*! \brief operator overload for scale */
+        template<typename TT>
+        inline const ScalarMapExp<enums::Add,TT,double> operator+( const ScalarMapExp<enums::Add,TT,double> &exp, double scalar ){
+            return ScalarMapExp<enums::Add,TT,double>( exp.exp, exp.scalar + scalar ); 
+        }
+        /*! \brief operator overload for scale */
+        template<typename TT>
+        inline const ScalarMapExp<enums::Add,TT,double> operator+( double scalar, const ScalarMapExp<enums::Add,TT,double> &exp ){
+            return exp + scalar;
+        }
+        /*! \brief operator overload for scale */
+        template<typename TT>
+        inline const ScalarMapExp<enums::Add,TT,double> operator-( const ScalarMapExp<enums::Add,TT,double> &exp, double scalar ){
+            return exp + (-scalar);
+        } 
+    };    
+};
+
+namespace apex_exp_template{
+    namespace solver_impl{
+        /*! 
+         * \brief solver interface to solve binary elementwise operation
+         * user must specialize the class to create specific solvers of types to support
+         */        
+        template<typename ST,typename OP, typename Dst, typename Lhs, typename Rhs>
+        class BinaryMapSolver{
+            /*! \brief implement dst = lhs+rhs */
+            static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs );
+        };
+    };
+    /*! \brief elementwise binary operations */
+    template<typename OP,typename Lhs,typename Rhs>
+    class BinaryMapExp: public CompositeExp< BinaryMapExp<OP,Lhs,Rhs> >{
+    public:
+        /*! \brief left operand */
+        const Lhs &lhs;
+        /*! \brief right operand */
+        const Rhs &rhs;
+        /*! \brief constructor */
+        BinaryMapExp( const Lhs &l, const Rhs &r ):lhs(l),rhs(r){}
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename Dst, typename TA, typename TB> 
+        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const BinaryMapExp<OP,ContainerExp<TA>, ContainerExp<TB> > &src ) const{
+            solver_impl::BinaryMapSolver<ST,OP,Dst,TA,TB>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const() );
         }
     };
+    namespace operators{
+        /*! \brief operator overload for elementwise+ */
+        template<typename TA, typename TB,typename TAA, typename TBB>
+        inline const BinaryMapExp<enums::Add,TAA,TBB> operator+( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
+            return BinaryMapExp<enums::Add,TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
+        }
+        /*! \brief operator overload for elementwise- */
+        template<typename TA, typename TB,typename TAA, typename TBB>
+        inline const BinaryMapExp<enums::Sub,TAA,TBB> operator-( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
+            return BinaryMapExp<enums::Sub,TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
+        }
+        /*! \brief operator overload for elementwise* */
+        template<typename TA, typename TB,typename TAA, typename TBB>
+        inline const BinaryMapExp<enums::Sub,TAA,TBB> operator*( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
+            return BinaryMapExp<enums::Sub,TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
+        }
+        /*! \brief operator overload for elementwise/ */
+        template<typename TA, typename TB,typename TAA, typename TBB>
+        inline const BinaryMapExp<enums::Div,TAA,TBB> operator/( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
+            return BinaryMapExp<enums::Div,TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
+        }
+    };        
 };
+
 #endif
