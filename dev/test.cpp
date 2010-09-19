@@ -18,17 +18,29 @@ struct XInt : public apex_exp_template::ContainerExp<XInt>{
 namespace apex_exp_template{
     namespace solver_impl{
         template<typename ST>
-        struct ScaleSolver<ST,XInt,double>{
+        struct ScalarMapSolver<ST,enums::Mul,XInt,double>{
             static inline void eval( XInt &dst, const XInt &src, double scalar ){
                 dst.a = src.a * scalar;
+            }
+        };
+        template<typename ST>
+        struct ScalarMapSolver<ST,enums::Add,XInt,double>{
+            static inline void eval( XInt &dst, const XInt &src, double scalar ){
+                dst.a = src.a + scalar;
+            }
+        };
+        template<typename ST,typename OP>
+        struct BinaryMapSolver<ST,OP,XInt,XInt,XInt>{
+            static inline void eval( XInt &dst, const XInt &a, const XInt &b ){
+                dst = a.a+b.a;
             }
         };
     };
 };
 using namespace apex_exp_template::operators;
 int main( void ){
-    XInt a(1),b(2);
-    a = (b*10)*10;
+    XInt a(2),b(2);
+    a = (a+2)*3;
     printf("%d\n", a.a);
     return 0;
 }
