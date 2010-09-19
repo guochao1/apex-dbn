@@ -64,9 +64,12 @@ namespace apex_exp_template{
         public:
             /*! \brief singleton of SubTo */
             const static SubTo  op;
+            /*! \brief string representation */
+            const static char *str;
         };
         const SubTo SubTo::op = SubTo();
-        
+        const char* SubTo::str = "-=";
+
         /*! \brief operator*= */
         class MulTo : public StoreMethod<MulTo>{
         private:
@@ -91,7 +94,7 @@ namespace apex_exp_template{
             const static char *str;
         };
         const DivTo DivTo::op = DivTo();                
-        const char* DivTo::str = "*=";
+        const char* DivTo::str = "/=";
     };
     namespace enums{
         /*! \brief operator of binary operation */
@@ -151,6 +154,38 @@ namespace apex_exp_template{
         };
         const Div Div::op = Div();                
         const char* Div::str = "/";
+    };
+    namespace enums{
+        template<typename Derived>
+        class ConvType{
+        protected:
+            ConvType(){}
+        };
+        /*! \brief method of convolution storage:valid */
+        class Valid : public ConvType<Valid>{
+        private:
+            Valid(){}
+        public:
+            /*! \brief singleton of Valid */
+            const static Valid  op;
+            /*! \brief string representation */
+            const static char *str;
+        };
+        const Valid Valid::op = Valid();                
+        const char* Valid::str = "valid";
+
+        /*! \brief method of convolution storage:full */
+        class Full : public ConvType<Full>{
+        private:
+            Full(){}
+        public:
+            /*! \brief singleton of Valid */
+            const static Full  op;
+            /*! \brief string representation */
+            const static char *str;
+        };
+        const Full Full::op = Full();                
+        const char* Full::str = "full";
     };
 };
 
@@ -436,8 +471,8 @@ namespace apex_exp_template{
         }
         /*! \brief operator overload for elementwise* */
         template<typename TA, typename TB,typename TAA, typename TBB>
-        inline const BinaryMapExp<enums::Sub,TAA,TBB> operator*( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
-            return BinaryMapExp<enums::Sub,TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
+        inline const BinaryMapExp<enums::Mul,TAA,TBB> operator*( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
+            return BinaryMapExp<enums::Mul,TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
         }
         /*! \brief operator overload for elementwise/ */
         template<typename TA, typename TB,typename TAA, typename TBB>
@@ -456,7 +491,7 @@ namespace apex_exp_template{
         template<typename ST, typename Dst, typename Lhs, typename Rhs, bool transposeLeft, bool transposeRight>
         class DotSolver{
             /*! \brief implement dst [st] dot( lhs[.T],rhs[.T] ) */
-            static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs);
+            static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs );
         };        
     };
     /*! \brief matrix multiplication */
@@ -469,22 +504,22 @@ namespace apex_exp_template{
         const Rhs &rhs;
         /*! \brief constructor */
         DotExp( const Lhs &l, const Rhs &r ):lhs(l),rhs(r){}
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of dot calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
         inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const DotExp<ContainerExp<TA>, ContainerExp<TB> > &src ) const{
             solver_impl::DotSolver<ST,Dst,TA,TB,false,false>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const() );
         }
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of dot calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
         inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const DotExp<CompositeExp< TransposeExp< ContainerExp<TA> > >, ContainerExp<TB> > &src ) const{
             solver_impl::DotSolver<ST,Dst,TA,TB,true,false>::eval( dst, src.lhs.__name_const().exp.__name_const(), src.rhs.__name_const() );
         }
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of dot calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
         inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const DotExp<ContainerExp<TA>, CompositeExp< TransposeExp< ContainerExp<TB> > > > &src ) const{
             solver_impl::DotSolver<ST,Dst,TA,TB,false,true>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const().exp.__name_const() );
         }
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of dot calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
         inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, 
                             const DotExp<CompositeExp< TransposeExp< ContainerExp<TA> > >, CompositeExp< TransposeExp< ContainerExp<TB> > > > &src ) const{
@@ -492,7 +527,7 @@ namespace apex_exp_template{
         }        
     };
     namespace operators{
-        /*! \brief operator overload for elementwise+ */
+        /*! \brief operator overload for matrix multiplication */
         template<typename TA, typename TB,typename TAA, typename TBB>
         inline const DotExp<TAA,TBB> dot( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs ){
             return DotExp<TAA,TBB>( lhs.__alias_const(), rhs.__alias_const() );
@@ -506,53 +541,52 @@ namespace apex_exp_template{
          * \brief solver interface to 2D convolution
          * user must specialize the class to create specific solvers of types to support
          */        
-        template<typename ST, typename Dst, typename Lhs, typename Rhs, bool reverseLeft, bool reverseRight >
+        template<typename ST, typename Dst, typename Lhs, typename Rhs, bool reverseLeft, bool reverseRight, typename CT >
         class Conv2Solver{
             /*! \brief implement dst [st] conv2( lhs[.R],rhs[.R], option )
              * option = 'V'(valid) or 'F'(full) or 'E'(equal) 
              */
-            static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs, char option );
+            static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs );
         };        
     };
+
     /*! \brief 2D convolution  */
-    template<typename Lhs,typename Rhs>
-    class Conv2Exp: public CompositeExp< Conv2Exp<Lhs,Rhs> >{
+    template<typename Lhs,typename Rhs,typename CT>
+    class Conv2Exp: public CompositeExp< Conv2Exp<Lhs,Rhs,CT> >{
     public:
-        /*! \brief convolution option */
-        char option;
         /*! \brief left operand */
         const Lhs &lhs;
         /*! \brief right operand */
         const Rhs &rhs;
         /*! \brief constructor */
-        Conv2Exp( const Lhs &l, const Rhs &r, char op ):lhs(l),rhs(r),option(op){}
-        /*! \brief basic specialization of binary calculation */
+        Conv2Exp( const Lhs &l, const Rhs &r ):lhs(l),rhs(r){}
+        /*! \brief basic specialization of conv2 calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
-        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const Conv2Exp<ContainerExp<TA>, ContainerExp<TB> > &src ) const{
-            solver_impl::Conv2Solver<ST,Dst,TA,TB,false,false>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const(), option );
+        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const Conv2Exp<ContainerExp<TA>, ContainerExp<TB>, CT > &src ) const{
+            solver_impl::Conv2Solver<ST,Dst,TA,TB,false,false,CT>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const() );
         }
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of conv2 calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
-        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const Conv2Exp<CompositeExp< ReverseExp< ContainerExp<TA> > >, ContainerExp<TB> > &src ) const{
-            solver_impl::Conv2Solver<ST,Dst,TA,TB,true,false>::eval( dst, src.lhs.__name_const().exp.__name_const(), src.rhs.__name_const(), option );
+        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const Conv2Exp<CompositeExp< ReverseExp< ContainerExp<TA> > >, ContainerExp<TB>, CT > &src ) const{
+            solver_impl::Conv2Solver<ST,Dst,TA,TB,true,false,CT>::eval( dst, src.lhs.__name_const().exp.__name_const(), src.rhs.__name_const() );
         }
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of conv2 calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
-        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const Conv2Exp<ContainerExp<TA>, CompositeExp< ReverseExp< ContainerExp<TB> > > > &src ) const{
-            solver_impl::Conv2Solver<ST,Dst,TA,TB,false,true>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const().exp.__name_const(), option );
+        inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const Conv2Exp<ContainerExp<TA>, CompositeExp< ReverseExp< ContainerExp<TB> > >, CT > &src ) const{
+            solver_impl::Conv2Solver<ST,Dst,TA,TB,false,true,CT>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const().exp.__name_const() );
         }
-        /*! \brief basic specialization of binary calculation */
+        /*! \brief basic specialization of conv2 calculation */
         template<typename ST,typename Dst, typename TA, typename TB> 
         inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, 
-                            const Conv2Exp<CompositeExp< ReverseExp< ContainerExp<TA> > >, CompositeExp< ReverseExp< ContainerExp<TB> > > > &src ) const{
-            solver_impl::Conv2Solver<ST,Dst,TA,TB,true,true>::eval( dst, src.lhs.__name_const().exp.__name_const(), src.rhs.__name_const().exp.__name_const(), option );
+                            const Conv2Exp<CompositeExp< ReverseExp< ContainerExp<TA> > >, CompositeExp< ReverseExp< ContainerExp<TB> > >, CT > &src ) const{
+            solver_impl::Conv2Solver<ST,Dst,TA,TB,true,true,CT>::eval( dst, src.lhs.__name_const().exp.__name_const(), src.rhs.__name_const().exp.__name_const() );
         }        
     };
     namespace operators{
-        /*! \brief operator overload for elementwise+ */
-        template<typename TA, typename TB,typename TAA, typename TBB>
-        inline const Conv2Exp<TAA,TBB> conv2( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs, char option ){
-            return Conv2Exp<TAA,TBB>( lhs.__alias_const(), rhs.__alias_const(), option );
+        /*! \brief operator overload for 2D convolution */
+        template<typename TA, typename TB,typename TAA, typename TBB,typename CT>
+        inline const Conv2Exp<TAA,TBB,CT> conv2( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs, const enums::ConvType<CT> &ct ){
+            return Conv2Exp<TAA,TBB,CT>( lhs.__alias_const(), rhs.__alias_const() );
         }
     };
 };

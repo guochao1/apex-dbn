@@ -1,6 +1,11 @@
 #include <cstdio>
 #include "apex_exp_template.h"
 
+/*! \file apex_exp_template.cpp
+ *  \brief a showcase for how to use expression template
+ *  print out all the operations
+ */
+
 /*! \brief test class of expression template, print the operations */
 struct XVar : public apex_exp_template::ContainerExp<XVar>{
     const char *name;
@@ -39,22 +44,21 @@ namespace apex_exp_template{
             }
         };
 
-        template<typename ST,bool ta, bool tb>
-        struct Conv2Solver<ST,XVar, XVar,XVar,ta,tb>{
-            static inline void eval( XVar &dst, const XVar &a, const XVar &b, char option ){
-                printf("%s %s conv2( %s%s, %s%s, '%c' )\n", dst.name,ST::str, a.name, ta?".R":"" , b.name, tb?".R":"", option );
+        template<typename ST,bool ta, bool tb, typename CT>
+        struct Conv2Solver<ST,XVar, XVar,XVar,ta,tb,CT>{
+            static inline void eval( XVar &dst, const XVar &a, const XVar &b ){
+                printf("%s %s conv2( %s%s, %s%s, '%s' )\n", dst.name,ST::str, a.name, ta?".R":"" , b.name, tb?".R":"", CT::str );
             }
         };
     };
 };
 
+using namespace apex_exp_template::enums;
 using namespace apex_exp_template::operators;
 int main( void ){
     XVar a("a"),b("b");
-    a = (a+b)-3;
-    a = dot(a, b.T())*30;
-    a += dot(a.T(), b.T());
-    a = dot(a.T(), b); 
-    a = conv2( a.R(), b, 'V' );
+    a /= conv2( a.R(), b, Valid::op );
+    a = ((a - b)/3-2+1)*10;
+    a = dot( a, b.T())*3;    
     return 0;
 }
