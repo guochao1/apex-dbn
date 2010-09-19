@@ -202,15 +202,6 @@ namespace apex_exp_template{
         Exp(){}
     public:
         /*! 
-         *\brief evaluation src and store to dst 
-         *\param st storage method
-         *\param dst destination to be stored
-         *\param src source expression
-         *\sa StoreMethod
-         */ 
-        template<typename ST, typename Dst>
-        inline void __eval( const enums::StoreMethod<ST> &st, Dst &dst, const Name &src ) const; 
-        /*! 
          *\brief  return true derived class 
          *\return true derived class
          */
@@ -257,6 +248,16 @@ namespace apex_exp_template{
     class CompositeExp: public Exp< Derived, CompositeExp<Derived> >{
     protected:
         CompositeExp(){}
+    public:
+        /*! 
+         *\brief evaluation src and store to dst 
+         *\param st storage method
+         *\param dst destination to be stored
+         *\param src source expression
+         *\sa StoreMethod
+         */ 
+        template<typename ST, typename Dst>
+        inline void __eval( const enums::StoreMethod<ST> &st, Dst &dst, const Derived &src ) const; 
     };
     /*! \brief base class of all variables
      *  this is a alias class, we use it to identify difference between 
@@ -267,37 +268,84 @@ namespace apex_exp_template{
     class ContainerExp: public Exp< Derived, ContainerExp<Derived> >{
     protected:
         ContainerExp(){}
-    public   :                
+    public:
+        /*! \brief implementation of operator+= */
+        inline Derived &operator+=( double s ){
+            this->__name() = this->__name_const() + s;
+            return this->__name();
+        }
+        /*! \brief implementation of operator-= */
+        inline Derived &operator-=( double s ){
+            this->__name() = this->__name_const() - s;
+            return this->__name();
+        }
+        /*! \brief implementation of operator*= */
+        inline Derived &operator*=( double s ){
+            this->__name() = this->__name_const() * s;
+            return this->__name();
+        }
+        /*! \brief implementation of operator/= */
+        inline Derived &operator/=( double s ){
+            this->__name() = this->__name_const() / s;
+            return this->__name();
+        }
+    public:
+        /*! \brief implementation of operator+= */
+        template<typename T>
+        inline Derived &operator+=( const ContainerExp<T> &exp ){
+            this->__name() = this->__name_const() + exp.__name_const();
+            return this->__name();
+        }
+        /*! \brief implementation of operator-= */
+        template<typename T>
+        inline Derived &operator-=( const ContainerExp<T> &exp ){
+            this->__name() = this->__name_const() - exp.__name_const();
+            return this->__name();
+        }
+        /*! \brief implementation of operator*= */
+        template<typename T>
+        inline Derived &operator*=( const ContainerExp<T> &exp ){
+            this->__name() = this->__name_const() * exp.__name_const();
+            return this->__name();
+        }
+        /*! \brief implementation of operator/= */
+        template<typename T>
+        inline Derived &operator/=( const ContainerExp<T> &exp ){
+            this->__name() = this->__name_const() / exp.__name_const();
+            return this->__name();
+        }
+    public:                
         /*! \brief implementation of operator= */
-        template<typename Name,typename Alias>
-        inline Derived &__assign( const Exp<Name,Alias> &exp ){
+        template<typename T>
+        inline Derived &__assign( const CompositeExp<T> &exp ){
             exp.__name_const().__eval( enums::SaveTo::op, this->__name(), exp.__name_const() );
             return this->__name();
         }
         /*! \brief implementation of operator+= */
-        template<typename Name,typename Alias>
-        inline Derived &operator+=( const Exp<Name,Alias> &exp ){
+        template<typename T>
+        inline Derived &operator+=( const CompositeExp<T> &exp ){
             exp.__name_const().__eval( enums::AddTo::op, this->__name(), exp.__name_const() );
             return this->__name();
         }
         /*! \brief implementation of operator-= */
-        template<typename Name,typename Alias>
-        inline Derived &operator-=( const Exp<Name,Alias> &exp ){
+        template<typename T>
+        inline Derived &operator-=( const CompositeExp<T> &exp ){
             exp.__name_const().__eval( enums::SubTo::op, this->__name(), exp.__name_const() );
             return this->__name();
         }
         /*! \brief implementation of operator*= */
-        template<typename Name,typename Alias>
-        inline Derived &operator*=( const Exp<Name,Alias> &exp ){
+        template<typename T>
+        inline Derived &operator*=( const CompositeExp<T> &exp ){
             exp.__name_const().__eval( enums::MulTo::op, this->__name(), exp.__name_const() );
             return this->__name();
         }
         /*! \brief implementation of operator/= */
-        template<typename Name,typename Alias>
-        inline Derived &operator/=( const Exp<Name,Alias> &exp ){
+        template<typename T>
+        inline Derived &operator/=( const CompositeExp<T> &exp ){
             exp.__name_const().__eval( enums::DivTo::op, this->__name(), exp.__name_const() );
             return this->__name();
         }        
+        
     };            
 };
 
@@ -441,6 +489,15 @@ namespace apex_exp_template{
             /*! \brief implement dst [st] lhs [op] rhs */
             static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs );
         };
+        /*! 
+         * \brief solver interface to solve scaleadd
+         * user must specialize the class to create specific solvers of types to support
+         */
+        template<typename ST,typename T, typename TV>
+        struct ScaleAddSolver{
+            /*! \brief implement dst [st] a*sa + b*sb */
+            static inline void eval( T &dst, const T &a, const T &b, TV sa, TV sb );
+        };
     };
     /*! \brief elementwise binary operations */
     template<typename OP,typename Lhs,typename Rhs>
@@ -457,6 +514,78 @@ namespace apex_exp_template{
         inline void __eval( const enums::StoreMethod<ST> &s, Dst &dst, const BinaryMapExp<OP,ContainerExp<TA>, ContainerExp<TB> > &src ) const{
             solver_impl::BinaryMapSolver<ST,OP,Dst,TA,TB>::eval( dst, src.lhs.__name_const(), src.rhs.__name_const() );
         }
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename T,typename TV> 
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, 
+                            const BinaryMapExp<enums::Add, 
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > >, 
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > > > &src ) const{
+            solver_impl::ScaleAddSolver<ST,T,TV>::eval( dst, 
+                                                        src.lhs.__name_const().exp.__name_const(), 
+                                                        src.rhs.__name_const().exp.__name_const(),
+                                                        src.lhs.__name_const().scalar,
+                                                        src.rhs.__name_const().scalar );
+        }
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename T,typename TV> 
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, 
+                            const BinaryMapExp<enums::Add, 
+                            ContainerExp<T> ,
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > > > &src ) const{
+            solver_impl::ScaleAddSolver<ST,T,TV>::eval( dst, 
+                                                        src.lhs.__name_const(), 
+                                                        src.rhs.__name_const().exp.__name_const(),
+                                                        1.0,
+                                                        src.rhs.__name_const().scalar );
+        }
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename T,typename TV> 
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, 
+                            const BinaryMapExp<enums::Add, 
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > >, 
+                            ContainerExp<T> > &src ) const{
+            solver_impl::ScaleAddSolver<ST,T,TV>::eval( dst, 
+                                                        src.lhs.__name_const().exp.__name_const(), 
+                                                        src.rhs.__name_const(),
+                                                        src.lhs.__name_const().scalar,
+                                                        1.0 );
+        }        
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename T,typename TV> 
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, 
+                            const BinaryMapExp<enums::Sub, 
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > >, 
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > > > &src ) const{
+            solver_impl::ScaleAddSolver<ST,T,TV>::eval( dst, 
+                                                        src.lhs.__name_const().exp.__name_const(), 
+                                                        src.rhs.__name_const().exp.__name_const(),
+                                                        src.lhs.__name_const().scalar,
+                                                        -src.rhs.__name_const().scalar );
+        }
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename T,typename TV> 
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, 
+                            const BinaryMapExp<enums::Sub, 
+                            ContainerExp<T> ,
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > > > &src ) const{
+            solver_impl::ScaleAddSolver<ST,T,TV>::eval( dst, 
+                                                        src.lhs.__name_const(), 
+                                                        src.rhs.__name_const().exp.__name_const(),
+                                                        1.0,
+                                                        -src.rhs.__name_const().scalar );
+        }
+        /*! \brief basic specialization of binary calculation */
+        template<typename ST,typename T,typename TV> 
+        inline void __eval( const enums::StoreMethod<ST> &s, T &dst, 
+                            const BinaryMapExp<enums::Sub, 
+                            CompositeExp< ScalarMapExp< enums::Mul,ContainerExp<T>,TV > >, 
+                            ContainerExp<T> > &src ) const{
+            solver_impl::ScaleAddSolver<ST,T,TV>::eval( dst, 
+                                                        src.lhs.__name_const().exp.__name_const(), 
+                                                        src.rhs.__name_const(),
+                                                        src.lhs.__name_const().scalar,
+                                                        -1.0 );
+        }        
     };
     namespace operators{
         /*! \brief operator overload for elementwise+ */
@@ -587,6 +716,72 @@ namespace apex_exp_template{
         template<typename TA, typename TB,typename TAA, typename TBB,typename CT>
         inline const Conv2Exp<TAA,TBB,CT> conv2( const Exp<TA,TAA> &lhs, const Exp<TB,TBB> &rhs, const enums::ConvType<CT> &ct ){
             return Conv2Exp<TAA,TBB,CT>( lhs.__alias_const(), rhs.__alias_const() );
+        }
+    };
+};
+
+namespace apex_exp_template{
+    namespace solver_impl{
+        /*! 
+         * \brief solver interface to cloning
+         * user must specialize the class to create specific solvers of types to support
+         */        
+        template<typename Dst, typename Src>
+        class CloneSolver{
+            /*! \brief implement dst = clone( src ) */
+            static inline void eval( Dst &dst, const Src &src  );
+        };
+    };    
+    /*! \brief transpose of a expression*/
+    template<typename Elem>
+    class CloneExp: public CompositeExp< CloneExp<Elem> >{
+    public:
+        /*! \brief expression to be transposed */
+        const Elem &exp;
+        /*! \brief constructor */
+        CloneExp( const Elem &e ):exp(e){}        
+        template<typename Dst, typename Src>
+        inline void __eval( const enums::SaveTo &s, Dst &dst, const CloneExp< ContainerExp<Src> > &src ) const{
+            solver_impl::CloneSolver<Dst,Src>::eval( dst, src.exp.__name_const() );
+        }
+    };
+    namespace operators{
+        template<typename T>
+        inline const CloneExp< ContainerExp<T> > clone( const ContainerExp<T> &exp ){
+            return CloneExp< ContainerExp<T> >( exp.__alias_const() );
+        }
+    };
+};
+
+namespace apex_exp_template{
+    namespace solver_impl{
+        /*! 
+         * \brief solver interface to cloning
+         * user must specialize the class to create specific solvers of types to support
+         */        
+        template<typename Dst, typename Src>
+        class AllocLikeSolver{
+            /*! \brief implement dst = clone( src ) */
+            static inline void eval( Dst &dst, const Src &src  );
+        };
+    };    
+    /*! \brief transpose of a expression*/
+    template<typename Elem>
+    class AllocLikeExp: public CompositeExp< AllocLikeExp<Elem> >{
+    public:
+        /*! \brief expression to be transposed */
+        const Elem &exp;
+        /*! \brief constructor */
+        AllocLikeExp( const Elem &e ):exp(e){}        
+        template<typename Dst, typename Src>
+        inline void __eval( const enums::SaveTo &s, Dst &dst, const AllocLikeExp< ContainerExp<Src> > &src ) const{
+            solver_impl::AllocLikeSolver<Dst,Src>::eval( dst, src.exp.__name_const() );
+        }
+    };
+    namespace operators{
+        template<typename T>
+        inline const AllocLikeExp< ContainerExp<T> > alloc_like( const ContainerExp<T> &exp ){
+            return AllocLikeExp< ContainerExp<T> >( exp.__alias_const() );
         }
     };
 };
