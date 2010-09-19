@@ -618,7 +618,7 @@ namespace apex_exp_template{
          * user must specialize the class to create specific solvers of types to support
          */        
         template<typename ST, typename Dst, typename Lhs, typename Rhs, bool transposeLeft, bool transposeRight>
-        class DotSolver{
+        struct DotSolver{
             /*! \brief implement dst [st] dot( lhs[.T],rhs[.T] ) */
             static inline void eval( Dst &dst, const Lhs &lhs, const Rhs &rhs );
         };        
@@ -671,7 +671,7 @@ namespace apex_exp_template{
          * user must specialize the class to create specific solvers of types to support
          */        
         template<typename ST, typename Dst, typename Lhs, typename Rhs, bool reverseLeft, bool reverseRight, typename CT >
-        class Conv2Solver{
+        struct Conv2Solver{
             /*! \brief implement dst [st] conv2( lhs[.R],rhs[.R], option )
              * option = 'V'(valid) or 'F'(full) or 'E'(equal) 
              */
@@ -727,16 +727,17 @@ namespace apex_exp_template{
          * user must specialize the class to create specific solvers of types to support
          */        
         template<typename Dst, typename Src>
-        class CloneSolver{
+        struct CloneSolver{
             /*! \brief implement dst = clone( src ) */
             static inline void eval( Dst &dst, const Src &src  );
         };
     };    
-    /*! \brief transpose of a expression*/
+
+    /*! \brief clone a container */
     template<typename Elem>
     class CloneExp: public CompositeExp< CloneExp<Elem> >{
     public:
-        /*! \brief expression to be transposed */
+        /*! \brief expression to be cloned  */
         const Elem &exp;
         /*! \brief constructor */
         CloneExp( const Elem &e ):exp(e){}        
@@ -746,6 +747,7 @@ namespace apex_exp_template{
         }
     };
     namespace operators{
+        /*! \brief operator implementation clone */
         template<typename T>
         inline const CloneExp< ContainerExp<T> > clone( const ContainerExp<T> &exp ){
             return CloneExp< ContainerExp<T> >( exp.__alias_const() );
@@ -756,20 +758,20 @@ namespace apex_exp_template{
 namespace apex_exp_template{
     namespace solver_impl{
         /*! 
-         * \brief solver interface to cloning
+         * \brief solver interface to alloc_like
          * user must specialize the class to create specific solvers of types to support
          */        
         template<typename Dst, typename Src>
-        class AllocLikeSolver{
-            /*! \brief implement dst = clone( src ) */
+        struct AllocLikeSolver{
+            /*! \brief implement dst = alloc_like( src ) */
             static inline void eval( Dst &dst, const Src &src  );
         };
     };    
-    /*! \brief transpose of a expression*/
+    /*! \brief allocate same shape of memory*/
     template<typename Elem>
     class AllocLikeExp: public CompositeExp< AllocLikeExp<Elem> >{
     public:
-        /*! \brief expression to be transposed */
+        /*! \brief expression to define the shape */
         const Elem &exp;
         /*! \brief constructor */
         AllocLikeExp( const Elem &e ):exp(e){}        
@@ -779,6 +781,7 @@ namespace apex_exp_template{
         }
     };
     namespace operators{
+        /*! \brief operator implementation alloc_like */
         template<typename T>
         inline const AllocLikeExp< ContainerExp<T> > alloc_like( const ContainerExp<T> &exp ){
             return AllocLikeExp< ContainerExp<T> >( exp.__alias_const() );
