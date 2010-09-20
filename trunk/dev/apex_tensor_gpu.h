@@ -1,48 +1,53 @@
-#ifndef _APEX_TENSOR_CPU_H_
-#define _APEX_TENSOR_CPU_H_
+#ifndef _APEX_TENSOR_GPU_H_
+#define _APEX_TENSOR_GPU_H_
 
 /*!
- * \file apex_tensor_cpu.h
- * \brief CPU part implementation of tensor
+ * \file apex_tensor_gpu.h
+ * \brief GPU part implementation of tensor
  * \author Tianqi Chen: tqchen@apex.sjtu.edu.cn
  */
 
 #include "apex_tensor.h"
 #include "apex_exp_template.h"
+
 /*! \brief namespace of tensor imlementation */
 namespace apex_tensor{
     using namespace apex_exp_template::operators;
 };
 namespace apex_tensor{
-    /*! \brief pointer in CPU */
+    /*! \brief pointer in GPU */
     template<typename TValue>
-    class CPtr{
+    class GPtr{
     private:
         /*! \brief real pointer */
         TValue *ptr;
     public:
-        CPtr(){}
+        GPtr(){}
         /*! \brief constructor */
-        CPtr( TValue *p ):ptr( p ){} 
+        GPtr( TValue *p ):ptr( p ){} 
         /*! \brief convert to real pointer */
-        inline operator TValue*(){ return ptr; }
+        inline operator TValue*(){
+            return ptr;
+        }
         /*! \brief convert to const real pointer */
-        inline operator const TValue*() const{ return ptr; }
+        inline operator const TValue*()const{
+            return ptr;
+        }
     };
 
-    /*! \brief 1D tensor in CPU */
-    class CTensor1D: public apex_exp_template::ContainerExp<CTensor1D>{
+    /*! \brief 1D tensor in GPU */
+    class GTensor1D: public apex_exp_template::ContainerExp<GTensor1D>{
     public:
         /*! \brief number of element in x dimension */
         int x_max;
         /*! \brief number of bytes allocated in x dimension */
         unsigned int pitch;
         /*! \brief pointer to data */
-        CPtr<TENSOR_FLOAT> elem;
+        GPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
-        CTensor1D(){}
+        GTensor1D(){}
         /*! \brief constructor */
-        CTensor1D( int x_max ){ 
+        GTensor1D( int x_max ){ 
             set_param( x_max ); 
         }        
         /*! \brief set parameters */
@@ -53,18 +58,10 @@ namespace apex_tensor{
         inline void copy_param( const CTensor1D &exp );
         /*! \brief copy paramter from target */
         inline void copy_param( const GTensor1D &exp );
-        /*! \brief operator[] */
-        inline TENSOR_FLOAT& operator[]( int idx ){
-            return elem[idx];
-        }        
-        /*! \brief operator[] */
-        inline const TENSOR_FLOAT& operator[]( int idx )const{
-            return elem[idx];
-        }    
     };
 
-    /*! \brief 2D tensor in CPU */
-    class CTensor2D: public apex_exp_template::ContainerExp<CTensor2D>{
+    /*! \brief 2D tensor in GPU */
+    class GTensor2D: public apex_exp_template::ContainerExp<GTensor2D>{
     public:
         /*! \brief number of element in x dimension */
         int x_max;
@@ -73,11 +70,11 @@ namespace apex_tensor{
         /*! \brief number of bytes allocated in x dimension */
         unsigned int pitch;
         /*! \brief pointer to data */
-        CPtr<TENSOR_FLOAT> elem;
+        GPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
-        CTensor2D(){}
+        GTensor2D(){}
         /*! \brief constructor */
-        CTensor2D( int y_max, int x_max ){ 
+        GTensor2D( int y_max, int x_max ){ 
             set_param( y_max, x_max ); 
         }        
         /*! \brief set parameters */
@@ -90,13 +87,13 @@ namespace apex_tensor{
         /*! \brief copy paramter from target */
         inline void copy_param( const GTensor2D &exp );
         /*! \brief operator[] */
-        inline CTensor1D operator[]( int idx );
+        inline GTensor1D operator[]( int idx );
         /*! \brief operator[] */
-        inline const CTensor1D operator[]( int idx ) const;
+        inline const GTensor1D operator[]( int idx ) const;
     };
 
-    /*! \brief 3D tensor in CPU */
-    class CTensor3D: public apex_exp_template::ContainerExp<CTensor3D>{
+    /*! \brief 3D tensor in GPU */
+    class GTensor3D: public apex_exp_template::ContainerExp<GTensor3D>{
     public:
         /*! \brief number of element in x dimension */
         int x_max;
@@ -107,11 +104,11 @@ namespace apex_tensor{
         /*! \brief number of bytes allocated in x dimension */
         unsigned int pitch;
         /*! \brief pointer to data */
-        CPtr<TENSOR_FLOAT> elem;
+        GPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
-        CTensor3D(){}
+        GTensor3D(){}
         /*! \brief constructor */
-        CTensor3D( int z_max, int y_max, int x_max ){ 
+        GTensor3D( int z_max, int y_max, int x_max ){ 
             set_param( z_max, y_max, x_max ); 
         }        
         /*! \brief set parameters */
@@ -125,12 +122,12 @@ namespace apex_tensor{
         /*! \brief copy paramter from target */
         inline void copy_param( const GTensor3D &exp );
         /*! \brief operator[] */
-        inline CTensor2D operator[]( int idx );
+        inline GTensor2D operator[]( int idx );
         /*! \brief operator[] */
-        inline const CTensor2D operator[]( int idx ) const;
+        inline const GTensor2D operator[]( int idx ) const;
     };
-    /*! \brief 4D tensor in CPU */
-    class CTensor4D: public apex_exp_template::ContainerExp<CTensor4D>{
+    /*! \brief 4D tensor in GPU */
+    class GTensor4D: public apex_exp_template::ContainerExp<GTensor4D>{
     public:
         /*! \brief number of element in x dimension */
         int x_max;
@@ -143,11 +140,11 @@ namespace apex_tensor{
         /*! \brief number of bytes allocated in x dimension */
         unsigned int pitch;
         /*! \brief pointer to data */
-        CPtr<TENSOR_FLOAT> elem;
+        GPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
-        CTensor4D(){}
+        GTensor4D(){}
         /*! \brief constructor */
-        CTensor4D( int h_max, int z_max, int y_max, int x_max ){ 
+        GTensor4D( int h_max, int z_max, int y_max, int x_max ){ 
             set_param( h_max, z_max, y_max, x_max ); 
         }        
         /*! \brief set parameters */
@@ -162,9 +159,9 @@ namespace apex_tensor{
         /*! \brief copy paramter from target */
         inline void copy_param( const GTensor4D &exp );
         /*! \brief operator[] */
-        inline CTensor3D operator[]( int idx );
+        inline GTensor3D operator[]( int idx );
         /*! \brief operator[] */
-        inline const CTensor3D operator[]( int idx ) const;
+        inline const GTensor3D operator[]( int idx ) const;
     };
 };
 #endif
