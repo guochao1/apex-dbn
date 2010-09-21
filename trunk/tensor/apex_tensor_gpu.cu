@@ -510,12 +510,15 @@ namespace apex_tensor{
         using namespace cuda_tensor;
         APEX_USE_TEMPLATE_MAP_C( sadd__abs_err       , store_method::ADD, map_method_B::ABS_ERR )
         APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_rel   , store_method::ADD, map_method_B::ABS_ERR_REL   )
-        APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_relT  , store_method::ADD, map_method_B::ABS_ERR_RELT  )
-        
+        APEX_USE_TEMPLATE_MAP_C( sadd__abs_err_relT  , store_method::ADD, map_method_B::ABS_ERR_RELT  )        
     };
     
     // support for CRBM
     namespace tensor{
+        namespace rbm{
+            APEX_USE_TEMPLATE_MAP_A( mean_recified_linear, store_method::SAVE, map_method_A::RELU )
+            APEX_USE_TEMPLATE_MAP_S ( sample_recified_linear  , sample_recified_linear  , store_method::SAVE )
+        };
         namespace crbm{
             using namespace cuda_tensor;
             void copy_fit( GTensor2D &ans, const CTensor2D &src ){

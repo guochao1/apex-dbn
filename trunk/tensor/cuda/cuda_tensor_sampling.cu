@@ -42,16 +42,15 @@ namespace apex_tensor{
             sample_binary_kernel<st_m,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
                 ( dst.elem, src.elem, dst.pitch,  src.pitch, y_max, x_max, rnd );
         } 
-        
-        // sample gaussian with given mean and sd
+
         template<int st_m,int block_dim_bits>
-        __global__ void sample_gaussian_kernel( float *elem_dst , const float *elem_src, 
+        __global__ void sample_recified_linear_kernel( float *elem_dst , const float *elem_src, 
                                                 unsigned int pitch_dst, unsigned int pitch_src,
                                                 int y_max       , int x_max,
-                                                const float *rnd, float sd  ){
+                                                const float *rnd ){
             __shared__ float s_rnd[ 1<<block_dim_bits ];
             const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;            
-            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid), threadIdx.x, s_rnd ) * sd ;
+            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid), threadIdx.x, s_rnd );
             const int x_mm= get_align_width( x_max );
             const int y   = tid / x_mm;
             const int x   = tid % x_mm;
@@ -60,7 +59,46 @@ namespace apex_tensor{
             elem_src = get_line_const( elem_src, y, pitch_src );
                         
             if( y < y_max  && x < x_max ){
-                store_method::__store<st_m>( elem_dst[x], elem_src[x]+ r );
+                float ans = elem_src[x] + r / ( 1.0f + expf( -elem_src[x] ) );
+                if( ans < 0.0f ) ans = 0.0f;
+                store_method::__store<st_m>( elem_dst[x], ans );
+            }            
+        }
+        
+        template<int st_m,typename T>
+        inline void sample_recified_linear( T &dst, const T &src ){
+            int stride     = get_align_width( dst.x_max );
+            int y_max      = num_line( dst );
+            int x_max      = dst.x_max;
+            
+            int num_block = (y_max*stride + BASE_THREAD_NUM-1)/BASE_THREAD_NUM;
+
+            dim3 dimBlock( BASE_THREAD_NUM, 1, 1 );
+            dim3 dimGrid ( num_block      , 1, 1 );
+            const float *rnd = cuda_rand::rand_singles( dimGrid.x * dimBlock.x ); 
+            
+            sample_recified_linear_kernel<st_m,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
+                ( dst.elem, src.elem, dst.pitch,  src.pitch, y_max, x_max, rnd );
+        } 
+
+        // sample gaussian with given mean and sd
+        template<int st_m,int block_dim_bits>
+        __global__ void sample_gaussian_kernel( float *elem_dst , const float *elem_src, 
+                                                unsigned int pitch_dst, unsigned int pitch_src,
+                                                int y_max       , int x_max,
+                                                const float *rnd, float sd ){
+            __shared__ float s_rnd[ 1<<block_dim_bits ];
+            const int tid = (blockIdx.x << block_dim_bits) + threadIdx.x;            
+            const float r = cuda_rand::sample_gaussian<block_dim_bits>( cuda_rand::get_rand(rnd,tid), threadIdx.x, s_rnd ) * sd;
+            const int x_mm= get_align_width( x_max );
+            const int y   = tid / x_mm;
+            const int x   = tid % x_mm;
+            
+            elem_dst = get_line      ( elem_dst, y, pitch_dst );
+            elem_src = get_line_const( elem_src, y, pitch_src );
+                        
+            if( y < y_max  && x < x_max ){
+                store_method::__store<st_m>( elem_dst[x], elem_src[x] + r );
             }            
         }
         
@@ -79,7 +117,7 @@ namespace apex_tensor{
             sample_gaussian_kernel<st_m,BASE_THREAD_BITS> <<<dimGrid,dimBlock>>>
                 ( dst.elem, src.elem, dst.pitch,  src.pitch, y_max, x_max, rnd, sd );
         } 
-
+        
         // sample gaussian
         template<int st_m,int block_dim_bits>
         __global__ void sample_gaussian_kernel( float *elem_dst ,

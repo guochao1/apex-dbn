@@ -499,6 +499,10 @@ namespace apex_tensor{
     };
     // support for convolutional RBM
     namespace tensor{
+        namespace rbm{
+            inline void sample_recified_linear( CTensor3D &mean, const CTensor3D &energy );
+            inline void mean_recified_linear( CTensor3D &mean, const CTensor3D &energy );
+        };
         namespace crbm{
             // normalize by maxpooling 2D
             inline void norm_maxpooling_2D( CTensor3D &mean, const CTensor3D &energy, int pool_size );

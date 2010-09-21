@@ -21,8 +21,8 @@ namespace apex_tensor{
     struct CTensor2D;
     struct CTensor3D;
     struct CTensor4D;
-	struct CSTensor1D;
-	struct CSTensor2D;
+    struct CSTensor1D;
+    struct CSTensor2D;
     struct CSparseIndex1D;
     struct CTensor1DSparse;
     struct CSparseIndex2D;
