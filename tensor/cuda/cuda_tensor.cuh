@@ -390,6 +390,7 @@ namespace apex_tensor{
             const int IDENTITY     = 0 | A_MASK;
             const int SIGMOID      = 1 | A_MASK;
             const int SIGMOID_GRAD = 2 | A_MASK; 
+            const int RELU         = 3 | A_MASK; 
             template<int mm>
             __device__ float __map( float src );
             template<>
@@ -403,6 +404,13 @@ namespace apex_tensor{
             template<>
             __device__ float __map<SIGMOID_GRAD>( float src ){
                 return src * ( 1.0f - src );
+            }
+            template<>
+            __device__ float __map<RELU>( float src ){
+                if( src > 0 ) 
+                    return src + logf( 1.0f + expf( -src ) ); 
+                else
+                    return logf( 1.0f + expf( src ) ); 
             }
         };
 

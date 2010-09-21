@@ -496,6 +496,10 @@ namespace apex_tensor{
     
     // support for convolutional RBM
     namespace tensor{
+        namespace rbm{
+            void sample_recified_linear( GTensor3D &mean, const GTensor3D &energy );
+            void mean_recified_linear( GTensor3D &mean, const GTensor3D &energy );
+        };
         namespace crbm{
             // fit the last two dimension of src into dst's size, copy the fitted part into dst
             void copy_fit( GTensor2D &dst, const CTensor2D &src );

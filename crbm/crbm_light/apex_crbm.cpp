@@ -19,10 +19,10 @@ namespace apex_rbm{
     // node of CRBM
     class ICRBMNode{
     public:
-        // sample state given mean value 
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const = 0;
         // get mean value given energy
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const = 0;
+        // sample directly from energy 
+        virtual void sample_from_energy( TTensor3D &state, const TTensor3D &energy )const = 0;
         // feed forward data needed   
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const = 0;
         // feed forward bias to next layer 
@@ -40,10 +40,11 @@ namespace apex_rbm{
     // bianry node
     class CRBMBinaryNode : public ICRBMNode{
     public:
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
-            state = sample_binary( mean );
+        virtual void sample_from_energy( TTensor3D &state, const TTensor3D &energy )const{
+            cal_mean( state, energy ); 
+            state = sample_binary( state );
         }
-        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy)const{
+        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
             mean = sigmoid( energy );
         }               
         virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
@@ -61,6 +62,37 @@ namespace apex_rbm{
         }
     };
 
+    // ReLU node
+    template<bool scale_energy>
+    class CRBMReLUNode : public ICRBMNode{
+    private:
+        TENSOR_FLOAT energy_scale;
+    public :
+        CRBMReLUNode( TENSOR_FLOAT energy_scale = 1.0f ){
+            this->energy_scale = energy_scale;
+        }
+        virtual void sample_from_energy( TTensor3D &state, const TTensor3D &energy )const{
+            if( scale_energy ) state = energy * energy_scale;
+            tensor::rbm::sample_recified_linear( state, state );
+        }
+        virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
+            if( scale_energy ) mean = energy * energy_scale;
+            tensor::rbm::mean_recified_linear( mean, mean );
+        }               
+        virtual void feed_forward( TTensor3D &v_next, const TTensor3D &h_curr )const{
+            tensor::crbm::copy_fit( v_next, h_curr );
+        }
+        
+        virtual void forward_bias( TTensor1D &v_bias_next, const TTensor1D &h_bias_curr )const{
+            tensor::copy( v_bias_next, h_bias_curr );
+        }
+        virtual void reget_bound ( int &input_y_max, int &input_x_max  )const{}       
+        virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const{}
+        virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const{
+            // do nothing
+        }
+    };    
+
     template<bool use_type2>
     class CRBMGaussianNode : public ICRBMNode{
     private:
@@ -70,8 +102,9 @@ namespace apex_rbm{
             this->sigma       = sigma;
             this->sigma_sqr   = sigma*sigma;
         }
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
-            state = sample_gaussian( mean, sigma );
+        virtual void sample_from_energy( TTensor3D &state, const TTensor3D &energy )const{
+            cal_mean( state, energy );
+            state = sample_gaussian( state, sigma );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
             if( use_type2 ){
@@ -108,8 +141,9 @@ namespace apex_rbm{
             this->pool_size = pool_size;
             this->energy_scale = energy_scale;
         }
-        virtual void sample  ( TTensor3D &state, const TTensor3D &mean )const{
-            tensor::crbm::sample_maxpooling_2D( state, mean, pool_size );
+        virtual void sample_from_energy( TTensor3D &state, const TTensor3D &energy )const{
+            cal_mean( state, energy );
+            tensor::crbm::sample_maxpooling_2D( state, state, pool_size );
         }
         virtual void cal_mean( TTensor3D &mean , const TTensor3D &energy )const{
             if( !scale_energy ){ 
@@ -146,6 +180,7 @@ namespace apex_rbm{
         case model_type::BINARY_MAXPOOL    : return new CRBMBinaryNode();
         case model_type::GAUSSIAN_MAXPOOL_A: return new CRBMGaussianNode<false>( param.v_sigma );
         case model_type::GAUSSIAN_MAXPOOL_B: return new CRBMGaussianNode<true> ( param.v_sigma );
+        case model_type::GAUSSIAN_RELU_B   : return new CRBMGaussianNode<true> ( param.v_sigma );
         default: return NULL;
         }
     }
@@ -154,6 +189,7 @@ namespace apex_rbm{
         case model_type::BINARY_MAXPOOL:     return new CRBMMaxpoolNode<false>( param.pool_size );
         case model_type::GAUSSIAN_MAXPOOL_A: return new CRBMMaxpoolNode<false>( param.pool_size );
         case model_type::GAUSSIAN_MAXPOOL_B: return new CRBMMaxpoolNode<true> ( param.pool_size, 1.0f/(param.v_sigma*param.v_sigma) );
+        case model_type::GAUSSIAN_RELU_B   : return new CRBMReLUNode<true>    ( 1.0f/(param.v_sigma*param.v_sigma) );
         default: return NULL;
         }
     }
@@ -234,7 +270,6 @@ namespace apex_rbm{
         int cd_step;
         CRBMTrainParam param;
         bool validation_init;
-        bool start_from_neg;  
         int  h_size, v_size, vv_size;
     private:
         int sample_counter, state_counter;
@@ -249,7 +284,6 @@ namespace apex_rbm{
     private:
         inline void sync_size_to_layer( bool force_sync = false ){
             if( force_sync || layer.h_state.y_max  != h_neg.y_max || layer.h_state.x_max != h_neg.x_max ){
-                start_from_neg = false;
                 h_neg.set_param( h_neg.z_max, layer.h_state.y_max, layer.h_state.x_max );
                 v_neg.set_param( v_neg.z_max, layer.v_state.y_max, layer.v_state.x_max );
 
@@ -340,20 +374,20 @@ namespace apex_rbm{
             const ICRBMNode *v_node  = layer.v_node;
             // go up
             tensor::crbm::conv2_r_valid( h_pos, v_pos, W, h_bias );
-            h_node->cal_mean( h_pos, h_pos );
 
             // negative steps
             for( int i = 0 ; i < cd_step ; i ++ ){
                 TTensor3D &hh = ( i == 0 ? h_persistent : h_neg );
                 // sample h
-                h_node->sample( h_neg, hh );
+                h_node->sample_from_energy( h_neg, hh );
 
                 // go down
                 tensor::crbm::conv2_full( v_neg, h_neg, W, v_bias );
-                v_node->cal_mean( v_neg, v_neg );
 
-                if( param.sample_v_neg != 0 ){
-                    v_node->sample( v_neg, v_neg );
+                if( param.sample_v_neg ){
+                    v_node->sample_from_energy( v_neg, v_neg );
+                }else{
+                    v_node->cal_mean( v_neg, v_neg );
                 }
 
                 // refill edge area with v_pos inorder to avoid edge effect
@@ -363,8 +397,9 @@ namespace apex_rbm{
                 
                 // go up
                 tensor::crbm::conv2_r_valid( h_neg, v_neg, W, h_bias );
-                h_node->cal_mean( h_neg, h_neg );
             }                                    
+            h_node->cal_mean( h_neg, h_neg );
+            h_node->cal_mean( h_pos, h_pos );            
         }
 
         // calculate sparse gradient and store in h_sum_mf
@@ -444,9 +479,7 @@ namespace apex_rbm{
             TTensor3D &h_pos = layer.h_state;
 
             // whether can be use persistent chain
-            TTensor3D &hp = start_from_neg ? h_neg : h_pos;
-			cal_cd_steps( v_pos, v_neg, h_pos, h_neg, hp, this->cd_step );
-            start_from_neg = ( param.persistent_cd !=0 );
+			cal_cd_steps( v_pos, v_neg, h_pos, h_neg, h_pos, this->cd_step );
 
             // if we need to regularize edge sparsity, we need this information
             if( param.sparse_reg_edge ) v_sum_mf += sum_2D( v_pos );
