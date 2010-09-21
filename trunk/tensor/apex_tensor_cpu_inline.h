@@ -1152,33 +1152,35 @@ namespace apex_tensor{
                 }
             }
         };        
-    };
-    namespace rbm{
-        // sample recified linear
-        inline void sample_recified_linear( CTensor3D &dst, const CTensor3D &src ){
-            for( int i = 0 ; i < cpu_template::num_line( dst ) ; i ++ ){ 
-                TENSOR_FLOAT *d = cpu_template::get_line( dst, i );     
-                const TENSOR_FLOAT *a = cpu_template::get_line_const( src, i ); 
-                for( int j = 0 ; j < dst.x_max ; j ++ ){                 
-                    d[j] = (TENSOR_FLOAT)apex_random::sample_normal( a[j], 1.0/(1+exp(-a[j])));
-                    if( d[j] < 0 ) d[j] = 0.0; 
-                }                
-            }                                                                       
-        }
-        inline void mean_recified_linear( CTensor3D &dst, const CTensor3D &src ){
-            for( int i = 0 ; i < cpu_template::num_line( dst ) ; i ++ ){ 
-                TENSOR_FLOAT *d = cpu_template::get_line( dst, i );     
-                const TENSOR_FLOAT *a = cpu_template::get_line_const( src, i ); 
-                for( int j = 0 ; j < dst.x_max ; j ++ ){                 
-                    if( a[j] > 0 ) 
-                        d[j] = a[j] + log( 1 + exp(-a[j]) );
-                    else
-                        d[j] = log( 1 + exp(a[j]) );
-                }                
-            }                                                                                   
-        }
+
+        namespace rbm{
+            // sample recified linear
+            inline void sample_recified_linear( CTensor3D &dst, const CTensor3D &src ){
+                for( int i = 0 ; i < cpu_template::num_line( dst ) ; i ++ ){ 
+                    TENSOR_FLOAT *d = cpu_template::get_line( dst, i );     
+                    const TENSOR_FLOAT *a = cpu_template::get_line_const( src, i ); 
+                    for( int j = 0 ; j < dst.x_max ; j ++ ){                 
+                        d[j] = (TENSOR_FLOAT)apex_random::sample_normal( a[j], 1.0/(1+exp(-a[j])));
+                        if( d[j] < 0 ) d[j] = 0.0; 
+                    }                
+                }                                                                       
+            }
+            inline void mean_recified_linear( CTensor3D &dst, const CTensor3D &src ){
+                for( int i = 0 ; i < cpu_template::num_line( dst ) ; i ++ ){ 
+                    TENSOR_FLOAT *d = cpu_template::get_line( dst, i );     
+                    const TENSOR_FLOAT *a = cpu_template::get_line_const( src, i ); 
+                    for( int j = 0 ; j < dst.x_max ; j ++ ){                 
+                        if( a[j] > 0 ) 
+                            d[j] = a[j] + log( 1 + exp(-a[j]) );
+                        else
+                            d[j] = log( 1 + exp(a[j]) );
+                    }                
+                }                                                                                   
+            }
+        };
     };
 };
+
 
 /** support for sparse tensor */
 namespace apex_tensor{
