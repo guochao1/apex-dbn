@@ -89,7 +89,8 @@ namespace apex_rbm{
         virtual void reget_bound ( int &input_y_max, int &input_x_max  )const{}       
         virtual void reget_hidden_bound( int &h_y_max, int &h_x_max )const{}
         virtual void sparse_reg( TTensor1D &h_sum_mf, TTensor1D &h_sum_mf_grad, const TTensor3D &h_pos )const{
-            // do nothing
+            // for temporary use
+            tensor::crbm::add_sparse_info( h_sum_mf, h_sum_mf_grad, h_pos , 1 );
         }
     };    
 
@@ -181,6 +182,7 @@ namespace apex_rbm{
         case model_type::GAUSSIAN_MAXPOOL_A: return new CRBMGaussianNode<false>( param.v_sigma );
         case model_type::GAUSSIAN_MAXPOOL_B: return new CRBMGaussianNode<true> ( param.v_sigma );
         case model_type::GAUSSIAN_RELU_B   : return new CRBMGaussianNode<true> ( param.v_sigma );
+        case model_type::BINARY_RELU       : return new CRBMBinaryNode();
         default: return NULL;
         }
     }
@@ -190,6 +192,7 @@ namespace apex_rbm{
         case model_type::GAUSSIAN_MAXPOOL_A: return new CRBMMaxpoolNode<false>( param.pool_size );
         case model_type::GAUSSIAN_MAXPOOL_B: return new CRBMMaxpoolNode<true> ( param.pool_size, 1.0f/(param.v_sigma*param.v_sigma) );
         case model_type::GAUSSIAN_RELU_B   : return new CRBMReLUNode<true>    ( 1.0f/(param.v_sigma*param.v_sigma) );
+        case model_type::BINARY_RELU       : return new CRBMReLUNode<false>   ();
         default: return NULL;
         }
     }

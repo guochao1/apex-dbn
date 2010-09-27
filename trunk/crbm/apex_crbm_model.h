@@ -15,6 +15,7 @@ namespace apex_rbm{
         const int GAUSSIAN_MAXPOOL_A = 1;
         const int GAUSSIAN_MAXPOOL_B = 2;
         const int GAUSSIAN_RELU_B    = 3; 
+        const int BINARY_RELU        = 4; 
     };
     
     namespace sparse_loss{

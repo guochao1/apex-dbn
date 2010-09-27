@@ -226,19 +226,23 @@ namespace apex_rbm{
     class Tensor3DBufferIterator: public IIterator<CTensor3D>{
     private:
         int idx;
-        int silent,do_shuffle, max_amount;       
+        int silent, do_shuffle, max_amount, norm_zero_mean, norm_unit_var;       
         vector<CTensor3D>     buf;
         IIterator<CTensor3D> *base_itr;
     public:
         Tensor3DBufferIterator(){ 
             base_itr = NULL; 
             do_shuffle = 0; 
+            norm_zero_mean = 0;
+            norm_unit_var  = 0;
             max_amount = INT_MAX;
             buf.clear();             
         }
         Tensor3DBufferIterator( IIterator<CTensor3D> *base_itr ){ 
             this->base_itr = base_itr; 
             do_shuffle = 0; 
+            norm_zero_mean = 0;
+            norm_unit_var  = 0;
             max_amount = INT_MAX;
             buf.clear();             
         }
@@ -257,9 +261,11 @@ namespace apex_rbm{
         }
 
         virtual void set_param( const char *name, const char *val ){
-            if( !strcmp( name, "silent") )     silent = atoi( val );
-            if( !strcmp( name, "do_shuffle") ) do_shuffle = atoi( val );
-            if( !strcmp( name, "max_amount") ) max_amount = atoi( val );
+            if( !strcmp( name, "silent") )         silent = atoi( val );
+            if( !strcmp( name, "do_shuffle") )     do_shuffle = atoi( val );
+            if( !strcmp( name, "max_amount") )     max_amount = atoi( val );
+            if( !strcmp( name, "norm_zero_mean") ) norm_zero_mean = atoi( val );
+            if( !strcmp( name, "norm_unit_var") )  norm_unit_var  = atoi( val );
             if( base_itr != NULL ) base_itr->set_param( name, val );
         }
         
@@ -273,7 +279,7 @@ namespace apex_rbm{
             while( base_itr->next() && counter-- > 0 ){
                 CTensor3D cl;
                 cl = clone( base_itr->value() );
-                buf.push_back( cl );
+                buf.push_back( cl ); 
                 if( cl.z_max > z_max ) z_max = cl.z_max;
                 if( cl.y_max > y_max ) y_max = cl.y_max;
                 if( cl.x_max > x_max ) x_max = cl.x_max;
@@ -283,6 +289,20 @@ namespace apex_rbm{
 			if( !silent ) {
 				printf("BufferIterator:max_amount=%d,count=%d,z_max=%d,y_max=%d,x_max=%d", max_amount,(int)buf.size(),z_max,y_max,x_max );	
 			}
+
+            // normalzie to zero mean
+            if( norm_zero_mean ){
+                for( size_t i = 0; i < buf.size() ; i ++ )                    
+                    buf[i] += -cpu_only::avg( buf[i] ) ;
+                if( !silent ) printf(" norm_zero_mean");
+
+                if( norm_unit_var ){
+                    for( size_t i = 0; i < buf.size() ; i ++ )                    
+                        buf[i] *= 1.0f / cpu_only::std_var( buf[i] );
+                    if( !silent ) printf(" norm_unit_var");
+                } 
+            }
+
             if( do_shuffle ){
 				cpu_only::shuffle( buf );
                 if( !silent ) printf(" shuffle");
