@@ -21,4 +21,13 @@ namespace apex_tensor{
 
 #include "apex_tensor_cpu.h"
 #include "apex_tensor_gpu.h"
+
+#define _APEX_TENSOR_CPU_DECL_
+#include "apex_tensor_func_decl.h"
+#undef  _APEX_TENSOR_CPU_DECL_
+
+#define _APEX_TENSOR_GPU_DECL_
+#include "apex_tensor_func_decl.h"
+#undef  _APEX_TENSOR_GPU_DECL_
+
 #endif

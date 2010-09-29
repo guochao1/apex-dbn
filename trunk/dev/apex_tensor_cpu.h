@@ -35,8 +35,6 @@ namespace apex_tensor{
     public:
         /*! \brief number of element in x dimension */
         int x_max;
-        /*! \brief number of bytes allocated in x dimension */
-        unsigned int pitch;
         /*! \brief pointer to data */
         CPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
@@ -71,7 +69,7 @@ namespace apex_tensor{
         /*! \brief number of element in y dimension */
         int y_max;
         /*! \brief number of bytes allocated in x dimension */
-        unsigned int pitch;
+        unsigned int pitch_x;
         /*! \brief pointer to data */
         CPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
@@ -105,7 +103,9 @@ namespace apex_tensor{
         /*! \brief number of element in z dimension */
         int z_max;
         /*! \brief number of bytes allocated in x dimension */
-        unsigned int pitch;
+        unsigned int pitch_x;
+        /*! \brief number of bytes allocated in xy dimension */
+        unsigned int pitch_xy;
         /*! \brief pointer to data */
         CPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
@@ -141,7 +141,11 @@ namespace apex_tensor{
         /*! \brief number of element in h dimension */
         int h_max;
         /*! \brief number of bytes allocated in x dimension */
-        unsigned int pitch;
+        unsigned int pitch_x;
+        /*! \brief number of bytes allocated in xy dimension */
+        unsigned int pitch_xy;
+        /*! \brief number of bytes allocated in xyz dimension */
+        unsigned int pitch_xyz;
         /*! \brief pointer to data */
         CPtr<TENSOR_FLOAT> elem;
         /*! \brief constructor */
