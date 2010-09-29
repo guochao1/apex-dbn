@@ -18,8 +18,7 @@
 // use optimized convolution method for special masks
 #define  __CUDA_CONV2_USE_OPT__ 1
 
-// the precision of tensor
-
+// the default precision of tensor
 #define __APEX_TENSOR_DOUBLE_PRECISION__ 0
 
 // whether to use BLAS to speed up matrix computation
@@ -47,5 +46,6 @@ namespace apex_tensor{
     typedef float TENSOR_FLOAT;
 #endif
 };
+
 #endif
 
